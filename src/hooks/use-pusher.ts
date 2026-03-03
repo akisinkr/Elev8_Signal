@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { pusherClient } from "@/lib/pusher";
+import { getPusherClient } from "@/lib/pusher";
 
 export function usePusher(
   channelName: string,
@@ -9,12 +9,13 @@ export function usePusher(
   callback: (data: unknown) => void
 ) {
   useEffect(() => {
-    const channel = pusherClient.subscribe(channelName);
+    const client = getPusherClient();
+    const channel = client.subscribe(channelName);
     channel.bind(eventName, callback);
 
     return () => {
       channel.unbind(eventName, callback);
-      pusherClient.unsubscribe(channelName);
+      client.unsubscribe(channelName);
     };
   }, [channelName, eventName, callback]);
 }

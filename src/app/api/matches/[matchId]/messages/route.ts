@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireMember } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { pusherServer } from "@/lib/pusher";
+import { getPusherServer } from "@/lib/pusher";
 import { z } from "zod";
 
 const messageSchema = z.object({
@@ -75,7 +75,7 @@ export async function POST(
     });
 
     // Trigger real-time update
-    await pusherServer.trigger(`match-${matchId}`, "new-message", message);
+    await getPusherServer().trigger(`match-${matchId}`, "new-message", message);
 
     return NextResponse.json(message, { status: 201 });
   } catch (error) {
