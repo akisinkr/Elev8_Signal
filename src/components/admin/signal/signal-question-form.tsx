@@ -21,17 +21,15 @@ interface SignalQuestionFormProps {
   initialData?: Partial<FormData>;
   onSubmit: (data: FormData) => void;
   isSubmitting: boolean;
+  submitLabel?: string;
 }
 
 const CATEGORIES = [
-  "Leadership",
-  "Strategy",
-  "Operations",
-  "Culture",
-  "Growth",
-  "Technology",
-  "Finance",
-  "Talent",
+  { value: "AI_STRATEGY", label: "AI & Strategy" },
+  { value: "KOREA_TACTICAL", label: "Korea Tactical" },
+  { value: "LEADERSHIP", label: "Leadership" },
+  { value: "WILDCARD", label: "Wildcard" },
+  { value: "SYNTHESIS", label: "Synthesis" },
 ];
 
 const OPTION_KEYS = ["A", "B", "C", "D", "E"] as const;
@@ -40,6 +38,7 @@ export function SignalQuestionForm({
   initialData,
   onSubmit,
   isSubmitting,
+  submitLabel = "Save Signal",
 }: SignalQuestionFormProps) {
   const [form, setForm] = React.useState<FormData>({
     question: initialData?.question ?? "",
@@ -48,7 +47,7 @@ export function SignalQuestionForm({
     optionC: initialData?.optionC ?? "",
     optionD: initialData?.optionD ?? "",
     optionE: initialData?.optionE ?? "",
-    category: initialData?.category ?? CATEGORIES[0],
+    category: initialData?.category ?? "WILDCARD",
     voteDeadline: initialData?.voteDeadline ?? "",
   });
 
@@ -105,8 +104,8 @@ export function SignalQuestionForm({
             className="flex h-9 w-full rounded-md border bg-background px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
+              <option key={cat.value} value={cat.value}>
+                {cat.label}
               </option>
             ))}
           </select>
@@ -124,7 +123,7 @@ export function SignalQuestionForm({
       </div>
 
       <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? "Saving..." : "Save Signal"}
+        {isSubmitting ? "Saving..." : submitLabel}
       </Button>
     </form>
   );

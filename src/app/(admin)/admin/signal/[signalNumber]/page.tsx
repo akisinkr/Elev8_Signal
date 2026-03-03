@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { SignalStatusBadge } from "@/components/signal/signal-status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { SIGNAL_CATEGORY_LABELS, SIGNAL_ANSWER_KEYS } from "@/lib/signal-constants";
+import { SignalCopyLinks } from "@/components/admin/signal/signal-copy-links";
 import { AdminSignalActions } from "./admin-signal-actions";
 
 export default async function AdminSignalDetailPage({
@@ -59,6 +60,7 @@ export default async function AdminSignalDetailPage({
   return (
     <div className="space-y-8">
       <PageHeader title={`Signal #${signal.signalNumber}`}>
+        <SignalCopyLinks signalNumber={signal.signalNumber} status={signal.status} />
         <SignalStatusBadge status={signal.status} />
       </PageHeader>
 

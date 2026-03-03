@@ -1,10 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { requireMember } from "@/lib/auth";
 import { getSignalByNumber, getMemberVote } from "@/lib/signal";
-import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent } from "@/components/ui/card";
-import { SignalCountdown } from "@/components/signal/signal-countdown";
-import { SIGNAL_CATEGORY_LABELS } from "@/lib/signal-constants";
 import { VoteFormWrapper } from "./vote-form-wrapper";
 
 export default async function VotePage({
@@ -39,25 +35,13 @@ export default async function VotePage({
   ];
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={`Signal #${signal.signalNumber}`}
-        description={SIGNAL_CATEGORY_LABELS[signal.category]}
+    <div className="-mx-4 sm:-mx-6 -mt-8">
+      <VoteFormWrapper
+        signalNumber={signal.signalNumber}
+        question={signal.question}
+        options={options}
+        deadline={signal.voteDeadline?.toISOString() ?? null}
       />
-
-      {signal.voteDeadline && (
-        <SignalCountdown deadline={signal.voteDeadline.toISOString()} />
-      )}
-
-      <Card>
-        <CardContent>
-          <VoteFormWrapper
-            signalNumber={signal.signalNumber}
-            question={signal.question}
-            options={options}
-          />
-        </CardContent>
-      </Card>
     </div>
   );
 }

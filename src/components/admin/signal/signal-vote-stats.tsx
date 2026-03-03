@@ -77,6 +77,26 @@ export function SignalVoteStats({ votes, distribution }: SignalVoteStatsProps) {
           </TableBody>
         </Table>
       </div>
+
+      {/* Anonymous quotes preview (what members see) */}
+      {votes.some((v) => v.why) && (
+        <div>
+          <h3 className="mb-3 text-sm font-semibold">Anonymous Quotes Preview</h3>
+          <div className="space-y-2">
+            {votes
+              .filter((v) => v.why)
+              .slice(0, 5)
+              .map((vote, i) => (
+                <blockquote
+                  key={i}
+                  className="rounded-lg border-l-2 border-primary/40 bg-muted/50 px-4 py-3 text-sm text-foreground"
+                >
+                  &ldquo;{vote.why}&rdquo;
+                </blockquote>
+              ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

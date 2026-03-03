@@ -1,13 +1,5 @@
-import { PageHeader } from "@/components/shared/page-header";
+import { redirect } from "next/navigation";
 
-export default function AdminDashboardPage() {
-  return (
-    <div>
-      <PageHeader
-        title="Admin Dashboard"
-        description="Manage members, matches, and feedback."
-      />
-      {/* Admin stats/overview will be implemented here */}
-    </div>
-  );
+export default function AdminPage() {
+  redirect("/admin/signal");
 }

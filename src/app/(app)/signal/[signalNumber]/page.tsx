@@ -1,16 +1,13 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireMember } from "@/lib/auth";
 import { getSignalByNumber, getMemberVote, computeResults } from "@/lib/signal";
-import { PageHeader } from "@/components/shared/page-header";
 import { SignalHeadline } from "@/components/signal/signal-headline";
 import { SignalYourVsGroup } from "@/components/signal/signal-your-vs-group";
 import { SignalResultBars } from "@/components/signal/signal-result-bars";
 import { SignalPeerQuotes } from "@/components/signal/signal-peer-quotes";
 import { SignalVoteGate } from "@/components/signal/signal-vote-gate";
-import { SignalStatusBadge } from "@/components/signal/signal-status-badge";
-import { SIGNAL_CATEGORY_LABELS } from "@/lib/signal-constants";
 import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
 
 export default async function SignalResultsPage({
   params,
@@ -33,9 +30,9 @@ export default async function SignalResultsPage({
   if (signal.status !== "PUBLISHED") {
     return (
       <div className="space-y-6">
-        <PageHeader title={`Signal #${signal.signalNumber}`}>
-          <SignalStatusBadge status={signal.status} />
-        </PageHeader>
+        <h1 className="text-lg font-semibold tracking-tight">
+          Signal #{signal.signalNumber}
+        </h1>
 
         <Card>
           <CardContent className="py-12 text-center">
@@ -69,11 +66,10 @@ export default async function SignalResultsPage({
   if (!hasVoted) {
     return (
       <div className="space-y-6">
-        <PageHeader
-          title={`Signal #${signal.signalNumber}`}
-          description={SIGNAL_CATEGORY_LABELS[signal.category]}
-        />
-        <SignalVoteGate hasVoted={false} signalNumber={num}>
+        <h1 className="text-lg font-semibold tracking-tight">
+          Signal #{signal.signalNumber}
+        </h1>
+        <SignalVoteGate hasVoted={false} signalNumber={num} status={signal.status}>
           <div />
         </SignalVoteGate>
       </div>
@@ -100,16 +96,11 @@ export default async function SignalResultsPage({
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title={`Signal #${signal.signalNumber}`}
-        description={SIGNAL_CATEGORY_LABELS[signal.category]}
-      >
-        <SignalStatusBadge status={signal.status} />
-      </PageHeader>
+      <h1 className="text-lg font-semibold tracking-tight">
+        Signal #{signal.signalNumber}
+      </h1>
 
-      <h2 className="text-lg font-semibold leading-snug">
-        {signal.question}
-      </h2>
+      <h2 className="text-xl font-bold leading-snug">{signal.question}</h2>
 
       <SignalHeadline
         headline={results.question.headlineInsight}
@@ -129,15 +120,6 @@ export default async function SignalResultsPage({
       />
 
       <SignalPeerQuotes quotes={results.anonymousQuotes} />
-
-      <div className="text-center pt-4">
-        <Link
-          href="/signal/archive"
-          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
-        >
-          View all Signal results
-        </Link>
-      </div>
     </div>
   );
 }

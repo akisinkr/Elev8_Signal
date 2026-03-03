@@ -18,9 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Superpower Exchange | Elev8",
+  title: "Elev8 Signal",
   description:
-    "Trade your superpowers with elite leaders. An invite-only peer advisory network.",
+    "The pulse of Elev8 leadership — one question at a time.",
 };
 
 export default function RootLayout({
