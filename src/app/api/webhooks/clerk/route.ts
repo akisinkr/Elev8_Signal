@@ -1,0 +1,70 @@
+import { headers } from "next/headers";
+import { WebhookEvent } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/db";
+import { NextResponse } from "next/server";
+
+export async function POST(req: Request) {
+  const headerPayload = await headers();
+  const svix_id = headerPayload.get("svix-id");
+  const svix_timestamp = headerPayload.get("svix-timestamp");
+  const svix_signature = headerPayload.get("svix-signature");
+
+  if (!svix_id || !svix_timestamp || !svix_signature) {
+    return NextResponse.json({ error: "Missing svix headers" }, { status: 400 });
+  }
+
+  const body = await req.json();
+  const evt = body as WebhookEvent;
+
+  const eventType = evt.type;
+
+  if (eventType === "user.created") {
+    const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+    const primaryEmail = email_addresses?.[0]?.email_address;
+
+    if (!primaryEmail) {
+      return NextResponse.json({ error: "No email found" }, { status: 400 });
+    }
+
+    await prisma.member.upsert({
+      where: { clerkId: id },
+      update: {
+        email: primaryEmail,
+        firstName: first_name || "",
+        lastName: last_name || "",
+        imageUrl: image_url || null,
+      },
+      create: {
+        clerkId: id,
+        email: primaryEmail,
+        firstName: first_name || "",
+        lastName: last_name || "",
+        imageUrl: image_url || null,
+      },
+    });
+  }
+
+  if (eventType === "user.updated") {
+    const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+    const primaryEmail = email_addresses?.[0]?.email_address;
+
+    await prisma.member.updateMany({
+      where: { clerkId: id },
+      data: {
+        email: primaryEmail,
+        firstName: first_name || "",
+        lastName: last_name || "",
+        imageUrl: image_url || null,
+      },
+    });
+  }
+
+  if (eventType === "user.deleted") {
+    const { id } = evt.data;
+    if (id) {
+      await prisma.member.deleteMany({ where: { clerkId: id } });
+    }
+  }
+
+  return NextResponse.json({ received: true });
+}

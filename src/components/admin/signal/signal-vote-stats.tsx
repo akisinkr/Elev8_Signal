@@ -1,0 +1,82 @@
+import { SignalResultBars } from "@/components/signal/signal-result-bars";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+interface Vote {
+  answer: string;
+  memberName: string;
+  why: string | null;
+  createdAt: string;
+}
+
+interface DistributionItem {
+  answer: string;
+  label: string;
+  count: number;
+  percentage: number;
+}
+
+interface SignalVoteStatsProps {
+  votes: Vote[];
+  distribution: DistributionItem[];
+}
+
+export function SignalVoteStats({ votes, distribution }: SignalVoteStatsProps) {
+  const totalVotes = votes.length;
+
+  return (
+    <div className="space-y-8">
+      <SignalResultBars
+        distribution={distribution}
+        totalVotes={totalVotes}
+        memberAnswer={null}
+      />
+
+      <div>
+        <h3 className="mb-3 text-sm font-semibold">Individual Votes</h3>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Member</TableHead>
+              <TableHead>Answer</TableHead>
+              <TableHead>Why</TableHead>
+              <TableHead>Voted At</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {votes.map((vote, i) => (
+              <TableRow key={i}>
+                <TableCell className="font-medium">
+                  {vote.memberName}
+                </TableCell>
+                <TableCell>{vote.answer}</TableCell>
+                <TableCell className="max-w-[300px] truncate text-muted-foreground">
+                  {vote.why ?? "--"}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {new Date(vote.createdAt).toLocaleDateString()}
+                </TableCell>
+              </TableRow>
+            ))}
+            {votes.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  className="text-center text-muted-foreground py-8"
+                >
+                  No votes yet
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}

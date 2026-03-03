@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum OnboardingState {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum MemberRole {
+  MEMBER
+  ADMIN
+}
+
+enum MatchStatus {
+  PROPOSED
+  PRESENTED
+  ACCEPTED
+  ACTIVE
+  COMPLETED
+  DECLINED
+}
+
+enum MessageType {
+  TEXT
+  VOICE_NOTE
+}
+
+enum FeedbackRating {
+  POSITIVE
+  NEGATIVE
+}
+
+enum SignalStatus {
+  DRAFT
+  LIVE
+  CLOSED
+  PUBLISHED
+}
+
+enum SignalCategory {
+  AI_STRATEGY
+  KOREA_TACTICAL
+  LEADERSHIP
+  WILDCARD
+  SYNTHESIS
+}
+
+enum SignalAnswer {
+  A
+  B
+  C
+  D
+  E
+}
+
+// ─── Models ──────────────────────────────────────────────
+
+model Member {
+  id               String          @id @default(cuid())
+  clerkId          String          @unique
+  email            String          @unique
+  firstName        String
+  lastName         String
+  imageUrl         String?
+  bio              String?
+  headline         String?
+  company          String?
+  jobTitle         String?
+  linkedinUrl      String?
+  superpowers      String[]
+  challenges       String[]
+  onboardingState  OnboardingState @default(NOT_STARTED)
+  onboardingStep   Int             @default(0)
+  role             MemberRole      @default(MEMBER)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  matchesAsMember1 Match[]      @relation("MatchMember1")
+  matchesAsMember2 Match[]      @relation("MatchMember2")
+  messages         Message[]
+  feedback         Feedback[]
+  signalVotes      SignalVote[]
+
+  @@index([clerkId])
+}
+
+model Match {
+  id          String      @id @default(cuid())
+  member1Id   String
+  member2Id   String
+  status      MatchStatus @default(PROPOSED)
+  curatorNote String?
+  matchedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  member1  Member     @relation("MatchMember1", fields: [member1Id], references: [id])
+  member2  Member     @relation("MatchMember2", fields: [member2Id], references: [id])
+  messages Message[]
+  feedback Feedback[]
+
+  @@index([member1Id])
+  @@index([member2Id])
+}
+
+model Message {
+  id           String      @id @default(cuid())
+  content      String
+  type         MessageType @default(TEXT)
+  voiceNoteUrl String?
+  matchId      String
+  senderId     String
+  createdAt    DateTime    @default(now())
+
+  match  Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender Member @relation(fields: [senderId], references: [id])
+
+  @@index([matchId])
+}
+
+model Feedback {
+  id       String         @id @default(cuid())
+  rating   FeedbackRating
+  comment  String?
+  matchId  String
+  memberId String
+  createdAt DateTime      @default(now())
+
+  match  Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@unique([matchId, memberId])
+  @@index([matchId])
+}
+
+// ─── Signal (Peer Survey) ───────────────────────────────
+
+model SignalQuestion {
+  id              String         @id @default(cuid())
+  signalNumber    Int            @unique
+  question        String
+  category        SignalCategory @default(WILDCARD)
+  status          SignalStatus   @default(DRAFT)
+  optionA         String
+  optionB         String
+  optionC         String
+  optionD         String
+  optionE         String
+  headlineInsight String?
+  voteDeadline    DateTime?
+  publishedAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  votes SignalVote[]
+
+  @@index([status])
+  @@index([signalNumber])
+}
+
+model SignalVote {
+  id         String       @id @default(cuid())
+  answer     SignalAnswer
+  why        String?
+  questionId String
+  memberId   String
+  createdAt  DateTime     @default(now())
+
+  question SignalQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  member   Member         @relation(fields: [memberId], references: [id])
+
+  @@unique([questionId, memberId])
+  @@index([questionId])
+}
