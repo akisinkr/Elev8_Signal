@@ -71,8 +71,31 @@ export default function AdminLoginPage() {
         } else {
           setError("You are not authorized to access the admin panel.");
         }
+      } else if (result.status === "needs_first_factor") {
+        // Password strategy may not be the first factor — try submitting it
+        const firstFactor = await signIn.attemptFirstFactor({
+          strategy: "password",
+          password,
+        });
+
+        if (firstFactor.status === "complete") {
+          await setActive({ session: firstFactor.createdSessionId });
+
+          const res = await fetch("/api/admin/auth/check-role", {
+            method: "POST",
+          });
+          const data = await res.json();
+
+          if (data.isAdmin) {
+            router.push("/admin");
+          } else {
+            setError("You are not authorized to access the admin panel.");
+          }
+        } else {
+          setError(`Additional verification required (${firstFactor.status}). Please use the standard sign-in page.`);
+        }
       } else {
-        setError("Authentication failed. Please try again.");
+        setError(`Authentication requires additional steps (${result.status}). Please use the standard sign-in page.`);
       }
     } catch (err: unknown) {
       const clerkError = err as { errors?: { message: string }[] };
