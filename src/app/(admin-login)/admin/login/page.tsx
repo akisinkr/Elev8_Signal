@@ -71,11 +71,13 @@ export default function AdminLoginPage() {
     if (hasTotp) {
       setStep("totp");
     } else if (hasPhone) {
-      // Trigger SMS code
       await signIn.prepareSecondFactor({ strategy: "phone_code" });
       setStep("phone_code");
     } else {
-      setError("Unsupported 2FA method. Please contact support.");
+      // Show what Clerk actually reports for debugging
+      setError(
+        `No supported 2FA found. Available: ${JSON.stringify(secondFactors)}`
+      );
     }
   }
 
