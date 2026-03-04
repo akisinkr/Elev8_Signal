@@ -4,12 +4,16 @@ import { useState, useEffect } from "react";
 import { useSignIn, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
+type Step = "credentials" | "totp" | "phone_code";
+
 export default function AdminLoginPage() {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { isSignedIn, signOut } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [step, setStep] = useState<Step>("credentials");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -25,7 +29,6 @@ export default function AdminLoginPage() {
           if (data.isAdmin) {
             router.push("/admin");
           } else {
-            // Not admin — sign out so they can use the login form
             signOut().then(() => setChecking(false));
           }
         })
@@ -37,17 +40,48 @@ export default function AdminLoginPage() {
     }
   }, [isLoaded, isSignedIn, router, signOut]);
 
-  if (checking) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <p className="text-zinc-500">Checking session...</p>
-      </div>
-    );
+  async function handleAdminCheck() {
+    const res = await fetch("/api/admin/auth/check-role", { method: "POST" });
+    const data = await res.json();
+    if (data.isAdmin) {
+      router.push("/admin");
+    } else {
+      setError("You are not authorized to access the admin panel.");
+    }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleComplete(sessionId: string | null | undefined) {
+    if (setActive) {
+      await setActive({ session: sessionId ?? null });
+    }
+    await handleAdminCheck();
+  }
+
+  async function handleNeedsSecondFactor() {
+    if (!signIn) return;
+    // Determine which second factor is available
+    const secondFactors = signIn.supportedSecondFactors;
+    const hasTotp = secondFactors?.some(
+      (f) => f.strategy === "totp"
+    );
+    const hasPhone = secondFactors?.some(
+      (f) => f.strategy === "phone_code"
+    );
+
+    if (hasTotp) {
+      setStep("totp");
+    } else if (hasPhone) {
+      // Trigger SMS code
+      await signIn.prepareSecondFactor({ strategy: "phone_code" });
+      setStep("phone_code");
+    } else {
+      setError("Unsupported 2FA method. Please contact support.");
+    }
+  }
+
+  async function handleCredentialsSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isLoaded) return;
+    if (!isLoaded || !signIn) return;
 
     setError("");
     setLoading(true);
@@ -59,52 +93,65 @@ export default function AdminLoginPage() {
       });
 
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-
-        const res = await fetch("/api/admin/auth/check-role", {
-          method: "POST",
-        });
-        const data = await res.json();
-
-        if (data.isAdmin) {
-          router.push("/admin");
-        } else {
-          setError("You are not authorized to access the admin panel.");
-        }
+        await handleComplete(result.createdSessionId);
       } else if (result.status === "needs_first_factor") {
-        // Password strategy may not be the first factor — try submitting it
         const firstFactor = await signIn.attemptFirstFactor({
           strategy: "password",
           password,
         });
 
         if (firstFactor.status === "complete") {
-          await setActive({ session: firstFactor.createdSessionId });
-
-          const res = await fetch("/api/admin/auth/check-role", {
-            method: "POST",
-          });
-          const data = await res.json();
-
-          if (data.isAdmin) {
-            router.push("/admin");
-          } else {
-            setError("You are not authorized to access the admin panel.");
-          }
+          await handleComplete(firstFactor.createdSessionId);
+        } else if (firstFactor.status === "needs_second_factor") {
+          await handleNeedsSecondFactor();
         } else {
-          setError(`Additional verification required (${firstFactor.status}). Please use the standard sign-in page.`);
+          setError("Authentication failed. Please try again.");
         }
+      } else if (result.status === "needs_second_factor") {
+        await handleNeedsSecondFactor();
       } else {
-        setError(`Authentication requires additional steps (${result.status}). Please use the standard sign-in page.`);
+        setError("Authentication failed. Please try again.");
       }
     } catch (err: unknown) {
       const clerkError = err as { errors?: { message: string }[] };
-      const message =
-        clerkError.errors?.[0]?.message ?? "Invalid email or password.";
-      setError(message);
+      setError(clerkError.errors?.[0]?.message ?? "Invalid email or password.");
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleCodeSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isLoaded || !signIn) return;
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const result = await signIn.attemptSecondFactor({
+        strategy: step === "totp" ? "totp" : "phone_code",
+        code,
+      });
+
+      if (result.status === "complete") {
+        await handleComplete(result.createdSessionId);
+      } else {
+        setError("Verification failed. Please try again.");
+      }
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: { message: string }[] };
+      setError(clerkError.errors?.[0]?.message ?? "Invalid code.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <p className="text-zinc-500">Checking session...</p>
+      </div>
+    );
   }
 
   return (
@@ -112,57 +159,108 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white">Elev8 Admin</h1>
-          <p className="text-zinc-500 text-sm mt-1">Sign in to continue</p>
+          <p className="text-zinc-500 text-sm mt-1">
+            {step === "credentials"
+              ? "Sign in to continue"
+              : step === "totp"
+                ? "Enter your authenticator code"
+                : "Enter the code sent to your phone"}
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-zinc-400 mb-1"
+        {step === "credentials" ? (
+          <form onSubmit={handleCredentialsSubmit} className="space-y-4">
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-zinc-400 mb-1"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:border-transparent"
+                placeholder="admin@elev8.com"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-zinc-400 mb-1"
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:border-transparent"
+              />
+            </div>
+
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={loading || !isLoaded}
+              className="w-full py-2 px-4 bg-white text-zinc-950 font-medium rounded-md hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:border-transparent"
-              placeholder="admin@elev8.com"
-            />
-          </div>
+              {loading ? "Signing in..." : "Sign in"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleCodeSubmit} className="space-y-4">
+            <div>
+              <label
+                htmlFor="code"
+                className="block text-sm font-medium text-zinc-400 mb-1"
+              >
+                {step === "totp" ? "Authenticator Code" : "Verification Code"}
+              </label>
+              <input
+                id="code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                required
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:border-transparent text-center text-lg tracking-widest"
+                placeholder="000000"
+                maxLength={6}
+              />
+            </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-zinc-400 mb-1"
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={loading || !isLoaded}
+              className="w-full py-2 px-4 bg-white text-zinc-950 font-medium rounded-md hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:border-transparent"
-            />
-          </div>
+              {loading ? "Verifying..." : "Verify"}
+            </button>
 
-          {error && (
-            <p className="text-red-400 text-sm">{error}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading || !isLoaded}
-            className="w-full py-2 px-4 bg-white text-zinc-950 font-medium rounded-md hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
+            <button
+              type="button"
+              onClick={() => {
+                setStep("credentials");
+                setCode("");
+                setError("");
+              }}
+              className="w-full py-2 px-4 text-zinc-500 text-sm hover:text-zinc-300 transition-colors"
+            >
+              Back to sign in
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
