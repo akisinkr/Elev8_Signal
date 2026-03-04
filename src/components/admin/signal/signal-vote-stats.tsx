@@ -1,4 +1,5 @@
 import { SignalResultBars } from "@/components/signal/signal-result-bars";
+import { Check, Minus } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,6 +14,7 @@ interface Vote {
   memberName: string;
   why: string | null;
   createdAt: string;
+  resultEmailSentAt: string | null;
 }
 
 interface DistributionItem {
@@ -47,6 +49,7 @@ export function SignalVoteStats({ votes, distribution }: SignalVoteStatsProps) {
               <TableHead>Answer</TableHead>
               <TableHead>Why</TableHead>
               <TableHead>Voted At</TableHead>
+              <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -62,12 +65,25 @@ export function SignalVoteStats({ votes, distribution }: SignalVoteStatsProps) {
                 <TableCell className="text-muted-foreground">
                   {new Date(vote.createdAt).toLocaleDateString()}
                 </TableCell>
+                <TableCell>
+                  {vote.resultEmailSentAt ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
+                      <Check className="size-3.5" />
+                      Sent
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                      <Minus className="size-3.5" />
+                      Not sent
+                    </span>
+                  )}
+                </TableCell>
               </TableRow>
             ))}
             {votes.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={5}
                   className="text-center text-muted-foreground py-8"
                 >
                   No votes yet

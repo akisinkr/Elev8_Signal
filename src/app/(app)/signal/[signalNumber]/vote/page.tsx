@@ -1,6 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { requireMember } from "@/lib/auth";
-import { getSignalByNumber, getMemberVote } from "@/lib/signal";
+import { getSignalByNumber } from "@/lib/signal";
 import { VoteFormWrapper } from "./vote-form-wrapper";
 
 export default async function VotePage({
@@ -8,7 +7,6 @@ export default async function VotePage({
 }: {
   params: Promise<{ signalNumber: string }>;
 }) {
-  const member = await requireMember();
   const { signalNumber } = await params;
   const num = parseInt(signalNumber, 10);
 
@@ -17,12 +15,7 @@ export default async function VotePage({
   const signal = await getSignalByNumber(num);
   if (!signal) notFound();
 
-  if (signal.status !== "LIVE") {
-    redirect(`/signal/${num}`);
-  }
-
-  const existingVote = await getMemberVote(signal.id, member.id);
-  if (existingVote) {
+  if (signal.status !== "LIVE" && signal.status !== "PUBLISHED" && signal.status !== "CLOSED") {
     redirect(`/signal/${num}`);
   }
 
@@ -41,6 +34,7 @@ export default async function VotePage({
         question={signal.question}
         options={options}
         deadline={signal.voteDeadline?.toISOString() ?? null}
+        signalStatus={signal.status}
       />
     </div>
   );

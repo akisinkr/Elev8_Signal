@@ -6,6 +6,13 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { Copy, ExternalLink, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 
 interface SignalListActionsProps {
   signalNumber: number;
@@ -15,14 +22,16 @@ interface SignalListActionsProps {
 export function SignalListActions({ signalNumber, status }: SignalListActionsProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [showDeadlineDialog, setShowDeadlineDialog] = React.useState(false);
+  const [deadline, setDeadline] = React.useState<Date | undefined>(undefined);
 
-  async function handleStatusChange(newStatus: string) {
+  async function handleStatusChange(newStatus: string, extra?: Record<string, unknown>) {
     setIsSubmitting(true);
     try {
       const res = await fetch(`/api/admin/signal/${signalNumber}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, ...extra }),
       });
 
       if (!res.ok) {
@@ -40,6 +49,22 @@ export function SignalListActions({ signalNumber, status }: SignalListActionsPro
     }
   }
 
+  function handleGoLiveClick() {
+    const defaultDate = new Date();
+    defaultDate.setDate(defaultDate.getDate() + 7);
+    setDeadline(defaultDate);
+    setShowDeadlineDialog(true);
+  }
+
+  function handleConfirmGoLive() {
+    if (!deadline) {
+      toast.error("Please set a vote deadline");
+      return;
+    }
+    setShowDeadlineDialog(false);
+    handleStatusChange("LIVE", { voteDeadline: deadline.toISOString() });
+  }
+
   function copyLink(path: string) {
     const url = `${window.location.origin}${path}`;
     navigator.clipboard.writeText(url);
@@ -53,7 +78,7 @@ export function SignalListActions({ signalNumber, status }: SignalListActionsPro
           size="sm"
           variant="outline"
           disabled={isSubmitting}
-          onClick={() => handleStatusChange("LIVE")}
+          onClick={handleGoLiveClick}
           className="h-7 text-xs"
         >
           Go Live
@@ -124,6 +149,40 @@ export function SignalListActions({ signalNumber, status }: SignalListActionsPro
           <ExternalLink className="size-3" />
         </Link>
       </Button>
+
+      <Dialog open={showDeadlineDialog} onOpenChange={setShowDeadlineDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Set Vote Deadline</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Vote Deadline</label>
+              <DateTimePicker
+                value={deadline}
+                onChange={setDeadline}
+                placeholder="Pick deadline date & time"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDeadlineDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                disabled={isSubmitting || !deadline}
+                onClick={handleConfirmGoLive}
+              >
+                {isSubmitting ? "Going Live..." : "Go Live"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

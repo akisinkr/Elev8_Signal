@@ -39,7 +39,7 @@ export async function requireAdmin() {
   const member = await requireMember();
 
   if (member.role !== "ADMIN") {
-    redirect("/signal");
+    redirect("/admin/login");
   }
 
   return member;

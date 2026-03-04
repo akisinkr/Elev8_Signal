@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 import { getSignalByNumber, getMemberVote, castVote } from "@/lib/signal";
 import { z } from "zod";
@@ -7,6 +6,7 @@ import { z } from "zod";
 const voteSchema = z.object({
   answer: z.enum(["A", "B", "C", "D", "E"]),
   why: z.string().max(280).optional(),
+  email: z.string().email(),
 });
 
 export async function POST(
@@ -14,16 +14,17 @@ export async function POST(
   { params }: { params: Promise<{ signalNumber: string }> }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const body = await req.json();
+    const { answer, why, email } = voteSchema.parse(body);
 
     const member = await prisma.member.findUnique({
-      where: { clerkId: userId },
+      where: { email: email.toLowerCase() },
     });
     if (!member) {
-      return NextResponse.json({ error: "Member not found" }, { status: 401 });
+      return NextResponse.json(
+        { error: "This survey is for Elev8 members." },
+        { status: 403 }
+      );
     }
 
     const { signalNumber } = await params;
@@ -45,9 +46,6 @@ export async function POST(
     if (existingVote) {
       return NextResponse.json({ error: "Already voted" }, { status: 409 });
     }
-
-    const body = await req.json();
-    const { answer, why } = voteSchema.parse(body);
 
     const vote = await castVote(signal.id, member.id, answer, why);
     return NextResponse.json(vote, { status: 201 });

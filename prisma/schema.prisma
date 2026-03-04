@@ -62,6 +62,12 @@ enum SignalAnswer {
   E
 }
 
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // ─── Models ──────────────────────────────────────────────
 
 model Member {
@@ -89,6 +95,7 @@ model Member {
   messages         Message[]
   feedback         Feedback[]
   signalVotes      SignalVote[]
+  suggestions      SignalSuggestion[]
 
   @@index([clerkId])
 }
@@ -169,16 +176,34 @@ model SignalQuestion {
 }
 
 model SignalVote {
-  id         String       @id @default(cuid())
-  answer     SignalAnswer
-  why        String?
-  questionId String
-  memberId   String
-  createdAt  DateTime     @default(now())
+  id                String       @id @default(cuid())
+  answer            SignalAnswer
+  why               String?
+  questionId        String
+  memberId          String
+  createdAt         DateTime     @default(now())
+  resultEmailSentAt DateTime?
 
   question SignalQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   member   Member         @relation(fields: [memberId], references: [id])
 
   @@unique([questionId, memberId])
   @@index([questionId])
+}
+
+model SignalSuggestion {
+  id               String           @id @default(cuid())
+  rawQuestion      String
+  context          String?
+  polishedQuestion String?
+  suggestedOptions String?          // JSON string of 5 options
+  status           SuggestionStatus @default(PENDING)
+  memberId         String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([status])
+  @@index([memberId])
 }

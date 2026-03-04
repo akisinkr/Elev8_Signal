@@ -1,4 +1,5 @@
-import { requireMember } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { getCurrentMember } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -6,8 +7,29 @@ import { SignalCard } from "@/components/signal/signal-card";
 import { SIGNAL_CATEGORY_LABELS } from "@/lib/signal-constants";
 import { SIGNAL_ANSWER_KEYS } from "@/lib/signal-constants";
 
-export default async function SignalArchivePage() {
-  const member = await requireMember();
+export default async function SignalArchivePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string }>;
+}) {
+  const { email } = await searchParams;
+
+  // Try Clerk auth first, fall back to email param
+  const clerkMember = await getCurrentMember();
+  const memberEmail = clerkMember?.email ?? email?.toLowerCase();
+
+  if (!memberEmail) {
+    redirect("/signal");
+  }
+
+  // Look up member by email
+  const member = clerkMember ?? await prisma.member.findUnique({
+    where: { email: memberEmail },
+  });
+
+  if (!member) {
+    redirect("/signal");
+  }
 
   const signals = await prisma.signalQuestion.findMany({
     where: { status: "PUBLISHED" },
@@ -71,6 +93,7 @@ export default async function SignalArchivePage() {
                 signal.publishedAt?.toISOString() ?? signal.createdAt.toISOString()
               }
               hasVoted={hasVoted}
+              email={memberEmail}
             />
           );
         })}

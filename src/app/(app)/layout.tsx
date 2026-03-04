@@ -1,13 +1,8 @@
-import { UserButton } from "@clerk/nextjs";
-import { requireMember } from "@/lib/auth";
-
-export default async function AppLayout({
+export default function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireMember();
-
   return (
     <div className="min-h-screen bg-background">
       <nav className="border-b border-border">
@@ -16,7 +11,6 @@ export default async function AppLayout({
             <span className="text-sm font-semibold tracking-tight">
               Elev8 Signal
             </span>
-            <UserButton afterSignOutUrl="/sign-in" />
           </div>
         </div>
       </nav>

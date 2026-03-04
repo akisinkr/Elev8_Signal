@@ -1,114 +1,119 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { BarChart3, Lock, Users, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { BarChart3, ArrowRight } from "lucide-react";
 
 export default async function Home() {
   const { userId } = await auth();
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 md:px-12">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="h-6 w-6 text-primary" />
-          <span className="text-lg font-bold tracking-tight">Elev8 Signal</span>
-        </div>
-        <div>
-          {userId ? (
-            <Button asChild>
-              <Link href="/signal">Go to Signal</Link>
-            </Button>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" asChild>
-                <Link href="/sign-in">Sign In</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/sign-up">Get Started</Link>
-              </Button>
-            </div>
-          )}
-        </div>
-      </header>
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background">
+      {/* Subtle radial glow */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 50% at 50% 45%, oklch(0.55 0.22 265 / 8%) 0%, transparent 70%)",
+        }}
+      />
 
-      {/* Hero */}
-      <main className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-        <div className="mx-auto max-w-2xl space-y-6">
-          <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
-            Invite-Only Peer Survey
-          </p>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            One question.
-            <br />
-            <span className="text-primary">Fifty leaders.</span>
-            <br />
-            Real signal.
-          </h1>
-          <p className="mx-auto max-w-lg text-lg text-muted-foreground">
-            Biweekly pulse check for Korea&apos;s top tech executives.
-            Vote in 10 seconds, unlock what your peers really think.
-          </p>
-          <div className="flex flex-col items-center gap-3 pt-4 sm:flex-row sm:justify-center">
-            {userId ? (
-              <Button size="lg" asChild>
-                <Link href="/signal">
-                  View Current Signal <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            ) : (
-              <>
-                <Button size="lg" asChild>
-                  <Link href="/sign-up">
-                    Join the Community <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link href="/sign-in">Sign In</Link>
-                </Button>
-              </>
-            )}
+      {/* Floating grid lines for depth */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(oklch(1 0 0 / 20%) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 20%) 1px, transparent 1px)",
+          backgroundSize: "80px 80px",
+        }}
+      />
+
+      {/* Signal pulse rings */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center" style={{ top: "5%" }}>
+        <div className="relative size-[600px] sm:size-[700px]">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute inset-0 rounded-full border border-primary/[0.07]"
+              style={{
+                animation: `signalPulse 4s ease-out ${i * 1}s infinite`,
+                transform: "scale(0.2)",
+                opacity: 0,
+              }}
+            />
+          ))}
+          {/* Static subtle rings for depth */}
+          <div className="absolute inset-[15%] rounded-full border border-primary/[0.04]" />
+          <div className="absolute inset-[30%] rounded-full border border-primary/[0.06]" />
+          <div className="absolute inset-[45%] rounded-full border border-primary/[0.03]" />
+        </div>
+      </div>
+
+      {/* Content */}
+      <main className="relative z-10 flex flex-col items-center px-6 text-center">
+        {/* Logo */}
+        <div className="mb-12 flex items-center gap-2.5">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/15">
+            <BarChart3 className="size-5 text-primary" />
           </div>
+          <span className="text-xl font-bold tracking-tight text-foreground">
+            Elev8 Signal
+          </span>
+        </div>
+
+        {/* Tagline */}
+        <h1 className="max-w-lg text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+          <span className="text-foreground">One question.</span>
+          <br />
+          <span className="text-primary">Top leaders.</span>
+        </h1>
+
+        <p className="mt-4 text-base text-muted-foreground tracking-wide">
+          Your perspective shapes the signal.
+        </p>
+
+        {/* CTA */}
+        <Link
+          href="/signal"
+          className="group relative mt-10 inline-flex items-center gap-3 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_0_30px_oklch(0.55_0.22_265_/_25%)] active:scale-[0.98]"
+        >
+          Send Your Signal
+          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+        </Link>
+
+        {/* Subtle social proof */}
+        <div className="mt-16 flex items-center gap-3">
+          <div className="flex -space-x-2">
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className="size-7 rounded-full border-2 border-background"
+                style={{
+                  background: `oklch(${0.28 + i * 0.04} 0.03 ${255 + i * 8})`,
+                }}
+              />
+            ))}
+          </div>
+          <span className="text-xs text-muted-foreground tracking-wide">
+            Invite-only leadership community
+          </span>
         </div>
       </main>
 
-      {/* Features */}
-      <section className="border-t border-border/40 bg-muted/30 px-6 py-16 md:px-12">
-        <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-3">
-          <div className="space-y-2 text-center">
-            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <BarChart3 className="h-5 w-5 text-primary" />
-            </div>
-            <h3 className="font-semibold">10-Second Vote</h3>
-            <p className="text-sm text-muted-foreground">
-              One question, five options. Tap and done. No surveys, no fatigue.
-            </p>
-          </div>
-          <div className="space-y-2 text-center">
-            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Lock className="h-5 w-5 text-primary" />
-            </div>
-            <h3 className="font-semibold">Vote to Unlock</h3>
-            <p className="text-sm text-muted-foreground">
-              See how peers voted only after you share your own perspective.
-            </p>
-          </div>
-          <div className="space-y-2 text-center">
-            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Users className="h-5 w-5 text-primary" />
-            </div>
-            <h3 className="font-semibold">Peer Insights</h3>
-            <p className="text-sm text-muted-foreground">
-              Anonymous quotes from fellow execs. Real talk, no politics.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="px-6 py-6 text-center text-sm text-muted-foreground">
-        Elev8 &middot; Invite-only leadership community
-      </footer>
+      {/* Keyframes */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes signalPulse {
+          0% {
+            transform: scale(0.2);
+            opacity: 0;
+          }
+          10% {
+            opacity: 1;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 0;
+          }
+        }
+      `}} />
     </div>
   );
 }

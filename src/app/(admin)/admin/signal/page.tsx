@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { SignalStatusBadge } from "@/components/signal/signal-status-badge";
 import { SignalCreateDialog } from "@/components/admin/signal/signal-create-dialog";
 import { SignalListActions } from "@/components/admin/signal/signal-list-actions";
+import { SignalSuggestionsTable } from "@/components/admin/signal/signal-suggestions-table";
 import {
   Table,
   TableBody,
@@ -12,17 +13,25 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SIGNAL_CATEGORY_LABELS } from "@/lib/signal-constants";
-import { BarChart3, Radio, Users } from "lucide-react";
+import { BarChart3, Radio, Users, Lightbulb } from "lucide-react";
 
 export default async function AdminSignalPage() {
   await requireAdmin();
 
-  const [signals, totalMembers] = await Promise.all([
+  const [signals, totalMembers, pendingSuggestions, approvedSuggestions] = await Promise.all([
     prisma.signalQuestion.findMany({
       orderBy: { signalNumber: "desc" },
       include: { votes: { select: { id: true } } },
     }),
     prisma.member.count(),
+    prisma.signalSuggestion.findMany({
+      where: { status: "PENDING" },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.signalSuggestion.findMany({
+      where: { status: "APPROVED" },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
 
   const liveSignal = signals.find((s) => s.status === "LIVE");
@@ -76,6 +85,36 @@ export default async function AdminSignalPage() {
           <p className="mt-2 text-2xl font-bold">{participationRate}%</p>
         </div>
       </div>
+
+      {/* Suggestions */}
+      {(pendingSuggestions.length > 0 || approvedSuggestions.length > 0) && (
+        <div id="suggestions" className="space-y-3 scroll-mt-8">
+          <div className="flex items-center gap-2">
+            <Lightbulb className="size-4 text-amber-500" />
+            <h2 className="text-lg font-semibold">Suggestions</h2>
+          </div>
+          <SignalSuggestionsTable
+            pendingSuggestions={pendingSuggestions.map((s) => ({
+              id: s.id,
+              rawQuestion: s.rawQuestion,
+              context: s.context,
+              status: s.status,
+              polishedQuestion: s.polishedQuestion,
+              suggestedOptions: s.suggestedOptions,
+              createdAt: s.createdAt.toISOString(),
+            }))}
+            approvedSuggestions={approvedSuggestions.map((s) => ({
+              id: s.id,
+              rawQuestion: s.rawQuestion,
+              context: s.context,
+              status: s.status,
+              polishedQuestion: s.polishedQuestion,
+              suggestedOptions: s.suggestedOptions,
+              createdAt: s.createdAt.toISOString(),
+            }))}
+          />
+        </div>
+      )}
 
       {/* Signal List */}
       <div className="rounded-lg border">
