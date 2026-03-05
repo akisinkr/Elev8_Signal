@@ -84,9 +84,7 @@ export default function AdminLoginPage() {
       await signIn.prepareSecondFactor({ strategy: "phone_code" });
       setStep("phone_code");
     } else {
-      setError(
-        `No supported 2FA. Second: ${JSON.stringify(secondFactors)} First: ${JSON.stringify(firstFactors)}`
-      );
+      setError("Unsupported verification method. Please contact support.");
     }
   }
 
@@ -180,7 +178,6 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white">Elev8 Admin</h1>
-          {/* v2 - email_code 2FA */}
           <p className="text-zinc-500 text-sm mt-1">
             {step === "credentials"
               ? "Sign in to continue"
