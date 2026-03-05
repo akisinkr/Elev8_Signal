@@ -13,9 +13,14 @@ export async function sendEmail({
   subject: string;
   html: string;
 }) {
+  const fromEmail = process.env.SENDGRID_FROM_EMAIL;
+  if (!fromEmail) {
+    throw new Error("SENDGRID_FROM_EMAIL is not set");
+  }
+
   return sgMail.send({
     to,
-    from: process.env.SENDGRID_FROM_EMAIL!,
+    from: { email: fromEmail, name: "Elev8 Signal" },
     subject,
     html,
   });
