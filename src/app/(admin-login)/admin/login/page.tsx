@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSignIn, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
-type Step = "credentials" | "totp" | "phone_code";
+type Step = "credentials" | "totp" | "phone_code" | "email_code";
 
 export default function AdminLoginPage() {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -61,23 +61,20 @@ export default function AdminLoginPage() {
     if (!signIn) return;
     // Determine which second factor is available
     const secondFactors = signIn.supportedSecondFactors;
-    const hasTotp = secondFactors?.some(
-      (f) => f.strategy === "totp"
-    );
-    const hasPhone = secondFactors?.some(
-      (f) => f.strategy === "phone_code"
-    );
+    const hasTotp = secondFactors?.some((f) => f.strategy === "totp");
+    const hasPhone = secondFactors?.some((f) => f.strategy === "phone_code");
+    const hasEmail = secondFactors?.some((f) => f.strategy === "email_code");
 
     if (hasTotp) {
       setStep("totp");
+    } else if (hasEmail) {
+      await signIn.prepareSecondFactor({ strategy: "email_code" } as Parameters<typeof signIn.prepareSecondFactor>[0]);
+      setStep("email_code");
     } else if (hasPhone) {
       await signIn.prepareSecondFactor({ strategy: "phone_code" });
       setStep("phone_code");
     } else {
-      // Show what Clerk actually reports for debugging
-      setError(
-        `No supported 2FA found. Available: ${JSON.stringify(secondFactors)}`
-      );
+      setError("Unsupported 2FA method. Please contact support.");
     }
   }
 
@@ -130,10 +127,11 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
+      const strategy = step === "totp" ? "totp" : step === "email_code" ? "email_code" : "phone_code";
       const result = await signIn.attemptSecondFactor({
-        strategy: step === "totp" ? "totp" : "phone_code",
+        strategy,
         code,
-      });
+      } as Parameters<typeof signIn.attemptSecondFactor>[0]);
 
       if (result.status === "complete") {
         await handleComplete(result.createdSessionId);
@@ -166,7 +164,9 @@ export default function AdminLoginPage() {
               ? "Sign in to continue"
               : step === "totp"
                 ? "Enter your authenticator code"
-                : "Enter the code sent to your phone"}
+                : step === "email_code"
+                  ? "Enter the code sent to your email"
+                  : "Enter the code sent to your phone"}
           </p>
         </div>
 
@@ -224,7 +224,7 @@ export default function AdminLoginPage() {
                 htmlFor="code"
                 className="block text-sm font-medium text-zinc-400 mb-1"
               >
-                {step === "totp" ? "Authenticator Code" : "Verification Code"}
+                {step === "totp" ? "Authenticator Code" : "Email Verification Code"}
               </label>
               <input
                 id="code"
