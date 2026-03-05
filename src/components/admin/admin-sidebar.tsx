@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton, useClerk } from "@clerk/nextjs";
-import { BarChart3, Lightbulb, LogOut } from "lucide-react";
+import { BarChart3, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -14,25 +14,6 @@ const NAV_ITEMS = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const { signOut } = useClerk();
-  const [pendingCount, setPendingCount] = React.useState(0);
-
-  React.useEffect(() => {
-    async function fetchCount() {
-      try {
-        const res = await fetch("/api/admin/signal/suggestions/count");
-        if (res.ok) {
-          const data = await res.json();
-          setPendingCount(data.count);
-        }
-      } catch {
-        // silently fail
-      }
-    }
-    fetchCount();
-    const interval = setInterval(fetchCount, 30_000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <aside className="fixed inset-y-0 left-0 z-30 flex w-56 flex-col border-r border-zinc-800 bg-zinc-950">
       <div className="flex h-14 items-center gap-2 px-4 border-b border-zinc-800">
@@ -62,21 +43,6 @@ export function AdminSidebar() {
           );
         })}
 
-        <Link
-          href="/admin/signal#suggestions"
-          className={cn(
-            "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-            "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
-          )}
-        >
-          <div className="relative">
-            <Lightbulb className="size-4" />
-            {pendingCount > 0 && (
-              <span className="absolute -top-1 -right-1 size-2 rounded-full bg-red-500" />
-            )}
-          </div>
-          Suggestions
-        </Link>
       </nav>
 
       <div className="border-t border-zinc-800 p-3 space-y-2">
