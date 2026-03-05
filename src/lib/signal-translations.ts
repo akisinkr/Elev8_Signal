@@ -12,7 +12,7 @@ const translations = {
   loading: { en: "Loading...", kr: "로딩 중..." },
 
   // Insight
-  signalInsight: { en: "Exclusive Elev8 Insight", kr: "Elev8 독점 인사이트" },
+  signalInsight: { en: "Exclusive Elev8 Insight", kr: "Elev8 리더 인사이트" },
   elev8MembersOnly: { en: "For Elev8 members only", kr: "Elev8 멤버 전용" },
 
   // Your vs Group
