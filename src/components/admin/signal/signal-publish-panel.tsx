@@ -243,6 +243,16 @@ export function SignalPublishPanel({
             {isSubmitting ? "Saving..." : "Save Insight"}
           </Button>
         )}
+
+        {status === "PUBLISHED" && (
+          <Button
+            variant="destructive"
+            disabled={isSubmitting}
+            onClick={() => onStatusChange("CLOSED")}
+          >
+            {isSubmitting ? "Unpublishing..." : "Unpublish"}
+          </Button>
+        )}
       </div>
 
       {/* Formatted insight preview */}
