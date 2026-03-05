@@ -13,13 +13,15 @@ export default async function SignalPage() {
       <div className="space-y-8">
         <h1 className="text-lg font-semibold tracking-tight">Signal</h1>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <p className="text-xs font-medium uppercase tracking-wider text-primary">
             Signal #{liveSignal.signalNumber} — Live Now
           </p>
-          <h2 className="text-2xl sm:text-3xl font-bold leading-snug tracking-tight">
-            {liveSignal.question}
-          </h2>
+          <div className="rounded-xl border border-border bg-card/50 px-5 py-6 sm:px-7 sm:py-8">
+            <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight tracking-tight">
+              {liveSignal.question}
+            </h2>
+          </div>
           {liveSignal.voteDeadline && (
             <SignalCountdown
               deadline={liveSignal.voteDeadline.toISOString()}
@@ -32,15 +34,6 @@ export default async function SignalPage() {
             </Link>
           </Button>
         </div>
-
-        <footer className="text-center pt-4">
-          <Link
-            href="/signal/archive"
-            className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
-          >
-            View past results
-          </Link>
-        </footer>
       </div>
     );
   }
@@ -56,13 +49,15 @@ export default async function SignalPage() {
       <div className="space-y-8">
         <h1 className="text-lg font-semibold tracking-tight">Signal</h1>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <p className="text-xs text-muted-foreground">
             Latest results — Signal #{recentPublished.signalNumber}
           </p>
-          <h2 className="text-2xl sm:text-3xl font-bold leading-snug tracking-tight">
-            {recentPublished.question}
-          </h2>
+          <div className="rounded-xl border border-border bg-card/50 px-5 py-6 sm:px-7 sm:py-8">
+            <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight tracking-tight">
+              {recentPublished.question}
+            </h2>
+          </div>
 
           <Button asChild size="lg" className="w-full" variant="outline">
             <Link href={`/signal/${recentPublished.signalNumber}`}>
@@ -70,15 +65,6 @@ export default async function SignalPage() {
             </Link>
           </Button>
         </div>
-
-        <footer className="text-center pt-4">
-          <Link
-            href="/signal/archive"
-            className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
-          >
-            View past results
-          </Link>
-        </footer>
       </div>
     );
   }
@@ -94,15 +80,6 @@ export default async function SignalPage() {
           There are no Signal questions right now. Check back soon.
         </p>
       </div>
-
-      <footer className="text-center pt-4">
-        <Link
-          href="/signal/archive"
-          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
-        >
-          View past results
-        </Link>
-      </footer>
     </div>
   );
 }
