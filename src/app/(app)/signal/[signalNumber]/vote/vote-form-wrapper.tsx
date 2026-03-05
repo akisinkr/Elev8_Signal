@@ -209,15 +209,15 @@ export function VoteFormWrapper({
 
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-foreground">
-                This is an invite-only community
+                This Conversation is Members-Only
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Elev8 Signal is where top leaders share their real perspective. Interested in joining?
+                Elev8 Signal captures what senior leaders actually think — unfiltered, anonymous, and only available to vetted members. Want in?
               </p>
             </div>
 
-            <a
-              href="mailto:andrewkim@elev8here.com?subject=Interested%20in%20Elev8%20Signal"
+            <Link
+              href="/request-access"
               className={cn(
                 "inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition-all",
                 "bg-primary text-primary-foreground",
@@ -239,7 +239,7 @@ export function VoteFormWrapper({
                 <path d="M5 12h14" />
                 <path d="m12 5 7 7-7 7" />
               </svg>
-            </a>
+            </Link>
           </div>
         </div>
 

@@ -4,11 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton, useClerk } from "@clerk/nextjs";
-import { BarChart3, LogOut } from "lucide-react";
+import { BarChart3, LogOut, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/admin/signal", label: "Signal", icon: BarChart3 },
+  { href: "/admin/access-requests", label: "Access Requests", icon: UserPlus },
 ];
 
 export function AdminSidebar() {
