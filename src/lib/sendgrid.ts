@@ -13,10 +13,7 @@ export async function sendEmail({
   subject: string;
   html: string;
 }) {
-  const fromEmail = process.env.SENDGRID_FROM_EMAIL;
-  if (!fromEmail) {
-    throw new Error("SENDGRID_FROM_EMAIL is not set");
-  }
+  const fromEmail = process.env.SENDGRID_FROM_EMAIL || "andrewkim.elev8@gmail.com";
 
   return sgMail.send({
     to,
