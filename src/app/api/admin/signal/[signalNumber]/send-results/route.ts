@@ -60,7 +60,7 @@ export async function POST(
       );
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://elev8community.com";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `https://${process.env.VERCEL_URL}` || "https://elev8-signal.vercel.app";
 
     // Parse insight — extract English bullet points from JSON or use plain text
     let insightPoints: string[] = [];
