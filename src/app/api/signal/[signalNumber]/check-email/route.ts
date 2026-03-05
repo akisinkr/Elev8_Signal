@@ -23,7 +23,7 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            "This survey is for Elev8 members. Interested? Reach out at andrewkim@elev8here.com",
+            "This survey is for Elev8 members. Request access at elev8-signal.com/request-access",
         },
         { status: 403 }
       );
