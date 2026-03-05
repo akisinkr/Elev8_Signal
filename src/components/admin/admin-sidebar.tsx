@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { UserButton, useClerk } from "@clerk/nextjs";
+import { usePathname, useRouter } from "next/navigation";
 import { BarChart3, LogOut, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +13,7 @@ const NAV_ITEMS = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const { signOut } = useClerk();
+  const router = useRouter();
   const [pendingCount, setPendingCount] = React.useState(0);
 
   React.useEffect(() => {
@@ -27,6 +26,11 @@ export function AdminSidebar() {
       })
       .catch(() => {});
   }, [pathname]);
+
+  async function handleSignOut() {
+    await fetch("/api/admin/auth/logout", { method: "POST" });
+    router.push("/admin/login");
+  }
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 flex w-56 flex-col border-r border-zinc-800 bg-zinc-950">
@@ -64,9 +68,8 @@ export function AdminSidebar() {
       </nav>
 
       <div className="border-t border-zinc-800 p-3 space-y-2">
-        <UserButton afterSignOutUrl="/admin/login" />
         <button
-          onClick={() => signOut({ redirectUrl: "/admin/login" })}
+          onClick={handleSignOut}
           className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200 transition-colors"
         >
           <LogOut className="size-4" />

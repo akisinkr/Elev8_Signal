@@ -4,7 +4,10 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
-  "/admin/login",
+  "/admin(.*)",
+  "/api/admin/auth/login",
+  "/api/admin/auth/logout",
+  "/api/admin(.*)",
   "/api/webhooks(.*)",
   "/signal(.*)",
   "/api/signal(.*)",
@@ -18,7 +21,7 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // All non-public routes require authentication
-  // Admin role check is handled by requireAdmin() in admin layout via DB
+  // Admin auth is now handled by our own session cookie, not Clerk
   await auth.protect();
 });
 

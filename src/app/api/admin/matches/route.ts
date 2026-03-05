@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth";
+import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 
@@ -11,7 +11,10 @@ const createMatchSchema = z.object({
 
 export async function GET() {
   try {
-    await requireAdmin();
+    const admin = await getAdminSession();
+    if (!admin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
 
     const matches = await prisma.match.findMany({
       include: { member1: true, member2: true },
@@ -26,7 +29,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    await requireAdmin();
+    const admin = await getAdminSession();
+    if (!admin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
     const body = await req.json();
     const { member1Id, member2Id, curatorNote } = createMatchSchema.parse(body);
 

@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
-
-async function requireAdminApi() {
-  const { userId } = await auth();
-  if (!userId) return null;
-
-  const member = await prisma.member.findUnique({
-    where: { clerkId: userId },
-  });
-  if (!member || member.role !== "ADMIN") return null;
-
-  return member;
-}
 
 const createSignalSchema = z.object({
   question: z.string().min(1),
@@ -30,7 +18,7 @@ const createSignalSchema = z.object({
 
 export async function GET() {
   try {
-    const admin = await requireAdminApi();
+    const admin = await getAdminSession();
     if (!admin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
@@ -54,7 +42,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const admin = await requireAdminApi();
+    const admin = await getAdminSession();
     if (!admin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }

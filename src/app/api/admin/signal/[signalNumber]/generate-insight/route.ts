@@ -1,26 +1,14 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { generateSignalInsight, generateRelatedArticles } from "@/lib/anthropic";
-
-async function requireAdminApi() {
-  const { userId } = await auth();
-  if (!userId) return null;
-
-  const member = await prisma.member.findUnique({
-    where: { clerkId: userId },
-  });
-  if (!member || member.role !== "ADMIN") return null;
-
-  return member;
-}
 
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ signalNumber: string }> }
 ) {
   try {
-    const admin = await requireAdminApi();
+    const admin = await getAdminSession();
     if (!admin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }

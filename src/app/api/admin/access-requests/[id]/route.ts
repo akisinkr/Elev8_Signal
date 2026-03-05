@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 
@@ -13,14 +13,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
-    const member = await prisma.member.findUnique({
-      where: { clerkId: userId },
-    });
-    if (!member || member.role !== "ADMIN") {
+    const admin = await getAdminSession();
+    if (!admin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
