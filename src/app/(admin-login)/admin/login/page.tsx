@@ -59,22 +59,34 @@ export default function AdminLoginPage() {
 
   async function handleNeedsSecondFactor() {
     if (!signIn) return;
-    // Determine which second factor is available
+
+    // Check both first and second factor lists — Clerk may put email_code in either
     const secondFactors = signIn.supportedSecondFactors;
-    const hasTotp = secondFactors?.some((f) => f.strategy === "totp");
-    const hasPhone = secondFactors?.some((f) => f.strategy === "phone_code");
-    const hasEmail = secondFactors?.some((f) => f.strategy === "email_code");
+    const firstFactors = signIn.supportedFirstFactors;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allFactors = [...(secondFactors || []), ...(firstFactors || [])] as any[];
+    const hasTotp = allFactors.some((f) => f.strategy === "totp");
+    const hasEmail = allFactors.some((f) => f.strategy === "email_code");
+    const hasPhone = allFactors.some((f) => f.strategy === "phone_code");
 
     if (hasTotp) {
       setStep("totp");
     } else if (hasEmail) {
-      await signIn.prepareSecondFactor({ strategy: "email_code" } as Parameters<typeof signIn.prepareSecondFactor>[0]);
+      // Try preparing as first factor if second factor fails
+      try {
+        await signIn.prepareSecondFactor({ strategy: "email_code" } as Parameters<typeof signIn.prepareSecondFactor>[0]);
+      } catch {
+        await signIn.prepareFirstFactor({ strategy: "email_code", emailAddressId: allFactors.find((f: { strategy: string }) => f.strategy === "email_code")?.emailAddressId } as Parameters<typeof signIn.prepareFirstFactor>[0]);
+      }
       setStep("email_code");
     } else if (hasPhone) {
       await signIn.prepareSecondFactor({ strategy: "phone_code" });
       setStep("phone_code");
     } else {
-      setError("Unsupported 2FA method. Please contact support.");
+      setError(
+        `No supported 2FA. Second: ${JSON.stringify(secondFactors)} First: ${JSON.stringify(firstFactors)}`
+      );
     }
   }
 
@@ -128,10 +140,19 @@ export default function AdminLoginPage() {
 
     try {
       const strategy = step === "totp" ? "totp" : step === "email_code" ? "email_code" : "phone_code";
-      const result = await signIn.attemptSecondFactor({
-        strategy,
-        code,
-      } as Parameters<typeof signIn.attemptSecondFactor>[0]);
+      let result;
+      try {
+        result = await signIn.attemptSecondFactor({
+          strategy,
+          code,
+        } as Parameters<typeof signIn.attemptSecondFactor>[0]);
+      } catch {
+        // If second factor fails, try as first factor
+        result = await signIn.attemptFirstFactor({
+          strategy,
+          code,
+        } as Parameters<typeof signIn.attemptFirstFactor>[0]);
+      }
 
       if (result.status === "complete") {
         await handleComplete(result.createdSessionId);
@@ -159,6 +180,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white">Elev8 Admin</h1>
+          {/* v2 - email_code 2FA */}
           <p className="text-zinc-500 text-sm mt-1">
             {step === "credentials"
               ? "Sign in to continue"
