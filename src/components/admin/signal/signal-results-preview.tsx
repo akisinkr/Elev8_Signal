@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SignalHeadline } from "@/components/signal/signal-headline";
 import { SignalYourVsGroup } from "@/components/signal/signal-your-vs-group";
 import { SignalDonutChart } from "@/components/signal/signal-donut-chart";
-import { SignalResultBars } from "@/components/signal/signal-result-bars";
+
 import { SignalPeerQuotes } from "@/components/signal/signal-peer-quotes";
 import { SignalRelatedArticles } from "@/components/signal/signal-related-articles";
 import { SignalLanguageToggle } from "@/components/signal/signal-language-toggle";
@@ -120,13 +120,6 @@ export function SignalResultsPreview({
               />
 
               <SignalDonutChart
-                distribution={distribution}
-                totalVotes={totalVotes}
-                memberAnswer={null}
-                lang={lang}
-              />
-
-              <SignalResultBars
                 distribution={distribution}
                 totalVotes={totalVotes}
                 memberAnswer={null}

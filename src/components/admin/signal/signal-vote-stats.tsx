@@ -1,4 +1,3 @@
-import { SignalResultBars } from "@/components/signal/signal-result-bars";
 import { Check, Minus } from "lucide-react";
 import {
   Table,
@@ -34,12 +33,6 @@ export function SignalVoteStats({ votes, distribution }: SignalVoteStatsProps) {
 
   return (
     <div className="space-y-8">
-      <SignalResultBars
-        distribution={distribution}
-        totalVotes={totalVotes}
-        memberAnswer={null}
-      />
-
       <div>
         <h3 className="mb-3 text-sm font-semibold">Individual Votes</h3>
         <Table>
