@@ -132,7 +132,7 @@ export default function RequestAccessPage() {
                     htmlFor="email"
                     className="block text-sm font-medium text-muted-foreground"
                   >
-                    Work Email
+                    Email
                   </label>
                   <input
                     id="email"

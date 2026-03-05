@@ -15,6 +15,19 @@ const NAV_ITEMS = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const { signOut } = useClerk();
+  const [pendingCount, setPendingCount] = React.useState(0);
+
+  React.useEffect(() => {
+    fetch("/api/admin/access-requests")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: { status: string }[]) => {
+        setPendingCount(
+          Array.isArray(data) ? data.filter((r) => r.status === "PENDING").length : 0
+        );
+      })
+      .catch(() => {});
+  }, [pathname]);
+
   return (
     <aside className="fixed inset-y-0 left-0 z-30 flex w-56 flex-col border-r border-zinc-800 bg-zinc-950">
       <div className="flex h-14 items-center gap-2 px-4 border-b border-zinc-800">
@@ -27,6 +40,7 @@ export function AdminSidebar() {
       <nav className="flex-1 space-y-1 p-3">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname.startsWith(item.href);
+          const showDot = item.href === "/admin/access-requests" && pendingCount > 0;
           return (
             <Link
               key={item.href}
@@ -40,6 +54,9 @@ export function AdminSidebar() {
             >
               <item.icon className="size-4" />
               {item.label}
+              {showDot && (
+                <span className="ml-auto size-2 rounded-full bg-red-500" />
+              )}
             </Link>
           );
         })}
