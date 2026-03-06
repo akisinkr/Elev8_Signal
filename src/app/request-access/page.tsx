@@ -238,7 +238,7 @@ export default function RequestAccessPage() {
               </p>
 
               <Link
-                href="/signal"
+                href="/preview"
                 className={cn(
                   "inline-flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all",
                   "border border-border text-foreground",

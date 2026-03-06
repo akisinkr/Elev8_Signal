@@ -11,6 +11,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks(.*)",
   "/signal(.*)",
   "/api/signal(.*)",
+  "/preview",
   "/request-access",
   "/api/access-request",
 ]);
