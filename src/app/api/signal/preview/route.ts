@@ -36,28 +36,30 @@ export async function GET() {
       return {
         answer,
         label: getOptionLabel(question, answer),
-        count,
         percentage: totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0,
       };
     });
+
+    // Top answer
+    const sorted = [...distribution].sort((a, b) => b.percentage - a.percentage);
+    const topAnswer = sorted[0].answer;
+    const topAnswerLabel = sorted[0].label;
+    const topPercentage = sorted[0].percentage;
 
     const quoteCount = question.votes.filter(
       (v) => v.why && v.why.trim().length > 0
     ).length;
 
-    // Strip exact counts — only expose percentages for the donut chart
-    const previewDistribution = distribution.map(({ answer, label, percentage }) => ({
-      answer,
-      label,
-      percentage,
-    }));
-
     return NextResponse.json({
       signalNumber: question.signalNumber,
       question: question.question,
       category: question.category,
-      distribution: previewDistribution,
+      distribution,
+      topAnswer,
+      topAnswerLabel,
+      topPercentage,
       quoteCount,
+      headlineInsight: question.headlineInsight,
     });
   } catch {
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
