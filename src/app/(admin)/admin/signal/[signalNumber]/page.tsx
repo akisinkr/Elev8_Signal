@@ -8,7 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SIGNAL_CATEGORY_LABELS, SIGNAL_ANSWER_KEYS } from "@/lib/signal-constants";
 import { SignalCopyLinks } from "@/components/admin/signal/signal-copy-links";
 import { AdminSignalActions } from "./admin-signal-actions";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default async function AdminSignalDetailPage({
   params,
@@ -78,13 +79,26 @@ export default async function AdminSignalDetailPage({
       {/* Question display */}
       <Card>
         <CardContent className="space-y-4">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
-              Question
-            </p>
-            <p className="text-sm font-medium leading-snug">
-              {signal.question}
-            </p>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
+                Question
+              </p>
+              <p className="text-sm font-medium leading-snug">
+                {signal.question}
+              </p>
+              {signal.questionKr && (
+                <p className="text-sm text-muted-foreground leading-snug mt-1">
+                  {signal.questionKr}
+                </p>
+              )}
+            </div>
+            <Link href={`/admin/signal/${signal.signalNumber}/edit`}>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Pencil className="size-3.5" />
+                Edit
+              </Button>
+            </Link>
           </div>
 
           <div>
@@ -100,11 +114,25 @@ export default async function AdminSignalDetailPage({
                   D: signal.optionD,
                   E: signal.optionE,
                 };
+                const krMap: Record<string, string | null> = {
+                  A: signal.optionAKr,
+                  B: signal.optionBKr,
+                  C: signal.optionCKr,
+                  D: signal.optionDKr,
+                  E: signal.optionEKr,
+                };
                 return (
-                  <p key={key} className="text-sm">
-                    <span className="font-medium">{key}.</span>{" "}
-                    {optionMap[key]}
-                  </p>
+                  <div key={key} className="text-sm">
+                    <span>
+                      <span className="font-medium">{key}.</span>{" "}
+                      {optionMap[key]}
+                    </span>
+                    {krMap[key] && (
+                      <span className="text-muted-foreground ml-2">
+                        / {krMap[key]}
+                      </span>
+                    )}
+                  </div>
                 );
               })}
             </div>
