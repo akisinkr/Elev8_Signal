@@ -15,7 +15,6 @@ const COLORS = [
 type DistributionItem = {
   answer: string;
   label: string;
-  count: number;
   percentage: number;
 };
 
@@ -24,7 +23,6 @@ type PreviewData = {
   question: string;
   category: string;
   distribution: DistributionItem[];
-  totalVotes: number;
   quoteCount: number;
 };
 
@@ -96,7 +94,7 @@ export default function SignalPreviewPage() {
         </div>
 
         {/* Donut chart */}
-        <DonutChart distribution={data.distribution} totalVotes={data.totalVotes} />
+        <DonutChart distribution={data.distribution} />
 
         {/* Blurred quotes */}
         <BlurredQuotes quoteCount={data.quoteCount} />
@@ -156,10 +154,8 @@ export default function SignalPreviewPage() {
 
 function DonutChart({
   distribution,
-  totalVotes,
 }: {
   distribution: DistributionItem[];
-  totalVotes: number;
 }) {
   const [animated, setAnimated] = React.useState(false);
 
@@ -183,7 +179,7 @@ function DonutChart({
   let accumulated = 0;
 
   distribution.forEach((item, i) => {
-    if (item.count === 0) return;
+    if (item.percentage === 0) return;
     const length = (item.percentage / 100) * circumference;
     segments.push({
       offset: accumulated,
@@ -227,9 +223,23 @@ function DonutChart({
             ))}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold">{totalVotes}</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-primary mb-1"
+            >
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
             <span className="text-xs text-muted-foreground">
-              {totalVotes === 1 ? "leader weighed in" : "leaders weighed in"}
+              Members only
             </span>
           </div>
         </div>
@@ -244,8 +254,8 @@ function DonutChart({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{item.answer}.</span>
-                  <span className="text-muted-foreground">
-                    {item.percentage}% ({item.count})
+                  <span className="text-muted-foreground select-none" style={{ filter: "blur(5px)" }}>
+                    {item.percentage}%
                   </span>
                 </div>
                 <p className="text-sm text-foreground/80 leading-snug mt-0.5">

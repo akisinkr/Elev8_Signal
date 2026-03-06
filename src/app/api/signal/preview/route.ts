@@ -45,12 +45,18 @@ export async function GET() {
       (v) => v.why && v.why.trim().length > 0
     ).length;
 
+    // Strip exact counts — only expose percentages for the donut chart
+    const previewDistribution = distribution.map(({ answer, label, percentage }) => ({
+      answer,
+      label,
+      percentage,
+    }));
+
     return NextResponse.json({
       signalNumber: question.signalNumber,
       question: question.question,
       category: question.category,
-      distribution,
-      totalVotes,
+      distribution: previewDistribution,
       quoteCount,
     });
   } catch {
