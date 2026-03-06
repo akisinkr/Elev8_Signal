@@ -1,9 +1,49 @@
+"use client";
+
 import { SignUp } from "@clerk/nextjs";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+
+function SignUpContent() {
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") || undefined;
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-background">
+      <div className="text-center mb-6">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <div className="h-px w-8 bg-primary/40" />
+          <div className="size-1.5 rounded-full bg-primary" />
+          <div className="h-px w-8 bg-primary/40" />
+        </div>
+        <h1 className="text-xl font-bold tracking-[0.2em] text-foreground">
+          ELEV8
+        </h1>
+        <p className="text-xs text-muted-foreground mt-1">Create your account</p>
+      </div>
+      <SignUp
+        initialValues={email ? { emailAddress: email } : undefined}
+        appearance={{
+          elements: {
+            rootBox: "w-full max-w-md",
+            card: "shadow-lg border border-border",
+          },
+        }}
+      />
+    </div>
+  );
+}
 
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <SignUp />
-    </div>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <SignUpContent />
+    </Suspense>
   );
 }
