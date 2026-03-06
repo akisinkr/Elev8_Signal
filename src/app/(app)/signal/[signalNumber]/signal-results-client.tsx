@@ -193,7 +193,7 @@ export function SignalResultsClient({
   }
 
   // Loading state (token or email auto-fetch in progress)
-  if (isLoading && (tokenFromUrl || emailFromUrl)) {
+  if (isLoading) {
     return (
       <div className="flex flex-col min-h-[60vh] justify-center items-center">
         <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -488,28 +488,6 @@ export function SignalResultsClient({
 
       <SignalSuggestQuestion email={email} />
 
-      <div className="pt-4 text-center">
-        <Link
-          href={`/signal/archive${email ? `?email=${encodeURIComponent(email)}` : ""}`}
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 12H5" />
-            <path d="m12 19-7-7 7-7" />
-          </svg>
-          Back to Archive
-        </Link>
-      </div>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getSignalByNumber } from "@/lib/signal";
 import { SignalResultsClient } from "./signal-results-client";
@@ -24,12 +25,21 @@ export default async function SignalResultsPage({
   ];
 
   return (
-    <SignalResultsClient
-      signalNumber={num}
-      question={signal.question}
-      status={signal.status}
-      headlineInsight={signal.headlineInsight}
-      options={options}
-    />
+    <Suspense
+      fallback={
+        <div className="flex flex-col min-h-[60vh] justify-center items-center">
+          <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="mt-4 text-sm text-muted-foreground">Loading results...</p>
+        </div>
+      }
+    >
+      <SignalResultsClient
+        signalNumber={num}
+        question={signal.question}
+        status={signal.status}
+        headlineInsight={signal.headlineInsight}
+        options={options}
+      />
+    </Suspense>
   );
 }
