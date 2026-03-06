@@ -16,6 +16,12 @@ const updateSignalSchema = z.object({
   status: z.enum(["DRAFT", "LIVE", "CLOSED", "PUBLISHED"]).optional(),
   headlineInsight: z.string().optional(),
   voteDeadline: z.string().datetime().nullable().optional(),
+  questionKr: z.string().nullable().optional(),
+  optionAKr: z.string().nullable().optional(),
+  optionBKr: z.string().nullable().optional(),
+  optionCKr: z.string().nullable().optional(),
+  optionDKr: z.string().nullable().optional(),
+  optionEKr: z.string().nullable().optional(),
 });
 
 export async function GET(

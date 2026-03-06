@@ -18,6 +18,12 @@ export function NewSignalFormWrapper() {
     optionE: string;
     category: string;
     voteDeadline: string;
+    questionKr: string;
+    optionAKr: string;
+    optionBKr: string;
+    optionCKr: string;
+    optionDKr: string;
+    optionEKr: string;
   }) {
     setIsSubmitting(true);
     try {
@@ -29,6 +35,12 @@ export function NewSignalFormWrapper() {
         optionD: data.optionD,
         optionE: data.optionE,
         category: data.category,
+        questionKr: data.questionKr || undefined,
+        optionAKr: data.optionAKr || undefined,
+        optionBKr: data.optionBKr || undefined,
+        optionCKr: data.optionCKr || undefined,
+        optionDKr: data.optionDKr || undefined,
+        optionEKr: data.optionEKr || undefined,
       };
       if (data.voteDeadline) {
         body.voteDeadline = new Date(data.voteDeadline).toISOString();

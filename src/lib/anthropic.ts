@@ -248,3 +248,88 @@ Search for relevant articles and return as JSON.`,
 
   return [];
 }
+
+export interface KoreanTranslation {
+  questionKr: string;
+  optionAKr: string;
+  optionBKr: string;
+  optionCKr: string;
+  optionDKr: string;
+  optionEKr: string;
+}
+
+export async function translateSignalToKorean({
+  question,
+  optionA,
+  optionB,
+  optionC,
+  optionD,
+  optionE,
+}: {
+  question: string;
+  optionA: string;
+  optionB: string;
+  optionC: string;
+  optionD: string;
+  optionE: string;
+}): Promise<KoreanTranslation> {
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1024,
+    system: `You are a bilingual expert translating survey questions for Elev8 — an invite-only leadership community of senior tech executives (VPs, C-suite, founders) based in Korea and the US.
+
+Your job: Translate the English survey question and its 5 answer options into natural, well-contexted Korean.
+
+Translation guidelines:
+- Use 존댓말 (formal polite) but keep it conversational — not stiff corporate Korean
+- Preserve the wit, edge, and tone of the English version — don't flatten the personality
+- Use natural Korean phrasing and word order, NOT direct translation
+- Keep the same level of engagement: thought-provoking, slightly provocative, fun yet substantive
+- The audience is top-tier senior leaders — match that gravitas without being boring
+- If the English uses metaphors or idioms, find equivalent Korean expressions rather than translating literally
+- Technical terms can stay in English where Korean leaders would naturally use them (e.g., AI, ROI, KPI)
+
+CRITICAL: Return ONLY valid JSON in this exact format, no other text:
+{
+  "questionKr": "한국어 질문",
+  "optionAKr": "선택지 A",
+  "optionBKr": "선택지 B",
+  "optionCKr": "선택지 C",
+  "optionDKr": "선택지 D",
+  "optionEKr": "선택지 E"
+}`,
+    messages: [
+      {
+        role: "user",
+        content: `Translate this survey question and options into Korean:
+
+Question: "${question}"
+
+A. ${optionA}
+B. ${optionB}
+C. ${optionC}
+D. ${optionD}
+E. ${optionE}`,
+      },
+    ],
+  });
+
+  const block = message.content[0];
+  if (block.type !== "text") {
+    throw new Error("Unexpected response from Claude");
+  }
+
+  let jsonStr = block.text.trim();
+  const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    jsonStr = jsonMatch[0];
+  }
+
+  const parsed = JSON.parse(jsonStr) as KoreanTranslation;
+
+  if (!parsed.questionKr || !parsed.optionAKr || !parsed.optionBKr || !parsed.optionCKr || !parsed.optionDKr || !parsed.optionEKr) {
+    throw new Error("Invalid Korean translation format from Claude");
+  }
+
+  return parsed;
+}

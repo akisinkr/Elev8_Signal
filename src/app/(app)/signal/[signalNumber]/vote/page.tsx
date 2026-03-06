@@ -20,11 +20,11 @@ export default async function VotePage({
   }
 
   const options = [
-    { key: "A", label: signal.optionA },
-    { key: "B", label: signal.optionB },
-    { key: "C", label: signal.optionC },
-    { key: "D", label: signal.optionD },
-    { key: "E", label: signal.optionE },
+    { key: "A", label: signal.optionA, labelKr: signal.optionAKr ?? undefined },
+    { key: "B", label: signal.optionB, labelKr: signal.optionBKr ?? undefined },
+    { key: "C", label: signal.optionC, labelKr: signal.optionCKr ?? undefined },
+    { key: "D", label: signal.optionD, labelKr: signal.optionDKr ?? undefined },
+    { key: "E", label: signal.optionE, labelKr: signal.optionEKr ?? undefined },
   ];
 
   return (
@@ -32,6 +32,7 @@ export default async function VotePage({
       <VoteFormWrapper
         signalNumber={signal.signalNumber}
         question={signal.question}
+        questionKr={signal.questionKr ?? undefined}
         options={options}
         deadline={signal.voteDeadline?.toISOString() ?? null}
         signalStatus={signal.status}

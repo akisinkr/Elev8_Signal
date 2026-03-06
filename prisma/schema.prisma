@@ -170,6 +170,12 @@ model SignalQuestion {
   optionC         String
   optionD         String
   optionE         String
+  questionKr      String?
+  optionAKr       String?
+  optionBKr       String?
+  optionCKr       String?
+  optionDKr       String?
+  optionEKr       String?
   headlineInsight String?
   voteDeadline    DateTime?
   publishedAt     DateTime?

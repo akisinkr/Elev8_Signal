@@ -14,6 +14,12 @@ const createSignalSchema = z.object({
     .enum(["AI_STRATEGY", "KOREA_TACTICAL", "LEADERSHIP", "WILDCARD", "SYNTHESIS"])
     .default("WILDCARD"),
   voteDeadline: z.string().datetime().optional(),
+  questionKr: z.string().optional(),
+  optionAKr: z.string().optional(),
+  optionBKr: z.string().optional(),
+  optionCKr: z.string().optional(),
+  optionDKr: z.string().optional(),
+  optionEKr: z.string().optional(),
 });
 
 export async function GET() {
@@ -68,6 +74,12 @@ export async function POST(req: Request) {
         optionE: data.optionE,
         category: data.category,
         voteDeadline: data.voteDeadline ? new Date(data.voteDeadline) : null,
+        questionKr: data.questionKr || null,
+        optionAKr: data.optionAKr || null,
+        optionBKr: data.optionBKr || null,
+        optionCKr: data.optionCKr || null,
+        optionDKr: data.optionDKr || null,
+        optionEKr: data.optionEKr || null,
       },
     });
 
