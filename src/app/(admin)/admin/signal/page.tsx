@@ -4,6 +4,7 @@ import { SignalStatusBadge } from "@/components/signal/signal-status-badge";
 import { SignalCreateDialog } from "@/components/admin/signal/signal-create-dialog";
 import { SignalListActions } from "@/components/admin/signal/signal-list-actions";
 import { SignalSuggestionsTable } from "@/components/admin/signal/signal-suggestions-table";
+import { AiSignalSuggestions } from "@/components/admin/signal/ai-signal-suggestions";
 import {
   Table,
   TableBody,
@@ -18,7 +19,7 @@ import { BarChart3, Radio, Users, Lightbulb } from "lucide-react";
 export default async function AdminSignalPage() {
   await requireAdmin();
 
-  const [signals, totalMembers, pendingSuggestions, approvedSuggestions] = await Promise.all([
+  const [signals, totalMembers, pendingSuggestions, approvedSuggestions, aiSuggestions] = await Promise.all([
     prisma.signalQuestion.findMany({
       orderBy: { signalNumber: "desc" },
       include: { votes: { select: { id: true } } },
@@ -30,6 +31,9 @@ export default async function AdminSignalPage() {
     }),
     prisma.signalSuggestion.findMany({
       where: { status: "APPROVED" },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.aiSignalSuggestion.findMany({
       orderBy: { createdAt: "desc" },
     }),
   ]);
@@ -86,7 +90,25 @@ export default async function AdminSignalPage() {
         </div>
       </div>
 
-      {/* Suggestions */}
+      {/* AI-Generated Suggestions */}
+      <AiSignalSuggestions
+        initialSuggestions={aiSuggestions.map((s) => ({
+          id: s.id,
+          question: s.question,
+          questionKr: s.questionKr,
+          optionA: s.optionA,
+          optionB: s.optionB,
+          optionC: s.optionC,
+          optionD: s.optionD,
+          optionE: s.optionE,
+          rationale: s.rationale,
+          sourceThemes: s.sourceThemes,
+          status: s.status,
+          createdAt: s.createdAt.toISOString(),
+        }))}
+      />
+
+      {/* Member Suggestions */}
       {(pendingSuggestions.length > 0 || approvedSuggestions.length > 0) && (
         <div id="suggestions" className="space-y-3 scroll-mt-8">
           <div className="flex items-center gap-2">

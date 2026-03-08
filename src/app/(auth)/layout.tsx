@@ -7,7 +7,7 @@ export default function AuthLayout({
     <div className="min-h-screen bg-background">
       <div className="flex min-h-screen flex-col items-center justify-center px-4">
         <div className="mb-8 text-center">
-          <h1 className="text-xl font-bold tracking-tight">Elev8 Signal</h1>
+          <h1 className="text-xl font-bold tracking-tight">Elev8 Profile</h1>
           <p className="mt-1 text-sm text-muted-foreground">Admin Access</p>
         </div>
         {children}

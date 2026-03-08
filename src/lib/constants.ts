@@ -1,4 +1,4 @@
-export const APP_NAME = "Superpower Exchange";
+export const APP_NAME = "Elev8 Superpower";
 export const APP_DESCRIPTION = "Trade your superpowers with elite leaders";
 
 export const ONBOARDING_STEPS = [

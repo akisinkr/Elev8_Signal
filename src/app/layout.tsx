@@ -18,9 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Elev8 Signal",
+  title: "Elev8 Profile",
   description:
-    "The pulse of Elev8 leadership — one question at a time.",
+    "Your superpower profile for the Elev8 community.",
 };
 
 export default function RootLayout({

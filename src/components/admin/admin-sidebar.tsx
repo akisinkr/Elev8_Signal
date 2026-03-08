@@ -36,7 +36,7 @@ export function AdminSidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 flex w-56 flex-col border-r border-zinc-800 bg-zinc-950">
       <div className="flex h-14 items-center gap-2 px-4 border-b border-zinc-800">
-        <span className="text-sm font-semibold text-white">Elev8 Signal</span>
+        <span className="text-sm font-semibold text-white">Elev8 Profile</span>
         <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400">
           Admin
         </span>

@@ -55,7 +55,7 @@ export default async function Home() {
             <BarChart3 className="size-5 text-primary" />
           </div>
           <span className="text-xl font-bold tracking-tight text-foreground">
-            Elev8 Signal
+            Elev8 Profile
           </span>
         </div>
 

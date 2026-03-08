@@ -1,13 +1,46 @@
+import { requireAdmin } from "@/lib/admin-auth";
+import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/shared/page-header";
+import { MembersTable } from "@/components/admin/members-table";
 
-export default function AdminMembersPage() {
+export default async function AdminMembersPage() {
+  await requireAdmin();
+
+  const members = await prisma.member.findMany({
+    where: { role: "MEMBER" },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      imageUrl: true,
+      company: true,
+      jobTitle: true,
+      superpowers: true,
+      challenges: true,
+      dreamConnection: true,
+      cardCompletedAt: true,
+      createdAt: true,
+    },
+  });
+
+  const totalMembers = members.length;
+  const cardsCompleted = members.filter((m) => m.cardCompletedAt).length;
+
   return (
     <div>
       <PageHeader
         title="Members"
-        description="View and manage all community members."
+        description={`${totalMembers} members · ${cardsCompleted} cards completed`}
       />
-      {/* Members table will be implemented here */}
+      <MembersTable
+        members={members.map((m) => ({
+          ...m,
+          cardCompletedAt: m.cardCompletedAt?.toISOString() ?? null,
+          createdAt: m.createdAt.toISOString(),
+        }))}
+      />
     </div>
   );
 }

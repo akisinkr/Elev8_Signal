@@ -9,7 +9,7 @@ export default function AppLayout({
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="flex h-14 items-center justify-between">
             <span className="text-sm font-semibold tracking-tight">
-              Elev8 Signal
+              Elev8 Profile
             </span>
           </div>
         </div>

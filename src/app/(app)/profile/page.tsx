@@ -1,16 +1,67 @@
 import { requireMember } from "@/lib/auth";
-import { PageHeader } from "@/components/shared/page-header";
+import { MemberCardForm } from "@/components/member-card/member-card-form";
 
 export default async function ProfilePage() {
   const member = await requireMember();
 
   return (
-    <div>
-      <PageHeader
-        title="Your Profile"
-        description="Manage your superpowers and professional info."
+    <div className="max-w-lg mx-auto py-8">
+      <div id="profile-page-header" className="mb-8 pb-6 border-b border-white/[0.06]">
+        <p className="text-[10px] tracking-[0.2em] text-white/25 uppercase mb-3">
+          Your Superpower Card
+        </p>
+        <h1 className="text-xl font-semibold tracking-tight text-white/90">
+          {member.firstName}, what can you do that others can&apos;t?
+        </h1>
+        <p className="text-sm text-white/45 mt-2 leading-relaxed">
+          Define your superpower. AI will shape it into a profile that
+          helps the right peers find you.
+        </p>
+      </div>
+      <MemberCardForm
+        member={{
+          id: member.id,
+          firstName: member.firstName,
+          lastName: member.lastName,
+          email: member.email,
+          imageUrl: member.imageUrl,
+          customPhotoUrl: member.customPhotoUrl,
+          headline: member.headline,
+          company: member.company,
+          jobTitle: member.jobTitle,
+          linkedinUrl: member.linkedinUrl,
+          memberNumber: member.memberNumber,
+          knownFor: member.knownFor,
+          superpowers: member.superpowers,
+          superpowerDetails: member.superpowerDetails,
+          challenges: member.challenges,
+          challengeDetails: member.challengeDetails,
+          dreamConnection: member.dreamConnection,
+          dreamConnectionRefined: member.dreamConnectionRefined,
+          preferredLang: member.preferredLang,
+          superpowersKr: member.superpowersKr,
+          superpowerDetailsKr: member.superpowerDetailsKr,
+          challengesKr: member.challengesKr,
+          challengeDetailsKr: member.challengeDetailsKr,
+          dreamConnectionKr: member.dreamConnectionKr,
+          dreamConnectionRefinedKr: member.dreamConnectionRefinedKr,
+          cardCompletedAt: member.cardCompletedAt?.toISOString() ?? null,
+          createdAt: member.createdAt.toISOString(),
+          // 5-dimension fields
+          spDomain: member.spDomain,
+          spAction: member.spAction,
+          spScale: member.spScale,
+          spStage: member.spStage,
+          spGeo: member.spGeo,
+          spDomainCustom: member.spDomainCustom,
+          spActionCustom: member.spActionCustom,
+          // typed challenges
+          challengeType1: member.challengeType1,
+          challengeSpec1: member.challengeSpec1,
+          challengeType2: member.challengeType2,
+          challengeSpec2: member.challengeSpec2,
+        }}
       />
-      {/* Profile form will be implemented here */}
     </div>
   );
 }

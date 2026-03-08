@@ -80,16 +80,50 @@ model Member {
   id               String          @id @default(cuid())
   clerkId          String          @unique
   email            String          @unique
+  memberNumber     Int?            @unique
   firstName        String
   lastName         String
   imageUrl         String?
+  customPhotoUrl   String?
   bio              String?
   headline         String?
+  knownFor         String?
   company          String?
   jobTitle         String?
   linkedinUrl      String?
+  // ── 5-Dimension Superpower ──
+  spDomain         String?         // Tech domain (e.g. "AI & Machine Learning")
+  spAction         String?         // Specific action (e.g. "Scaling Teams")
+  spScale          String?         // Scale (e.g. "Large team (50-200)")
+  spStage          String?         // Company stage (e.g. "Series C-D")
+  spGeo            String?         // Geography (e.g. "US ↔ Korea")
+  spDomainCustom   String?         // Custom domain if "+ Other" selected
+  spActionCustom   String?         // Custom action if "+ Custom" selected
+
+  // ── Legacy keyword fields (kept for backward compat) ──
   superpowers      String[]
+  superpowerDetails String[]
+
+  // ── Typed Challenge System ──
+  challengeType1   String?         // e.g. "technical", "leadership", "org", "career", "intro"
+  challengeSpec1   String?         // Specific challenge selected
+  challengeType2   String?
+  challengeSpec2   String?
+
+  // ── Legacy challenge fields ──
   challenges       String[]
+  challengeDetails  String[]
+
+  dreamConnection  String?
+  dreamConnectionRefined String?
+  preferredLang    String          @default("en")
+  superpowersKr    String[]
+  superpowerDetailsKr String[]
+  challengesKr     String[]
+  challengeDetailsKr String[]
+  dreamConnectionKr String?
+  dreamConnectionRefinedKr String?
+  cardCompletedAt  DateTime?
   onboardingState  OnboardingState @default(NOT_STARTED)
   onboardingStep   Int             @default(0)
   passwordHash     String?
@@ -233,4 +267,25 @@ model AccessRequest {
 
   @@index([status])
   @@index([email])
+}
+
+// ─── AI-Generated Signal Suggestions (from member challenges) ───
+
+model AiSignalSuggestion {
+  id            String   @id @default(cuid())
+  question      String
+  questionKr    String?
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  optionE       String
+  rationale     String
+  sourceThemes  String[]
+  status        SuggestionStatus @default(PENDING)
+  adminNotified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
 }

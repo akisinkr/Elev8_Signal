@@ -9,18 +9,42 @@ export async function getCurrentMember() {
     return null;
   }
 
-  // Find existing member or auto-create from Clerk user data
-  const member = await prisma.member.upsert({
+  const email = user.emailAddresses[0]?.emailAddress ?? "";
+  const firstName = user.firstName ?? "";
+  const lastName = user.lastName ?? "";
+
+  // Try to find by clerkId first
+  let member = await prisma.member.findUnique({
     where: { clerkId: user.id },
-    update: {},
-    create: {
-      clerkId: user.id,
-      email: user.emailAddresses[0]?.emailAddress ?? "",
-      firstName: user.firstName ?? "",
-      lastName: user.lastName ?? "",
-      imageUrl: user.imageUrl ?? null,
-    },
   });
+
+  if (!member) {
+    // Check if a member with this email already exists (from production Clerk)
+    if (email) {
+      member = await prisma.member.findUnique({
+        where: { email },
+      });
+      if (member) {
+        // Link existing member to this Clerk ID
+        member = await prisma.member.update({
+          where: { id: member.id },
+          data: { clerkId: user.id },
+        });
+        return member;
+      }
+    }
+
+    // Create new member
+    member = await prisma.member.create({
+      data: {
+        clerkId: user.id,
+        email: email || `${user.id}@clerk.dev`,
+        firstName: firstName || "Member",
+        lastName: lastName || "",
+        imageUrl: user.imageUrl ?? null,
+      },
+    });
+  }
 
   return member;
 }
