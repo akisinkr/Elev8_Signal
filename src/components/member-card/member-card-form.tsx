@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -64,6 +64,8 @@ interface MemberData {
   challengeSpec1: string | null;
   challengeType2: string | null;
   challengeSpec2: string | null;
+  // Elev8 Titles
+  elev8Titles: string[];
 }
 
 interface MemberCardFormProps {
@@ -88,7 +90,7 @@ interface MatchSuggestion {
   matchedChallenge: string;
 }
 
-type Step = "domain" | "action" | "scale" | "stage" | "geo" | "challenges" | "generate" | "refine" | "done";
+type Step = "intro" | "domain" | "action" | "scale" | "stage" | "geo" | "challenges" | "generate" | "refine" | "done";
 
 // ─── 5-Dimension Options ─────────────────────────────────
 
@@ -217,6 +219,24 @@ const CHALLENGE_OPTIONS: Record<string, { en: string; kr: string }[]> = {
   ],
 };
 
+// ─── Elev8 Titles ────────────────────────────────────────
+const ELEV8_TITLES: Record<string, { icon: string; en: string; kr: string; descEn: string; descKr: string }> = {
+  architect: { icon: "⚡", en: "Architect", kr: "Architect", descEn: "I solve technical problems", descKr: "기술적 문제를 해결합니다" },
+  advisor:   { icon: "💡", en: "Advisor", kr: "Advisor", descEn: "I help leaders lead", descKr: "리더가 더 잘 이끌도록 돕습니다" },
+  navigator: { icon: "🧭", en: "Navigator", kr: "Navigator", descEn: "I've been through the maze and know the way", descKr: "복잡한 조직을 헤쳐나간 경험이 있습니다" },
+  catalyst:  { icon: "🚀", en: "Catalyst", kr: "Catalyst", descEn: "I accelerate career transformations", descKr: "커리어 전환을 가속화합니다" },
+  connector: { icon: "🔗", en: "Connector", kr: "Connector", descEn: "I connect people who need to meet", descKr: "만나야 할 사람들을 연결합니다" },
+};
+
+// Map challenge types to their corresponding Elev8 Title
+const CHALLENGE_TO_TITLE: Record<string, string> = {
+  technical: "architect",
+  leadership: "advisor",
+  org: "navigator",
+  career: "catalyst",
+  intro: "connector",
+};
+
 // ─── Component ───────────────────────────────────────────
 
 export function MemberCardForm({ member }: MemberCardFormProps) {
@@ -226,7 +246,7 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
   const getInitialStep = (): Step => {
     if (hasCard) return "done";
     if (member.spDomain) return "done"; // already has 5-dim data
-    return "domain";
+    return "intro";
   };
   const [step, setStep] = useState<Step>(getInitialStep);
 
@@ -250,12 +270,31 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
   const [spGeoCustom, setSpGeoCustom] = useState("");
   const [customChallengeText1, setCustomChallengeText1] = useState("");
   const [customChallengeText2, setCustomChallengeText2] = useState("");
+  const [savedTitles, setSavedTitles] = useState<string[]>(member.elev8Titles ?? []);
+
+  // Derive titles client-side from selected actions (mirrors server logic)
+  const ACTION_TO_TITLE: Record<string, string> = {
+    architecture: "architect", building: "architect", migrating: "architect", optimizing: "architect",
+    scaling: "advisor", "org-design": "advisor", hiring: "advisor", strategy: "advisor",
+    compliance: "navigator", mna: "navigator",
+    gtm: "catalyst", crisis: "catalyst",
+  };
 
   // Toggle helper for multi-select arrays (max 3)
   const toggleMulti = (id: string, list: string[], setList: (v: string[]) => void, max = 3) => {
     if (list.includes(id)) setList(list.filter(x => x !== id));
     else if (list.length < max) setList([...list, id]);
   };
+
+  // Compute Elev8 Titles from saved + current action selections
+  const earnedTitles = useMemo(() => {
+    const titles = new Set(savedTitles);
+    for (const a of spActions) {
+      if (ACTION_TO_TITLE[a]) titles.add(ACTION_TO_TITLE[a]);
+    }
+    if (titles.size === 0 && spActions.length > 0) titles.add("connector");
+    return Array.from(titles);
+  }, [savedTitles, spActions]);
 
   // Typed challenges (max 2)
   const [challengeType1, setChallengeType1] = useState(member.challengeType1 || "");
@@ -309,12 +348,50 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
 
   // Photo
   const [photoPromptDismissed, setPhotoPromptDismissed] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [customPhoto, setCustomPhoto] = useState<string | null>(member.customPhotoUrl);
 
   const [saving, setSaving] = useState(false);
 
   const memberNumber = member.memberNumber ? String(member.memberNumber).padStart(3, "0") : null;
   const memberSince = new Date(member.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" });
-  const photoUrl = member.customPhotoUrl || member.imageUrl;
+  const photoUrl = customPhoto || member.imageUrl;
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error(lang === "kr" ? "이미지 파일만 업로드 가능합니다" : "Please select an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(lang === "kr" ? "파일 크기는 5MB 이하여야 합니다" : "File size must be under 5MB");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/members/me/photo", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Upload failed");
+      }
+      const { url } = await res.json();
+      setCustomPhoto(url);
+      toast.success(lang === "kr" ? "사진이 업로드되었습니다" : "Photo uploaded!");
+    } catch {
+      toast.error(lang === "kr" ? "사진 업로드에 실패했습니다" : "Failed to upload photo");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   // ── Get display label for dimension option ──
   const dimLabel = (options: { id: string; en: string; kr: string }[], id: string) => {
@@ -482,6 +559,8 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || `Save failed (${res.status})`);
       }
+      const savedData = await res.json();
+      if (savedData.elev8Titles) setSavedTitles(savedData.elev8Titles);
       setStep("done");
       toast.success("Your member card is complete.");
       loadMatches();
@@ -545,30 +624,32 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
   useEffect(() => {
     const header = document.getElementById("profile-page-header");
     if (!header) return;
-    if (step === "generate" || step === "refine" || step === "done") {
+    if (step === "intro" || step === "generate" || step === "refine" || step === "done") {
       header.style.display = "none";
     } else {
       header.style.display = "";
     }
   }, [step]);
 
-  // ── Progress indicator ──
-  const WIZARD_STEPS: Step[] = ["domain", "action", "scale", "stage", "geo", "challenges"];
+  // ── Progress indicator ── (intro is not counted as a numbered step)
+  const WIZARD_STEPS: Step[] = ["intro", "domain", "action", "scale", "stage", "geo", "challenges"];
+  const NUMBERED_STEPS: Step[] = ["domain", "action", "scale", "stage", "geo", "challenges"];
   const wizardIdx = WIZARD_STEPS.indexOf(step);
-  const totalWizardSteps = WIZARD_STEPS.length;
+  const numberedIdx = NUMBERED_STEPS.indexOf(step);
+  const totalNumberedSteps = NUMBERED_STEPS.length;
 
-  const ProgressBar = () => wizardIdx >= 0 ? (
+  const ProgressBar = () => numberedIdx >= 0 ? (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] text-white/30">
-          {lang === "kr" ? `${wizardIdx + 1} / ${totalWizardSteps} 단계` : `Step ${wizardIdx + 1} of ${totalWizardSteps}`}
+          {lang === "kr" ? `${numberedIdx + 1} / ${totalNumberedSteps} 단계` : `Step ${numberedIdx + 1} of ${totalNumberedSteps}`}
         </span>
         <LanguageToggle />
       </div>
       <div className="h-[2px] bg-white/[0.06] rounded-full overflow-hidden">
         <div
           className="h-full bg-amber-400/40 transition-all duration-300"
-          style={{ width: `${((wizardIdx + 1) / totalWizardSteps) * 100}%` }}
+          style={{ width: `${((numberedIdx + 1) / totalNumberedSteps) * 100}%` }}
         />
       </div>
     </div>
@@ -609,15 +690,38 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
     const chLabels = [challengeSpec1, challengeSpec2].filter(Boolean) as string[];
 
     return (
-      <div className="relative">
-        <div className="absolute -inset-4 rounded-3xl bg-gradient-to-b from-amber-500/[0.03] to-transparent blur-2xl" />
-        <div className="relative rounded-2xl border border-white/[0.08] bg-[#111118] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.4),0_0_80px_rgba(251,191,36,0.02)]">
-          <div className="h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+      <>
+      <style>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        @keyframes borderGlow {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.7; }
+        }
+        .animate-shimmer { animation: shimmer 2.5s ease-in-out infinite; }
+        .animate-border-glow { animation: borderGlow 3s ease-in-out infinite; }
+        .bg-gradient-conic { background: conic-gradient(from 0deg, var(--tw-gradient-stops)); }
+      `}</style>
+      <div className={`relative ${mode === "full" ? "animate-in fade-in zoom-in-95 duration-500" : ""}`}>
+        {/* Ambient glow */}
+        <div className="absolute -inset-4 rounded-3xl bg-gradient-to-b from-amber-500/[0.06] via-amber-400/[0.02] to-transparent blur-2xl animate-pulse" style={{ animationDuration: "3s" }} />
+        {/* Rotating border glow */}
+        <div className="absolute -inset-[1px] rounded-2xl overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-conic from-amber-400/20 via-transparent via-30% to-amber-400/10 animate-spin" style={{ animationDuration: "8s" }} />
+        </div>
+        <div className="relative rounded-2xl border border-white/[0.10] bg-[#111118] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5),0_0_80px_rgba(251,191,36,0.04),inset_0_1px_0_rgba(255,255,255,0.03)]">
+          {/* Top accent line with shimmer */}
+          <div className="relative h-[1.5px] overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+          </div>
           <div className="p-6 sm:p-7">
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2.5">
-                <span className="text-[10px] font-semibold tracking-[0.25em] text-amber-400/60 uppercase">Elev8</span>
+                <span className="text-[10px] font-semibold tracking-[0.25em] text-amber-400/60 uppercase" style={{ textShadow: "0 0 12px rgba(251,191,36,0.2)" }}>Elev8</span>
                 {memberNumber && (
                   <>
                     <span className="text-white/[0.08]">|</span>
@@ -633,7 +737,7 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
             {/* Profile + Badge Tier */}
             <div className="flex items-center gap-3.5 mb-1.5">
               {photoUrl ? (
-                <img src={photoUrl} alt="" className="size-13 rounded-full object-cover ring-2 ring-amber-400/20" />
+                <img src={photoUrl} alt="" className="size-13 rounded-full object-cover ring-2 ring-amber-400/25 shadow-[0_0_15px_rgba(251,191,36,0.1)]" />
               ) : (
                 <div className="relative flex size-13 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/[0.08] to-white/[0.02] text-sm font-semibold text-white/50 ring-2 ring-amber-400/20">
                   {member.firstName[0]}{member.lastName[0]}
@@ -656,12 +760,35 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
                 )}
               </div>
             </div>
-            {/* Badge tier */}
-            <div className="flex items-center gap-1.5 ml-[3.75rem] mb-5">
-              <span className="text-amber-400/50 text-[11px]">◆</span>
-              <span className="text-[10px] text-amber-400/40 font-medium tracking-wide">
-                Founding Member
-              </span>
+            {/* Founding Member + Elev8 Titles */}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 ml-[3.75rem] mb-5">
+              <div className="relative group/fm flex items-center gap-1 cursor-help">
+                <span className="text-amber-400/50 text-[11px]" style={{ textShadow: "0 0 6px rgba(251,191,36,0.3)" }}>◆</span>
+                <span className="text-[10px] text-amber-400/40 font-medium tracking-wide group-hover/fm:text-amber-400/60 transition-colors" style={{ textShadow: "0 0 8px rgba(251,191,36,0.1)" }}>
+                  Founding Member
+                </span>
+                <div className="absolute bottom-full left-0 mb-1.5 px-2.5 py-1.5 rounded-md bg-[#1a1a1a] border border-white/[0.08] text-[10px] text-white/60 whitespace-nowrap opacity-0 pointer-events-none group-hover/fm:opacity-100 transition-opacity duration-150 z-10">
+                  {lang === "kr" ? "Elev8 초기 멤버로서 커뮤니티를 함께 만들어가고 있습니다" : "One of the first members shaping the Elev8 community"}
+                </div>
+              </div>
+              {earnedTitles.length > 0 && (
+                <>
+                  <span className="text-white/[0.08]">|</span>
+                  {earnedTitles.map((t) => {
+                    const title = ELEV8_TITLES[t];
+                    return title ? (
+                      <div key={t} className="relative group/et flex items-center cursor-help">
+                        <span className="text-[10px] text-white/45 font-medium group-hover/et:text-white/65 transition-colors">
+                          {title.icon} {lang === "kr" ? title.kr : title.en}
+                        </span>
+                        <div className="absolute bottom-full left-0 mb-1.5 px-2.5 py-1.5 rounded-md bg-[#1a1a1a] border border-white/[0.08] text-[10px] text-white/60 whitespace-nowrap opacity-0 pointer-events-none group-hover/et:opacity-100 transition-opacity duration-150 z-10">
+                          {lang === "kr" ? title.descKr : title.descEn}
+                        </div>
+                      </div>
+                    ) : null;
+                  })}
+                </>
+              )}
             </div>
 
             {/* ── Divider ── */}
@@ -683,7 +810,7 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
                   onClick={() => setExpandedItem(spExpanded ? null : "sp-primary")}
                   className="flex items-start justify-between w-full text-left group"
                 >
-                  <h3 className="text-[22px] font-bold text-white/95 tracking-tight leading-tight pr-3">
+                  <h3 className="text-[22px] font-bold text-white/95 tracking-tight leading-tight pr-3" style={{ textShadow: "0 0 20px rgba(251,191,36,0.08)" }}>
                     {primaryProfile.title}
                   </h3>
                   {primaryProfile.bullets.length > 0 && (
@@ -861,13 +988,13 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
                     <button className="flex-1 h-9 rounded-lg border border-white/[0.08] bg-white/[0.02] text-[11px] text-white/40 hover:text-white/60 hover:border-white/[0.12] transition-all">
                       {lang === "kr" ? "프로필 보기" : "View Profile"}
                     </button>
-                    <button className="flex-1 h-9 rounded-lg bg-amber-400/90 text-[11px] text-black font-semibold hover:bg-amber-400 transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(251,191,36,0.15)]">
+                    <button className="flex-1 h-9 rounded-lg bg-amber-400/90 text-[11px] text-black font-semibold hover:bg-amber-400 transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(251,191,36,0.2),0_0_40px_rgba(251,191,36,0.08)] animate-border-glow">
                       <Sparkles className="size-3" />
                       {lang === "kr" ? "교류 요청" : "Request Exchange"}
                     </button>
                   </div>
                 ) : (
-                  <button className="w-full h-11 rounded-xl bg-amber-400/90 text-[13px] text-black font-semibold hover:bg-amber-400 transition-all flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(251,191,36,0.15)]">
+                  <button className="w-full h-11 rounded-xl bg-amber-400/90 text-[13px] text-black font-semibold hover:bg-amber-400 transition-all flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(251,191,36,0.2),0_0_50px_rgba(251,191,36,0.08)] animate-border-glow">
                     <Sparkles className="size-3.5" />
                     {lang === "kr" ? "교류 요청하기" : "Request Exchange"}
                   </button>
@@ -882,8 +1009,85 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
           </div>
         </div>
       </div>
+      </>
     );
   };
+
+  // ════════════════════════════════════════════════════════
+  // INTRO STEP — Explain Superpower & Elev8 Titles
+  // ════════════════════════════════════════════════════════
+  if (step === "intro") {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-end">
+          <LanguageToggle />
+        </div>
+        <div className="space-y-5">
+          {/* Superpower explanation */}
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-amber-400/70 text-lg">✦</span>
+              <h3 className="text-sm font-semibold text-white/85">
+                {lang === "kr" ? "Superpower란?" : "What's a Superpower?"}
+              </h3>
+            </div>
+            <p className="text-[12px] text-white/50 leading-relaxed">
+              {lang === "kr"
+                ? "당신만의 전문성과 경험입니다. 어떤 분야에서, 어떤 규모로, 어떤 역할을 해왔는지 — 이것이 다른 멤버가 당신을 찾는 이유가 됩니다."
+                : "Your unique expertise and experience. What domain you work in, what you do best, and at what scale — this is how other members find and connect with you."}
+            </p>
+          </div>
+
+          {/* Elev8 Titles explanation */}
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">⚡💡🧭🚀🔗</span>
+            </div>
+            <h3 className="text-sm font-semibold text-white/85">
+              {lang === "kr" ? "Elev8 Titles란?" : "What are Elev8 Titles?"}
+            </h3>
+            <p className="text-[12px] text-white/50 leading-relaxed">
+              {lang === "kr"
+                ? "커뮤니티에서 다른 멤버를 도운 경험이 인정받으면 얻는 타이틀입니다. 처음에는 당신의 Superpower에 기반한 기본 타이틀이 부여되고, 실제로 다른 멤버의 고민을 해결하고 긍정적인 피드백을 받으면 타이틀이 추가됩니다."
+                : "Titles you earn by helping other members in the community. You'll start with a default title based on your superpower. As you help others solve real challenges and receive positive peer feedback, you earn more titles."}
+            </p>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {Object.entries(ELEV8_TITLES).map(([key, t]) => (
+                <span key={key} className="text-[10px] text-white/35 bg-white/[0.03] border border-white/[0.05] rounded-full px-2.5 py-1">
+                  {t.icon} {lang === "kr" ? t.kr : t.en}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* How it works */}
+          <div className="rounded-xl border border-amber-400/[0.08] bg-amber-400/[0.02] p-5 space-y-2">
+            <h3 className="text-[11px] font-semibold text-amber-300/70 uppercase tracking-wider">
+              {lang === "kr" ? "어떻게 진행되나요?" : "How this works"}
+            </h3>
+            <div className="space-y-2">
+              {[
+                { n: "1", en: "Define your Superpower (5 quick questions)", kr: "Superpower 정의하기 (5개 질문)" },
+                { n: "2", en: "Share what you're working through right now", kr: "현재 고민하고 있는 것 공유하기" },
+                { n: "3", en: "AI builds your profile — you review & edit", kr: "AI가 프로필 생성 — 직접 검토 & 수정" },
+                { n: "4", en: "Get your first Elev8 Title automatically", kr: "첫 번째 Elev8 Title 자동 부여" },
+              ].map((s) => (
+                <div key={s.n} className="flex items-start gap-2.5">
+                  <span className="text-[10px] text-amber-400/50 font-bold mt-0.5">{s.n}</span>
+                  <p className="text-[11px] text-white/45">{lang === "kr" ? s.kr : s.en}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <NavButtons
+          onNext={() => setStep("domain")}
+          canNext={true}
+        />
+      </div>
+    );
+  }
 
   // ════════════════════════════════════════════════════════
   // STEP 1: DOMAIN — "Which domain?"
@@ -911,19 +1115,48 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
             <Input value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="linkedin.com/in/you" className="h-9 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25" />
           </div>
 
-          {/* Photo prompt */}
-          {!photoUrl && !photoPromptDismissed && (
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-400/10 bg-amber-400/[0.03]">
-              <Camera className="size-5 text-amber-400/40 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-[12px] text-white/60">{lang === "kr" ? "프로필 사진을 추가하세요" : "Add a photo to your card"}</p>
-                <p className="text-[10px] text-white/35">{lang === "kr" ? "사진이 있으면 연결 요청이 3배 더 많아집니다" : "Members with photos get 3x more connection requests"}</p>
-              </div>
-              <button onClick={() => setPhotoPromptDismissed(true)} className="text-white/15 hover:text-white/30">
-                <X className="size-3.5" />
-              </button>
+          {/* Photo upload */}
+          <div className="space-y-2">
+            <label className="text-[10px] text-white/40 font-medium">
+              {lang === "kr" ? "프로필 사진" : "Profile Photo"}
+            </label>
+            <div className="flex items-center gap-3">
+              <label className="relative cursor-pointer group">
+                {photoUrl ? (
+                  <img src={photoUrl} alt="" className="size-12 rounded-full object-cover ring-1 ring-white/10 group-hover:ring-amber-400/30 transition-all" />
+                ) : (
+                  <div className="size-12 rounded-full bg-white/[0.05] border border-white/[0.08] group-hover:border-amber-400/25 flex items-center justify-center transition-all">
+                    <Camera className="size-5 text-white/20 group-hover:text-amber-400/50 transition-colors" />
+                  </div>
+                )}
+                {uploadingPhoto && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                    <RefreshCw className="size-4 text-amber-400/60 animate-spin" />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handlePhotoUpload}
+                  disabled={uploadingPhoto}
+                  className="hidden"
+                />
+              </label>
+              <p className="text-[9px] text-white/25">
+                {lang === "kr" ? "클릭하여 업로드 · JPG, PNG, WebP · 최대 5MB" : "Click to upload · JPG, PNG, or WebP · Max 5MB"}
+              </p>
             </div>
-          )}
+            {!photoUrl && !photoPromptDismissed && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-400/10 bg-amber-400/[0.02]">
+                <p className="text-[10px] text-amber-300/40 flex-1">
+                  {lang === "kr" ? "💡 사진이 있으면 연결 요청이 3배 더 많아집니다" : "💡 Members with photos get 3x more connection requests"}
+                </p>
+                <button onClick={() => setPhotoPromptDismissed(true)} className="text-white/15 hover:text-white/30">
+                  <X className="size-3" />
+                </button>
+              </div>
+            )}
+          </div>
         </section>
 
         <div className="h-[1px] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
@@ -933,7 +1166,7 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
             {lang === "kr" ? "어떤 분야의 전문가인가요?" : "Which domain best describes your expertise?"}
           </h3>
           <p className="text-[11px] text-white/35 mb-4">
-            {lang === "kr" ? "하나만 선택하세요 — 이것이 당신의 Superpower 영역입니다" : "Pick one — this becomes your Superpower domain"}
+            {lang === "kr" ? "하나만 선택하세요 — 이 분야에서 당신을 찾게 됩니다" : "Pick one — this is how other members will find you"}
           </p>
           <div className="space-y-2">
             {DOMAINS.map((d) => (
@@ -959,6 +1192,7 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
         <NavButtons
           onNext={() => setStep("action")}
           canNext={!!spDomain && (spDomain !== "other" || !!spDomainCustom.trim())}
+          onBack={() => setStep("intro")}
         />
       </div>
     );
@@ -977,9 +1211,12 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
               ? `${domainName}에서 무엇을 잘하시나요?`
               : `What makes you exceptional in ${domainName}?`}
           </h3>
-          <p className="text-[11px] text-white/35 mb-4">
+          <p className="text-[11px] text-white/35 mb-1">
             {lang === "kr" ? "최대 3개 선택" : "Select up to 3"}
             {spActions.length > 0 && <span className="text-amber-400/50 ml-1">({spActions.length}/3)</span>}
+          </p>
+          <p className="text-[10px] text-amber-400/30 mb-4">
+            {lang === "kr" ? "✦ 이 선택이 당신의 첫 번째 Elev8 Title을 결정합니다" : "✦ This determines your first Elev8 Title"}
           </p>
           <div className="space-y-2">
             {ACTIONS.map((a) => (
@@ -1210,10 +1447,10 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
             {lang === "kr" ? "요즘 어떤 고민이 있으세요?" : "Where could you use a hand right now?"}
           </h3>
           <p className="text-[11px] text-white/35 mb-0.5">
-            {lang === "kr" ? "최대 2개 — 매칭된 멤버에게만 공개됩니다" : "Up to 2 — visible only to matched peers"}
+            {lang === "kr" ? "최대 2개 — 이 고민을 해결한 멤버와 매칭됩니다" : "Up to 2 — we'll match you with members who've solved this"}
           </p>
           <p className="text-[10px] text-white/25 mb-2">
-            {lang === "kr" ? "(자세히 알려주세요)" : "(Tell us more)"}
+            {lang === "kr" ? "매칭된 멤버에게만 공개됩니다" : "Only visible to matched peers"}
           </p>
 
           {/* Why this matters */}

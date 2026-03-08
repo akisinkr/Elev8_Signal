@@ -1,23 +1,28 @@
 import { NextResponse } from "next/server";
 import { requireMember } from "@/lib/auth";
-import { getUploadUrl } from "@/lib/s3";
+import { getUploadUrl, getCloudFrontUrl } from "@/lib/s3";
 import { z } from "zod";
 
 const uploadSchema = z.object({
   fileName: z.string(),
   contentType: z.string(),
+  folder: z.enum(["voice-notes", "profile-photos"]).optional(),
 });
 
 export async function POST(req: Request) {
   try {
     const member = await requireMember();
     const body = await req.json();
-    const { fileName, contentType } = uploadSchema.parse(body);
+    const { fileName, contentType, folder } = uploadSchema.parse(body);
 
-    const key = `voice-notes/${member.id}/${Date.now()}-${fileName}`;
+    const dir = folder || "voice-notes";
+    const key = `${dir}/${member.id}/${Date.now()}-${fileName}`;
     const uploadUrl = await getUploadUrl(key, contentType);
+    const publicUrl = process.env.AWS_CLOUDFRONT_DOMAIN
+      ? getCloudFrontUrl(key)
+      : `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 
-    return NextResponse.json({ uploadUrl, key });
+    return NextResponse.json({ uploadUrl, key, publicUrl });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.message }, { status: 400 });

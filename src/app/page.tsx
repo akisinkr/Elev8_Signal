@@ -1,119 +1,134 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { BarChart3, ArrowRight } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const { userId } = await auth();
 
+  // If already signed in, go straight to profile
+  if (userId) {
+    redirect("/profile");
+  }
+
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background">
-      {/* Subtle radial glow */}
+    <div className="relative flex min-h-screen flex-col overflow-hidden" style={{ backgroundColor: "#0A0A0A" }}>
+      {/* Subtle ambient glow */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 60% 50% at 50% 45%, oklch(0.55 0.22 265 / 8%) 0%, transparent 70%)",
+            "radial-gradient(ellipse 50% 40% at 50% 40%, rgba(200,168,78,0.04) 0%, transparent 70%)",
         }}
       />
 
-      {/* Floating grid lines for depth */}
+      {/* Grain texture overlay */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        className="pointer-events-none absolute inset-0 opacity-[0.015]"
         style={{
-          backgroundImage:
-            "linear-gradient(oklch(1 0 0 / 20%) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 20%) 1px, transparent 1px)",
-          backgroundSize: "80px 80px",
+          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
         }}
       />
 
-      {/* Signal pulse rings */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center" style={{ top: "5%" }}>
-        <div className="relative size-[600px] sm:size-[700px]">
-          {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute inset-0 rounded-full border border-primary/[0.07]"
-              style={{
-                animation: `signalPulse 4s ease-out ${i * 1}s infinite`,
-                transform: "scale(0.2)",
-                opacity: 0,
-              }}
-            />
-          ))}
-          {/* Static subtle rings for depth */}
-          <div className="absolute inset-[15%] rounded-full border border-primary/[0.04]" />
-          <div className="absolute inset-[30%] rounded-full border border-primary/[0.06]" />
-          <div className="absolute inset-[45%] rounded-full border border-primary/[0.03]" />
-        </div>
-      </div>
-
-      {/* Content */}
-      <main className="relative z-10 flex flex-col items-center px-6 text-center">
-        {/* Logo */}
-        <div className="mb-12 flex items-center gap-2.5">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/15">
-            <BarChart3 className="size-5 text-primary" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-foreground">
-            Elev8 Profile
-          </span>
-        </div>
-
-        {/* Tagline */}
-        <h1 className="max-w-lg text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-          <span className="text-foreground">One question.</span>
-          <br />
-          <span className="text-primary">Top leaders.</span>
-        </h1>
-
-        <p className="mt-4 text-base text-muted-foreground tracking-wide">
-          Your perspective shapes the signal.
-        </p>
-
-        {/* CTA */}
-        <Link
-          href="/signal"
-          className="group relative mt-10 inline-flex items-center gap-3 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_0_30px_oklch(0.55_0.22_265_/_25%)] active:scale-[0.98]"
+      {/* Header */}
+      <header className="relative z-10 flex items-center justify-between px-6 sm:px-10 py-6">
+        <span
+          className="text-[13px] font-semibold tracking-[0.3em] uppercase"
+          style={{ color: "#C8A84E", textShadow: "0 0 20px rgba(200,168,78,0.15)" }}
         >
-          Send Your Signal
-          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-        </Link>
+          ELEV8
+        </span>
+        <LangToggle />
+      </header>
 
-        {/* Subtle social proof */}
-        <div className="mt-16 flex items-center gap-3">
-          <div className="flex -space-x-2">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="size-7 rounded-full border-2 border-background"
-                style={{
-                  background: `oklch(${0.28 + i * 0.04} 0.03 ${255 + i * 8})`,
-                }}
-              />
-            ))}
+      {/* Hero — centered */}
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 text-center">
+        <div className="max-w-xl space-y-6">
+          {/* Headline */}
+          <h1
+            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.15]"
+            style={{ color: "#C8A84E" }}
+          >
+            Every leader has one.
+            <br />
+            Few can name it.
+          </h1>
+
+          {/* Subtext */}
+          <p
+            className="text-[15px] sm:text-base leading-relaxed max-w-md mx-auto"
+            style={{ color: "#E8E4DD" }}
+          >
+            Your <span style={{ color: "#C8A84E" }}>Superpower</span> is the one thing people
+            consistently come to you for.
+            <br className="hidden sm:block" />
+            Define yours in 90 seconds.
+          </p>
+
+          {/* CTA */}
+          <div className="pt-4">
+            <Link
+              href="/sign-in"
+              className="group relative inline-flex items-center gap-2.5 rounded-xl px-8 py-3.5 text-[14px] font-semibold tracking-wide transition-all active:scale-[0.98]"
+              style={{
+                backgroundColor: "#C8A84E",
+                color: "#0A0A0A",
+                boxShadow: "0 0 30px rgba(200,168,78,0.15), 0 0 60px rgba(200,168,78,0.05)",
+              }}
+            >
+              <span style={{ color: "#0A0A0A" }}>&#10022;</span>
+              Build Your Card
+            </Link>
           </div>
-          <span className="text-xs text-muted-foreground tracking-wide">
-            Invite-only leadership community
-          </span>
+
+          {/* Social proof */}
+          <div className="pt-8 flex items-center justify-center gap-3">
+            <div className="flex -space-x-2">
+              {[
+                { bg: "#2A2520", border: "#3A3530" },
+                { bg: "#252A28", border: "#353A38" },
+                { bg: "#28252A", border: "#38353A" },
+                { bg: "#2A2825", border: "#3A3835" },
+              ].map((s, i) => (
+                <div
+                  key={i}
+                  className="size-7 rounded-full border-2"
+                  style={{ backgroundColor: s.bg, borderColor: "#0A0A0A" }}
+                />
+              ))}
+            </div>
+            <span className="text-[11px] tracking-wide" style={{ color: "#7A7670" }}>
+              Invite-only leadership community
+            </span>
+          </div>
         </div>
       </main>
 
-      {/* Keyframes */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes signalPulse {
-          0% {
-            transform: scale(0.2);
-            opacity: 0;
-          }
-          10% {
-            opacity: 1;
-          }
-          100% {
-            transform: scale(1);
-            opacity: 0;
-          }
-        }
-      `}} />
+      {/* Footer */}
+      <footer className="relative z-10 py-6 text-center">
+        <p className="text-[10px] tracking-[0.15em]" style={{ color: "#7A7670" }}>
+          &copy; 2026 Elev8. All rights reserved.
+        </p>
+      </footer>
+    </div>
+  );
+}
+
+// ── Language toggle (client island) ──
+function LangToggle() {
+  return (
+    <div className="flex items-center gap-0 rounded-full border overflow-hidden" style={{ borderColor: "#1F1F1F" }}>
+      <button
+        className="px-3 py-1.5 text-[11px] font-medium tracking-wide transition-colors"
+        style={{ backgroundColor: "#1A1A1A", color: "#E8E4DD" }}
+      >
+        EN
+      </button>
+      <button
+        className="px-3 py-1.5 text-[11px] font-medium tracking-wide transition-colors"
+        style={{ color: "#7A7670" }}
+      >
+        KR
+      </button>
     </div>
   );
 }

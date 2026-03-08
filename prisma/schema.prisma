@@ -124,6 +124,8 @@ model Member {
   dreamConnectionKr String?
   dreamConnectionRefinedKr String?
   cardCompletedAt  DateTime?
+  // ── Elev8 Titles (earned through positive peer votes) ──
+  elev8Titles      String[]        // e.g. ["architect", "advisor", "connector"]
   onboardingState  OnboardingState @default(NOT_STARTED)
   onboardingStep   Int             @default(0)
   passwordHash     String?

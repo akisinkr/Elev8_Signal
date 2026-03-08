@@ -45,9 +45,42 @@ export async function PUT(req: Request) {
     const body = await req.json();
     const data = cardSchema.parse(body);
 
+    // Derive default Elev8 Title from superpower actions
+    // Titles represent what a member can HELP others with (their strengths)
+    const actionToTitle: Record<string, string> = {
+      architecture: "architect",   // system design expertise → ⚡ Architect
+      building: "architect",       // building from zero → ⚡ Architect
+      migrating: "architect",      // migration expertise → ⚡ Architect
+      optimizing: "architect",     // optimization → ⚡ Architect
+      scaling: "advisor",          // scaling teams → 💡 Advisor
+      "org-design": "advisor",     // org restructuring → 💡 Advisor
+      hiring: "advisor",           // talent strategy → 💡 Advisor
+      strategy: "advisor",         // strategy & roadmapping → 💡 Advisor
+      compliance: "navigator",     // compliance & regulation → 🧭 Navigator
+      mna: "navigator",            // M&A & integration → 🧭 Navigator
+      gtm: "catalyst",             // launching & go-to-market → 🚀 Catalyst
+      crisis: "catalyst",          // crisis & turnaround → 🚀 Catalyst
+    };
+    const spActionValue = data.spAction || member.spAction || "";
+    const actions = spActionValue.split(",").map((a: string) => a.trim()).filter(Boolean);
+    const existingTitles = member.elev8Titles ?? [];
+    const derivedTitles = new Set(existingTitles);
+    for (const action of actions) {
+      if (actionToTitle[action]) {
+        derivedTitles.add(actionToTitle[action]);
+      }
+    }
+    // If no title derived (e.g. custom action), default to connector
+    if (derivedTitles.size === 0 && actions.length > 0) {
+      derivedTitles.add("connector");
+    }
+    const elev8Titles = Array.from(derivedTitles);
+
     const updated = await prisma.member.update({
       where: { id: member.id },
       data: {
+        // Elev8 Titles (derived from challenges + any earned via votes)
+        elev8Titles,
         // 5 dimensions
         spDomain: data.spDomain || member.spDomain,
         spAction: data.spAction || member.spAction,
@@ -93,9 +126,10 @@ export async function PUT(req: Request) {
         { status: 400 }
       );
     }
-    console.error("Card save error:", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error("Card save error:", errMsg, error);
     return NextResponse.json(
-      { error: "Failed to save profile. Please try again." },
+      { error: "Failed to save profile. Please try again.", debug: errMsg },
       { status: 500 }
     );
   }

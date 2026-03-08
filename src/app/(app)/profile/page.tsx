@@ -8,14 +8,14 @@ export default async function ProfilePage() {
     <div className="max-w-lg mx-auto py-8">
       <div id="profile-page-header" className="mb-8 pb-6 border-b border-white/[0.06]">
         <p className="text-[10px] tracking-[0.2em] text-white/25 uppercase mb-3">
-          Your Superpower Card
+          Your Elev8 Profile
         </p>
         <h1 className="text-xl font-semibold tracking-tight text-white/90">
-          {member.firstName}, what can you do that others can&apos;t?
+          {member.firstName}, let&apos;s build your profile
         </h1>
         <p className="text-sm text-white/45 mt-2 leading-relaxed">
-          Define your superpower. AI will shape it into a profile that
-          helps the right peers find you.
+          Share your superpower, earn Elev8 Titles, and connect with
+          the right peers who need exactly what you bring.
         </p>
       </div>
       <MemberCardForm
@@ -60,6 +60,8 @@ export default async function ProfilePage() {
           challengeSpec1: member.challengeSpec1,
           challengeType2: member.challengeType2,
           challengeSpec2: member.challengeSpec2,
+          // Elev8 Titles
+          elev8Titles: member.elev8Titles,
         }}
       />
     </div>
