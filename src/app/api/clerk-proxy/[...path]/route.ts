@@ -5,7 +5,7 @@ const CLERK_HOST = "clerk.elev8-signal.com";
 
 async function handler(req: NextRequest) {
   const url = new URL(req.url);
-  const clerkPath = url.pathname.replace(/^\/clerk-proxy/, "");
+  const clerkPath = url.pathname.replace(/^\/api\/clerk-proxy/, "");
   const target = `${CLERK_FAPI_ORIGIN}${clerkPath}${url.search}`;
 
   const headers = new Headers();

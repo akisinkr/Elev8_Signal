@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider appearance={{ baseTheme: dark }} proxyUrl="/clerk-proxy">
+    <ClerkProvider appearance={{ baseTheme: dark }} proxyUrl="/api/clerk-proxy">
       <html lang="en" className="dark">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
