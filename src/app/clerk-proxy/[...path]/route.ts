@@ -1,16 +1,14 @@
 import { NextRequest } from "next/server";
 
-// Use Clerk's shared frontend API with the instance's host header
 const CLERK_FAPI_ORIGIN = "https://frontend-api.clerk.services";
 const CLERK_HOST = "clerk.elev8-signal.com";
 
 async function handler(req: NextRequest) {
   const url = new URL(req.url);
-  const clerkPath = url.pathname.replace(/^\/__clerk/, "");
+  const clerkPath = url.pathname.replace(/^\/clerk-proxy/, "");
   const target = `${CLERK_FAPI_ORIGIN}${clerkPath}${url.search}`;
 
   const headers = new Headers();
-  // Forward relevant headers
   for (const [key, value] of req.headers.entries()) {
     if (
       !["host", "connection", "keep-alive", "transfer-encoding"].includes(
@@ -20,7 +18,6 @@ async function handler(req: NextRequest) {
       headers.set(key, value);
     }
   }
-  // Tell Clerk which instance this is for
   headers.set("Host", CLERK_HOST);
   headers.set("X-Forwarded-Host", CLERK_HOST);
 
@@ -45,10 +42,13 @@ async function handler(req: NextRequest) {
     });
   } catch (err) {
     console.error("Clerk proxy error:", err);
-    return new Response(JSON.stringify({ error: "Proxy failed" }), {
-      status: 502,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "Proxy failed", detail: String(err) }),
+      {
+        status: 502,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 }
 
