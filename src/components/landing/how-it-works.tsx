@@ -51,7 +51,7 @@ export function HowItWorks() {
       <div
         className="overflow-hidden transition-all duration-500 ease-out"
         style={{
-          maxHeight: open ? "300px" : "0px",
+          maxHeight: open ? "600px" : "0px",
           opacity: open ? 1 : 0,
         }}
       >
