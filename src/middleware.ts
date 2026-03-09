@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  "/clerk-proxy(.*)",
   "/admin(.*)",
   "/api/admin/auth/login",
   "/api/admin/auth/logout",
