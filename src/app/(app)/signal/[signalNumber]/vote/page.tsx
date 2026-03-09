@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { getSignalByNumber } from "@/lib/signal";
+import { getMemberSession } from "@/lib/member-auth";
 import { VoteFormWrapper } from "./vote-form-wrapper";
 
 export default async function VotePage({
@@ -19,6 +20,9 @@ export default async function VotePage({
     redirect(`/signal/${num}`);
   }
 
+  // Check if user already authenticated via OTP session
+  const member = await getMemberSession();
+
   const options = [
     { key: "A", label: signal.optionA, labelKr: signal.optionAKr ?? undefined },
     { key: "B", label: signal.optionB, labelKr: signal.optionBKr ?? undefined },
@@ -36,6 +40,7 @@ export default async function VotePage({
         options={options}
         deadline={signal.voteDeadline?.toISOString() ?? null}
         signalStatus={signal.status}
+        memberEmail={member?.email}
       />
     </div>
   );
