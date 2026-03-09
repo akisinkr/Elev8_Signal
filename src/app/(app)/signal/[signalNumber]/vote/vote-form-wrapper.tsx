@@ -160,11 +160,8 @@ export function VoteFormWrapper({
       if (!res.ok) {
         const data = await res.json();
         if (res.status === 409) {
-          toast.error(
-            lang === "kr"
-              ? "이미 의견을 남기셨습니다."
-              : "You've already shared your perspective."
-          );
+          // Already voted — show the thanks screen
+          setStep("thanks");
         } else {
           toast.error(data.error || "Failed to submit vote");
         }
@@ -281,6 +278,19 @@ export function VoteFormWrapper({
         >
           {txt.resultsShared}
         </p>
+        <Link
+          href="/"
+          className={cn(
+            "mt-8 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition-all",
+            "bg-primary text-primary-foreground",
+            "hover:bg-primary/90 active:scale-[0.98]",
+            "animate-in fade-in slide-in-from-bottom-2 duration-500"
+          )}
+          style={{ animationDelay: "600ms", animationFillMode: "both" }}
+        >
+          {lang === "kr" ? "홈으로 돌아가기" : "Back to Home"}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+        </Link>
       </div>
     );
   }
