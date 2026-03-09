@@ -2,14 +2,14 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Image from "next/image";
+import { HowItWorks } from "@/components/landing/how-it-works";
 
 // Real member companies — logos only (no text labels)
-// invert: true → dark logo on transparent bg, needs CSS invert for dark background
-// wide: true → wordmark logos that need extra width to display properly
+// All logos are text wordmarks, rendered as white silhouettes via brightness(0) invert(1)
 const MEMBER_COMPANIES = [
-  { name: "NVIDIA", logo: "/logos/nvidia.png", wide: true },
+  { name: "NVIDIA", logo: "/logos/nvidia.png" },
   { name: "Google", logo: "/logos/google.png" },
-  { name: "Samsung", logo: "/logos/samsung.png", wide: true },
+  { name: "Samsung", logo: "/logos/samsung.png" },
   { name: "Meta", logo: "/logos/meta.png" },
   { name: "Snowflake", logo: "/logos/snowflake.png" },
   { name: "AWS", logo: "/logos/aws.png" },
@@ -19,39 +19,21 @@ const MEMBER_COMPANIES = [
   { name: "Microsoft", logo: "/logos/microsoft.png" },
   { name: "현대카드", logo: "/logos/hyundaicard.png" },
   { name: "Kakao", logo: "/logos/kakaocorp.png" },
-  { name: "S-OIL", logo: "/logos/s-oil.png", wide: true, invert: true },
+  { name: "S-OIL", logo: "/logos/s-oil.png" },
   { name: "Naver", logo: "/logos/naver.png" },
   { name: "Uber", logo: "/logos/uber.png" },
   { name: "LINE", logo: "/logos/line.png" },
-  { name: "Notion", logo: "/logos/notion.png", invert: true },
+  { name: "Notion", logo: "/logos/notion.png" },
   { name: "CJ Oliveyoung", logo: "/logos/oliveyoung.png" },
   { name: "Karrot", logo: "/logos/daangn.png" },
-  { name: "Twelve Labs", logo: "/logos/twelvelabs.png", invert: true },
+  { name: "Twelve Labs", logo: "/logos/twelvelabs.png" },
   { name: "Bucketplace", logo: "/logos/ohou.png" },
 ];
 
-// How it works — 3-step flow
-const STEPS = [
-  {
-    num: "01",
-    title: "Vote",
-    desc: "One question a week. One tap. See how peers at your level answered.",
-  },
-  {
-    num: "02",
-    title: "Insights",
-    desc: "Get a curated report — what leaders across 8 domains are actually thinking.",
-  },
-  {
-    num: "03",
-    title: "Connect",
-    desc: "Discover who has the expertise you need. Request a 1:1 Superpower Exchange.",
-  },
-];
 
 export default async function Home() {
   const { userId } = await auth();
-  if (userId) redirect("/profile");
+  if (userId) redirect("/signal");
 
   // Double the list for seamless infinite scroll
   const marqueeItems = [...MEMBER_COMPANIES, ...MEMBER_COMPANIES];
@@ -211,56 +193,48 @@ export default async function Home() {
         </div>
       </main>
 
-      {/* How It Works — 3 steps */}
-      <section className="relative z-10 px-6 py-10 fade-up fade-up-4">
-        <div className="max-w-2xl mx-auto">
-          {/* Connecting line behind steps */}
-          <div className="relative">
-            <div className="hidden sm:block absolute top-[14px] left-[10%] right-[10%] h-px" style={{ backgroundColor: "rgba(200,168,78,0.1)" }} />
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6">
-              {STEPS.map((step) => (
-                <div key={step.num} className="text-center">
-                  <span className="inline-block text-[10px] font-mono mb-3 px-2 py-0.5 rounded-full" style={{ color: "#C8A84E", backgroundColor: "rgba(200,168,78,0.08)" }}>
-                    {step.num}
-                  </span>
-                  <p className="text-[13px] font-semibold tracking-wide mb-1.5" style={{ color: "#E8E4DD" }}>
-                    {step.title}
-                  </p>
-                  <p className="text-[12px] leading-relaxed max-w-[220px] mx-auto" style={{ color: "#5A5650" }}>
-                    {step.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* How It Works — collapsible */}
+      <HowItWorks />
 
       {/* Logo marquee — scrolling company logos */}
-      <div className="relative z-10 py-6">
-        <p className="text-[9px] tracking-[0.2em] uppercase text-center mb-4" style={{ color: "#5A5650" }}>
+      <div className="relative z-10 py-12 sm:py-16">
+        {/* Subtle gold separator */}
+        <div
+          className="mx-auto mb-10"
+          style={{
+            width: "60%",
+            height: 1,
+            background: "linear-gradient(to right, transparent, rgba(200,168,78,0.15), transparent)",
+          }}
+        />
+        <p className="text-[9px] tracking-[0.2em] uppercase text-center mb-5" style={{ color: "#5A5650" }}>
           Tech leaders across 8 domains, from
         </p>
-        <div className="relative overflow-hidden">
-          {/* Fade edges */}
-          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-24 z-10" style={{ background: "linear-gradient(to right, #0A0A0A, transparent)" }} />
-          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-24 z-10" style={{ background: "linear-gradient(to left, #0A0A0A, transparent)" }} />
+        <div
+          className="relative overflow-hidden"
+          style={{
+            maskImage: "linear-gradient(to right, transparent, black 15%, black 85%, transparent)",
+            WebkitMaskImage: "linear-gradient(to right, transparent, black 15%, black 85%, transparent)",
+          }}
+        >
           {/* Scrolling track */}
           <div
-            className="flex items-center gap-10 sm:gap-14 w-max"
-            style={{ animation: "marquee 30s linear infinite" }}
+            className="flex items-center gap-8 sm:gap-12 w-max"
+            style={{ animation: "marquee 45s linear infinite" }}
           >
             {marqueeItems.map((c, i) => (
-              <div key={`${c.name}-${i}`} className="shrink-0 flex items-center" style={{ height: 36 }}>
+              <div key={`${c.name}-${i}`} className="shrink-0 flex items-center justify-center" style={{ height: 20 }}>
                 <Image
                   src={c.logo}
                   alt={c.name}
-                  width={c.wide ? 80 : 36}
-                  height={c.wide ? 18 : 36}
+                  width={100}
+                  height={20}
                   className="object-contain"
                   style={{
-                    opacity: 0.75,
-                    ...(c.invert ? { filter: "invert(1) brightness(0.85)" } : {}),
+                    maxHeight: 20,
+                    width: "auto",
+                    opacity: 0.35,
+                    filter: "brightness(0) invert(1)",
                   }}
                 />
               </div>

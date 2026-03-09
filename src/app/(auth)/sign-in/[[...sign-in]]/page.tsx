@@ -45,6 +45,7 @@ export default function SignInPage() {
         </div>
 
         <SignIn
+          forceRedirectUrl="/signal"
           appearance={{
             variables: {
               colorPrimary: "#C8A84E",
