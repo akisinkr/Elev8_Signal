@@ -8,28 +8,33 @@ const JWT_SECRET = new TextEncoder().encode(
 
 const COOKIE_NAME = "member-session";
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days
-const MAGIC_LINK_DURATION = 60 * 15; // 15 minutes
+const OTP_DURATION = 60 * 10; // 10 minutes
 
-/** Create a short-lived magic link token containing the member's email */
-export async function createMagicToken(email: string) {
-  return new SignJWT({ email: email.toLowerCase() })
+/** Generate a 6-digit OTP and a signed token containing both the code and email */
+export async function createOtp(email: string) {
+  const code = String(Math.floor(100000 + Math.random() * 900000)); // 6 digits
+
+  const token = await new SignJWT({ email: email.toLowerCase(), code })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(`${MAGIC_LINK_DURATION}s`)
+    .setExpirationTime(`${OTP_DURATION}s`)
     .sign(JWT_SECRET);
+
+  return { code, token };
 }
 
-/** Verify a magic link token and return the email */
-export async function verifyMagicToken(token: string) {
+/** Verify an OTP code against the signed token */
+export async function verifyOtp(token: string, code: string) {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload.email as string | null;
+    if (payload.code !== code) return null;
+    return payload.email as string;
   } catch {
-    return null;
+    return null; // expired or invalid
   }
 }
 
-/** Set the member session cookie after magic link verification */
+/** Set the member session cookie */
 export async function createMemberSession(memberId: string, email: string) {
   const token = await new SignJWT({ memberId, email })
     .setProtectedHeader({ alg: "HS256" })

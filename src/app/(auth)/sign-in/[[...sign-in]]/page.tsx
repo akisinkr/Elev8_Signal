@@ -1,22 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+type Step = "email" | "code" | "verifying";
 
 export default function SignInPage() {
+  const router = useRouter();
+  const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
-  const [errorMsg, setErrorMsg] = useState("");
+  const [otpToken, setOtpToken] = useState("");
+  const [digits, setDigits] = useState(["", "", "", "", "", ""]);
+  const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-  const urlError = params?.get("error");
+  // Auto-focus first digit input when entering code step
+  useEffect(() => {
+    if (step === "code") {
+      setTimeout(() => inputRefs.current[0]?.focus(), 100);
+    }
+  }, [step]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
-
-    setStatus("sending");
-    setErrorMsg("");
+    setSending(true);
+    setError("");
 
     try {
       const res = await fetch("/api/auth/magic-link", {
@@ -24,20 +35,113 @@ export default function SignInPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
       });
-
       const data = await res.json();
 
       if (!res.ok) {
-        setErrorMsg(data.error || "Something went wrong");
-        setStatus("error");
+        setError(data.error || "Something went wrong");
+        setSending(false);
         return;
       }
 
-      setStatus("sent");
+      setOtpToken(data.token);
+      setStep("code");
     } catch {
-      setErrorMsg("Network error. Please try again.");
-      setStatus("error");
+      setError("Network error. Please try again.");
     }
+    setSending(false);
+  }
+
+  function handleDigitChange(index: number, value: string) {
+    if (!/^\d*$/.test(value)) return; // digits only
+
+    const newDigits = [...digits];
+    newDigits[index] = value.slice(-1); // only last char
+    setDigits(newDigits);
+    setError("");
+
+    // Auto-advance to next input
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
+    // Auto-submit when all 6 digits entered
+    const fullCode = newDigits.join("");
+    if (fullCode.length === 6) {
+      verifyCode(fullCode);
+    }
+  }
+
+  function handleKeyDown(index: number, e: React.KeyboardEvent) {
+    if (e.key === "Backspace" && !digits[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  }
+
+  function handlePaste(e: React.ClipboardEvent) {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+
+    const newDigits = [...digits];
+    for (let i = 0; i < 6; i++) {
+      newDigits[i] = pasted[i] || "";
+    }
+    setDigits(newDigits);
+
+    if (pasted.length === 6) {
+      verifyCode(pasted);
+    } else {
+      inputRefs.current[pasted.length]?.focus();
+    }
+  }
+
+  async function verifyCode(code: string) {
+    setStep("verifying");
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: otpToken, code }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Invalid code");
+        setStep("code");
+        setDigits(["", "", "", "", "", ""]);
+        setTimeout(() => inputRefs.current[0]?.focus(), 100);
+        return;
+      }
+
+      // Success — redirect to vote
+      router.push(data.redirectTo);
+    } catch {
+      setError("Network error. Please try again.");
+      setStep("code");
+    }
+  }
+
+  async function handleResend() {
+    setDigits(["", "", "", "", "", ""]);
+    setError("");
+    setSending(true);
+
+    try {
+      const res = await fetch("/api/auth/magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setOtpToken(data.token);
+        setError("New code sent!");
+      }
+    } catch { /* silent */ }
+    setSending(false);
+    setTimeout(() => inputRefs.current[0]?.focus(), 100);
   }
 
   return (
@@ -73,7 +177,9 @@ export default function SignInPage() {
             This week&apos;s Signal is live
           </h1>
           <p className="text-[13px]" style={{ color: "#7A7670" }}>
-            Enter your email to receive a login link
+            {step === "email"
+              ? "Enter your email to vote"
+              : `Enter the code sent to ${email}`}
           </p>
         </div>
 
@@ -86,29 +192,8 @@ export default function SignInPage() {
               boxShadow: "0 0 40px rgba(0,0,0,0.5)",
             }}
           >
-            {status === "sent" ? (
-              <div className="text-center py-4 space-y-3">
-                <div
-                  className="mx-auto w-10 h-10 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: "rgba(200,168,78,0.1)" }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M3 10L8 15L17 5" stroke="#C8A84E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <p className="text-[15px] font-medium" style={{ color: "#E8E4DD" }}>
-                  Check your email
-                </p>
-                <p className="text-[13px] leading-relaxed" style={{ color: "#7A7670" }}>
-                  We sent a login link to<br/>
-                  <span style={{ color: "#C8A84E" }}>{email}</span>
-                </p>
-                <p className="text-[11px] pt-2" style={{ color: "#4A4640" }}>
-                  Link expires in 15 minutes
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+            {step === "email" ? (
+              <form onSubmit={handleSendCode} className="space-y-4">
                 <div>
                   <label
                     htmlFor="email"
@@ -121,7 +206,7 @@ export default function SignInPage() {
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(e) => { setEmail(e.target.value); setErrorMsg(""); }}
+                    onChange={(e) => { setEmail(e.target.value); setError(""); }}
                     placeholder="you@company.com"
                     required
                     autoFocus
@@ -134,18 +219,13 @@ export default function SignInPage() {
                   />
                 </div>
 
-                {(errorMsg || urlError) && (
-                  <p className="text-[12px]" style={{ color: "#E57373" }}>
-                    {errorMsg ||
-                      (urlError === "expired" ? "Link expired. Please request a new one." :
-                       urlError === "not-member" ? "Email not registered as an Elev8 member." :
-                       "Something went wrong. Please try again.")}
-                  </p>
+                {error && (
+                  <p className="text-[12px]" style={{ color: "#E57373" }}>{error}</p>
                 )}
 
                 <button
                   type="submit"
-                  disabled={status === "sending" || !email.trim()}
+                  disabled={sending || !email.trim()}
                   className="w-full py-2.5 rounded-lg text-[14px] font-semibold transition-all disabled:opacity-50"
                   style={{
                     backgroundColor: "#C8A84E",
@@ -153,9 +233,64 @@ export default function SignInPage() {
                     boxShadow: "0 0 20px rgba(200,168,78,0.15)",
                   }}
                 >
-                  {status === "sending" ? "Sending..." : "Send login link"}
+                  {sending ? "Sending..." : "Continue"}
                 </button>
               </form>
+            ) : (
+              <div className="space-y-5">
+                {/* 6-digit code input */}
+                <div className="flex justify-center gap-2" onPaste={handlePaste}>
+                  {digits.map((digit, i) => (
+                    <input
+                      key={i}
+                      ref={(el) => { inputRefs.current[i] = el; }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleDigitChange(i, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(i, e)}
+                      disabled={step === "verifying"}
+                      className="w-11 h-13 text-center text-xl font-mono rounded-lg outline-none transition-colors disabled:opacity-50"
+                      style={{
+                        backgroundColor: "#1A1A1A",
+                        border: `1px solid ${digit ? "rgba(200,168,78,0.4)" : "#1F1F1F"}`,
+                        color: "#E8E4DD",
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {step === "verifying" && (
+                  <p className="text-center text-[13px]" style={{ color: "#7A7670" }}>
+                    Verifying...
+                  </p>
+                )}
+
+                {error && (
+                  <p className="text-center text-[12px]" style={{ color: error === "New code sent!" ? "#C8A84E" : "#E57373" }}>
+                    {error}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between text-[12px]">
+                  <button
+                    onClick={() => { setStep("email"); setDigits(["", "", "", "", "", ""]); setError(""); }}
+                    style={{ color: "#7A7670" }}
+                    className="hover:underline"
+                  >
+                    Change email
+                  </button>
+                  <button
+                    onClick={handleResend}
+                    disabled={sending}
+                    style={{ color: "#C8A84E" }}
+                    className="hover:underline disabled:opacity-50"
+                  >
+                    {sending ? "Sending..." : "Resend code"}
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>

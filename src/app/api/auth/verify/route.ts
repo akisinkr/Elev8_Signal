@@ -1,38 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { verifyMagicToken, createMemberSession } from "@/lib/member-auth";
+import { verifyOtp, createMemberSession } from "@/lib/member-auth";
 
-export async function GET(req: NextRequest) {
-  const token = req.nextUrl.searchParams.get("token");
-  const redirect = req.nextUrl.searchParams.get("redirect") || "/signal";
+export async function POST(req: NextRequest) {
+  try {
+    const { token, code } = await req.json();
 
-  if (!token) {
-    return NextResponse.redirect(
-      new URL("/sign-in?error=missing-token", req.url)
-    );
+    if (!token || !code) {
+      return NextResponse.json({ error: "Missing token or code" }, { status: 400 });
+    }
+
+    const email = await verifyOtp(token, code);
+
+    if (!email) {
+      return NextResponse.json(
+        { error: "Invalid or expired code. Please try again." },
+        { status: 401 }
+      );
+    }
+
+    const member = await prisma.member.findUnique({
+      where: { email },
+    });
+
+    if (!member) {
+      return NextResponse.json(
+        { error: "Member not found" },
+        { status: 403 }
+      );
+    }
+
+    // Set session cookie
+    await createMemberSession(member.id, email);
+
+    // Find current live signal for redirect
+    const liveSignal = await prisma.signalQuestion.findFirst({
+      where: { status: "LIVE" },
+      select: { signalNumber: true },
+    });
+
+    const redirectTo = liveSignal
+      ? `/signal/${liveSignal.signalNumber}/vote`
+      : "/signal";
+
+    return NextResponse.json({
+      verified: true,
+      redirectTo,
+      memberName: member.firstName,
+    });
+  } catch (error) {
+    console.error("OTP verify error:", error);
+    return NextResponse.json({ error: "Verification failed" }, { status: 500 });
   }
-
-  const email = await verifyMagicToken(token);
-
-  if (!email) {
-    return NextResponse.redirect(
-      new URL("/sign-in?error=expired", req.url)
-    );
-  }
-
-  const member = await prisma.member.findUnique({
-    where: { email },
-  });
-
-  if (!member) {
-    return NextResponse.redirect(
-      new URL("/sign-in?error=not-member", req.url)
-    );
-  }
-
-  // Set session cookie
-  await createMemberSession(member.id, email);
-
-  // Redirect to the vote page
-  return NextResponse.redirect(new URL(redirect, req.url));
 }
