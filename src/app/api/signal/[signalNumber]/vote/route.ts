@@ -54,7 +54,7 @@ export async function POST(
     sendSlackNotification(
       "signalVotes",
       `📊 *New Signal Vote*\n` +
-      `• *Member:* ${member.name || member.email}\n` +
+      `• *Member:* ${member.firstName || member.email}\n` +
       `• *Signal #${num}:* ${signal.question}\n` +
       `• *Answer:* ${answer}` +
       (why ? `\n• *Why:* "${why}"` : "")
