@@ -46,20 +46,19 @@ export async function PUT(req: Request) {
     const data = cardSchema.parse(body);
 
     // Derive default Elev8 Title from superpower actions
-    // Titles represent what a member can HELP others with (their strengths)
     const actionToTitle: Record<string, string> = {
-      architecture: "architect",   // system design expertise → ⚡ Architect
-      building: "architect",       // building from zero → ⚡ Architect
-      migrating: "architect",      // migration expertise → ⚡ Architect
-      optimizing: "architect",     // optimization → ⚡ Architect
-      scaling: "advisor",          // scaling teams → 💡 Advisor
-      "org-design": "advisor",     // org restructuring → 💡 Advisor
-      hiring: "advisor",           // talent strategy → 💡 Advisor
-      strategy: "advisor",         // strategy & roadmapping → 💡 Advisor
-      compliance: "navigator",     // compliance & regulation → 🧭 Navigator
-      mna: "navigator",            // M&A & integration → 🧭 Navigator
-      gtm: "catalyst",             // launching & go-to-market → 🚀 Catalyst
-      crisis: "catalyst",          // crisis & turnaround → 🚀 Catalyst
+      architecture: "architect",
+      building: "architect",
+      migrating: "architect",
+      optimizing: "architect",
+      scaling: "advisor",
+      "org-design": "advisor",
+      hiring: "advisor",
+      strategy: "advisor",
+      compliance: "navigator",
+      mna: "navigator",
+      gtm: "catalyst",
+      crisis: "catalyst",
     };
     const spActionValue = data.spAction || member.spAction || "";
     const actions = spActionValue.split(",").map((a: string) => a.trim()).filter(Boolean);
@@ -70,16 +69,46 @@ export async function PUT(req: Request) {
         derivedTitles.add(actionToTitle[action]);
       }
     }
-    // If no title derived (e.g. custom action), default to connector
     if (derivedTitles.size === 0 && actions.length > 0) {
       derivedTitles.add("connector");
     }
     const elev8Titles = Array.from(derivedTitles);
 
+    // ── Superpower History: track when superpower changes ──
+    const newSpDetails = data.superpowerDetails || [];
+    let newTitle = "";
+    if (newSpDetails.length > 0) {
+      try {
+        const parsed = JSON.parse(newSpDetails[0]);
+        newTitle = parsed.title || "";
+      } catch {
+        newTitle = newSpDetails[0] || "";
+      }
+    }
+
+    // Check if superpower title changed (for history tracking)
+    let oldTitle = "";
+    if (member.superpowerDetails && member.superpowerDetails.length > 0) {
+      try {
+        const parsed = JSON.parse(member.superpowerDetails[0]);
+        oldTitle = parsed.title || "";
+      } catch {
+        oldTitle = member.superpowerDetails[0] || "";
+      }
+    }
+
+    const superpowerHistory = [...(member.superpowerHistory || [])];
+    const superpowerChanged = oldTitle && newTitle && oldTitle !== newTitle;
+    if (superpowerChanged) {
+      superpowerHistory.push(JSON.stringify({
+        title: oldTitle,
+        date: new Date().toISOString(),
+      }));
+    }
+
     const updated = await prisma.member.update({
       where: { id: member.id },
       data: {
-        // Elev8 Titles (derived from challenges + any earned via votes)
         elev8Titles,
         // 5 dimensions
         spDomain: data.spDomain || member.spDomain,
@@ -115,10 +144,32 @@ export async function PUT(req: Request) {
         linkedinUrl: data.linkedinUrl || member.linkedinUrl,
         customPhotoUrl: data.customPhotoUrl || member.customPhotoUrl,
         cardCompletedAt: new Date(),
+        // Living credential fields
+        superpowerUpdatedAt: new Date(),
+        lastActiveAt: new Date(),
+        superpowerHistory,
       },
     });
 
-    return NextResponse.json(updated);
+    // ── Return stats for post-completion screen ──
+    const [totalMembers, domainPeerCount] = await Promise.all([
+      prisma.member.count({ where: { cardCompletedAt: { not: null } } }),
+      data.spDomain
+        ? prisma.member.count({
+            where: {
+              cardCompletedAt: { not: null },
+              spDomain: data.spDomain,
+              id: { not: member.id },
+            },
+          })
+        : Promise.resolve(0),
+    ]);
+
+    return NextResponse.json({
+      ...updated,
+      totalMembers,
+      domainPeerCount,
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

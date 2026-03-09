@@ -76,7 +76,7 @@ export default async function Home() {
               }}
             >
               <span style={{ color: "#0A0A0A" }}>&#10022;</span>
-              Build Your Card
+              Define Your Superpower
             </Link>
           </div>
 
@@ -97,7 +97,7 @@ export default async function Home() {
               ))}
             </div>
             <span className="text-[11px] tracking-wide" style={{ color: "#7A7670" }}>
-              Invite-only leadership community
+              Director to SVP leaders sharing superpowers
             </span>
           </div>
         </div>

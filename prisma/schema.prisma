@@ -126,6 +126,11 @@ model Member {
   cardCompletedAt  DateTime?
   // ── Elev8 Titles (earned through positive peer votes) ──
   elev8Titles      String[]        // e.g. ["architect", "advisor", "connector"]
+  // ── Living Credential fields ──
+  superpowerUpdatedAt  DateTime?       // When superpower was last updated
+  peerRecognitionCount Int         @default(0) // Cumulative positive peer recommendations
+  lastActiveAt         DateTime?       // Last meaningful platform activity
+  superpowerHistory    String[]        // JSON strings: ["{\"title\":\"...\",\"date\":\"...\"}"]
   onboardingState  OnboardingState @default(NOT_STARTED)
   onboardingStep   Int             @default(0)
   passwordHash     String?

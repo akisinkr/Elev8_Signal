@@ -94,7 +94,7 @@ Write 1-2 sentences that make a peer think "I can help" or "me too."
 2. NO corporate buzzwords: "leverage", "synergize", "drive value"
 3. NO resume language: "Built...", "Architected..." — use present-tense for bullets
 4. Fix spelling errors silently
-5. Korean versions: recreate naturally in Korean, don't translate. Use 비격식 존댓말. Keep English tech terms as-is${vocabContext}
+5. Korean versions: DO NOT translate. Create independently as a Korean native would describe this expertise to a peer over coffee. Use 비격식 존댓말 (-요체). Keep English tech terms as-is (AI, infrastructure, scaling). Avoid 번역체 (translation-ese). The Korean title should feel natural — e.g. EN: "Building Data-First Organizations" → KR: "데이터 기반 조직을 만들어온 리더" (not "데이터 중심 조직 구축")${vocabContext}
 
 Return ONLY valid JSON — no markdown fences:
 {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,7 +18,7 @@ import {
   Camera,
   X,
   Users,
-  Lock,
+  Share2,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────
@@ -66,6 +66,11 @@ interface MemberData {
   challengeSpec2: string | null;
   // Elev8 Titles
   elev8Titles: string[];
+  // Living credential fields
+  superpowerUpdatedAt: string | null;
+  peerRecognitionCount: number;
+  lastActiveAt: string | null;
+  superpowerHistory: string[];
 }
 
 interface MemberCardFormProps {
@@ -90,20 +95,22 @@ interface MatchSuggestion {
   matchedChallenge: string;
 }
 
-type Step = "intro" | "domain" | "action" | "scale" | "stage" | "geo" | "challenges" | "generate" | "refine" | "done";
+// NEW: 4-step wizard (collapsed from 8)
+type Step = "about" | "expertise" | "context" | "challenges" | "generate" | "refine" | "done";
 
 // ─── 5-Dimension Options ─────────────────────────────────
 
 const DOMAINS = [
-  { id: "ai-ml", en: "AI & Machine Learning", kr: "AI & 머신러닝" },
-  { id: "data", en: "Data & Analytics", kr: "데이터 & 애널리틱스" },
-  { id: "cloud", en: "Cloud & Infrastructure", kr: "클라우드 & 인프라" },
-  { id: "security", en: "Cybersecurity", kr: "사이버보안" },
-  { id: "platform", en: "Platform Engineering & DevOps", kr: "플랫폼 엔지니어링 & DevOps" },
-  { id: "product", en: "Product & Growth Engineering", kr: "프로덕트 & 그로스 엔지니어링" },
-  { id: "fintech", en: "FinTech & Digital Payments", kr: "핀테크 & 디지털 결제" },
-  { id: "robotics", en: "Robotics & Physical AI", kr: "로보틱스 & 피지컬 AI" },
-  { id: "other", en: "+ Other", kr: "+ 기타" },
+  { id: "ai-ml", en: "AI & Machine Learning", kr: "AI & 머신러닝", descEn: "LLMs, computer vision, ML ops, training infra", descKr: "LLM, 컴퓨터 비전, ML 파이프라인" },
+  { id: "data", en: "Data & Analytics", kr: "데이터 & 애널리틱스", descEn: "Data platforms, BI, analytics, data strategy", descKr: "데이터 플랫폼, BI, 분석 전략" },
+  { id: "cloud", en: "Cloud & Infrastructure", kr: "클라우드 & 인프라", descEn: "Migration, Kubernetes, cost optimization, SRE", descKr: "마이그레이션, K8s, 비용 최적화" },
+  { id: "security", en: "Cybersecurity", kr: "사이버보안", descEn: "AppSec, compliance, zero trust, incident response", descKr: "보안 아키텍처, 컴플라이언스, 제로 트러스트" },
+  { id: "platform", en: "Platform Engineering & DevOps", kr: "플랫폼 엔지니어링 & DevOps", descEn: "Internal platforms, CI/CD, developer experience", descKr: "내부 플랫폼, CI/CD, 개발자 경험" },
+  { id: "product", en: "Product & Growth Engineering", kr: "프로덕트 & 그로스 엔지니어링", descEn: "Product-led growth, experimentation, monetization", descKr: "PLG, 실험, 그로스 엔지니어링" },
+  { id: "eng-leadership", en: "Engineering Leadership", kr: "엔지니어링 리더십", descEn: "Org design, hiring, team scaling, eng culture", descKr: "조직 설계, 채용, 팀 스케일링, 문화" },
+  { id: "fintech", en: "FinTech & Digital Payments", kr: "핀테크 & 디지털 결제", descEn: "Payments, banking infra, regulatory tech", descKr: "결제, 뱅킹 인프라, 레그테크" },
+  { id: "robotics", en: "Robotics & Physical AI", kr: "로보틱스 & 피지컬 AI", descEn: "Autonomous systems, hardware-software integration", descKr: "자율 시스템, HW-SW 통합" },
+  { id: "other", en: "+ Other", kr: "+ 기타", descEn: "", descKr: "" },
 ];
 
 const ACTIONS = [
@@ -157,11 +164,11 @@ const GEOS = [
 // ─── Challenge Types & Options ───────────────────────────
 
 const CHALLENGE_TYPES = [
-  { id: "technical", en: "Technical", kr: "기술적 문제", icon: "🔧" },
-  { id: "leadership", en: "Leadership", kr: "리더십", icon: "👤" },
-  { id: "org", en: "Org Navigation", kr: "조직 내 네비게이션", icon: "🏢" },
-  { id: "career", en: "Career", kr: "커리어", icon: "🚀" },
-  { id: "intro", en: "Introduction", kr: "소개/연결", icon: "🤝" },
+  { id: "technical", en: "Building something new", kr: "새로운 기술 도전", icon: "🔧" },
+  { id: "leadership", en: "Leading through change", kr: "변화 속 리더십", icon: "👤" },
+  { id: "org", en: "Navigating the org", kr: "조직 항해", icon: "🏢" },
+  { id: "career", en: "Plotting next move", kr: "다음 커리어", icon: "🚀" },
+  { id: "intro", en: "Finding the right person", kr: "적임자 찾기", icon: "🤝" },
 ];
 
 const CHALLENGE_OPTIONS: Record<string, { en: string; kr: string }[]> = {
@@ -193,7 +200,7 @@ const CHALLENGE_OPTIONS: Record<string, { en: string; kr: string }[]> = {
     { en: "Internal politics / turf wars", kr: "사내 정치 / 영역 다툼" },
     { en: "Budget defense / resource negotiation", kr: "예산 방어 / 리소스 협상" },
     { en: "Navigating Korean corporate hierarchy", kr: "한국 기업 위계질서 적응" },
-    { en: "Cross-border org dynamics", kr: "크로스보더 조직 역학" },
+    { en: "Cross-border org dynamics", kr: "본사와 해외 법인 사이에서" },
     { en: "Promotion navigation", kr: "승진 전략" },
     { en: "Other", kr: "기타 (직접 입력)" },
   ],
@@ -228,13 +235,11 @@ const ELEV8_TITLES: Record<string, { icon: string; en: string; kr: string; descE
   connector: { icon: "🔗", en: "Connector", kr: "Connector", descEn: "I connect people who need to meet", descKr: "만나야 할 사람들을 연결합니다" },
 };
 
-// Map challenge types to their corresponding Elev8 Title
-const CHALLENGE_TO_TITLE: Record<string, string> = {
-  technical: "architect",
-  leadership: "advisor",
-  org: "navigator",
-  career: "catalyst",
-  intro: "connector",
+const ACTION_TO_TITLE: Record<string, string> = {
+  architecture: "architect", building: "architect", migrating: "architect", optimizing: "architect",
+  scaling: "advisor", "org-design": "advisor", hiring: "advisor", strategy: "advisor",
+  compliance: "navigator", mna: "navigator",
+  gtm: "catalyst", crisis: "catalyst",
 };
 
 // ─── Component ───────────────────────────────────────────
@@ -242,15 +247,14 @@ const CHALLENGE_TO_TITLE: Record<string, string> = {
 export function MemberCardForm({ member }: MemberCardFormProps) {
   const hasCard = !!member.cardCompletedAt;
 
-  // Determine initial step: if 5-dim data exists, go to done; if legacy data exists, go to done; else start fresh
   const getInitialStep = (): Step => {
     if (hasCard) return "done";
-    if (member.spDomain) return "done"; // already has 5-dim data
-    return "intro";
+    if (member.spDomain) return "done";
+    return "about";
   };
   const [step, setStep] = useState<Step>(getInitialStep);
 
-  // Language
+  // Language — auto-detect from member preference
   const [lang, setLang] = useState<"en" | "kr">(member.preferredLang === "kr" ? "kr" : "en");
 
   // Professional info
@@ -259,8 +263,9 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
   const [linkedinUrl, setLinkedinUrl] = useState(member.linkedinUrl || "");
   const [knownFor, setKnownFor] = useState(member.knownFor || "");
 
-  // 5-Dimension selections (domain = single, rest = multi up to 3)
-  const [spDomain, setSpDomain] = useState(member.spDomain || "");
+  // 5-Dimension selections
+  const [spDomains, setSpDomains] = useState<string[]>(member.spDomain ? member.spDomain.split(",") : []);
+  const spDomain = spDomains.join(","); // backward compat: comma-separated for API/DB
   const [spActions, setSpActions] = useState<string[]>(member.spAction ? member.spAction.split(",") : []);
   const [spScales, setSpScales] = useState<string[]>(member.spScale ? member.spScale.split(",") : []);
   const [spStages, setSpStages] = useState<string[]>(member.spStage ? member.spStage.split(",") : []);
@@ -272,21 +277,11 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
   const [customChallengeText2, setCustomChallengeText2] = useState("");
   const [savedTitles, setSavedTitles] = useState<string[]>(member.elev8Titles ?? []);
 
-  // Derive titles client-side from selected actions (mirrors server logic)
-  const ACTION_TO_TITLE: Record<string, string> = {
-    architecture: "architect", building: "architect", migrating: "architect", optimizing: "architect",
-    scaling: "advisor", "org-design": "advisor", hiring: "advisor", strategy: "advisor",
-    compliance: "navigator", mna: "navigator",
-    gtm: "catalyst", crisis: "catalyst",
-  };
-
-  // Toggle helper for multi-select arrays (max 3)
   const toggleMulti = (id: string, list: string[], setList: (v: string[]) => void, max = 3) => {
     if (list.includes(id)) setList(list.filter(x => x !== id));
     else if (list.length < max) setList([...list, id]);
   };
 
-  // Compute Elev8 Titles from saved + current action selections
   const earnedTitles = useMemo(() => {
     const titles = new Set(savedTitles);
     for (const a of spActions) {
@@ -296,33 +291,29 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
     return Array.from(titles);
   }, [savedTitles, spActions]);
 
-  // Typed challenges (max 2)
+  // Typed challenges
   const [challengeType1, setChallengeType1] = useState(member.challengeType1 || "");
   const [challengeSpec1, setChallengeSpec1] = useState(member.challengeSpec1 || "");
   const [challengeType2, setChallengeType2] = useState(member.challengeType2 || "");
   const [challengeSpec2, setChallengeSpec2] = useState(member.challengeSpec2 || "");
 
-  // Legacy keyword state (for backward compat + card display)
+  // Legacy keyword state
   const [selectedSPKeywords, setSelectedSPKeywords] = useState<string[]>(
     member.superpowers.length > 0 ? member.superpowers : []
   );
 
-  // AI-refined descriptions — structured superpowers
+  // AI-refined descriptions
   const parseSPProfiles = (details: string[]): SuperpowerProfile[] => {
     return details.map((d) => {
       try {
         const p = JSON.parse(d);
         if (p.title && p.bullets) return p as SuperpowerProfile;
-      } catch { /* not JSON — legacy format */ }
+      } catch { /* not JSON */ }
       return { title: d, bullets: [], proof: "" };
     });
   };
-  const [spProfiles, setSpProfiles] = useState<SuperpowerProfile[]>(
-    parseSPProfiles(member.superpowerDetails || [])
-  );
-  const [spProfilesKr, setSpProfilesKr] = useState<SuperpowerProfile[]>(
-    parseSPProfiles(member.superpowerDetailsKr || [])
-  );
+  const [spProfiles, setSpProfiles] = useState<SuperpowerProfile[]>(parseSPProfiles(member.superpowerDetails || []));
+  const [spProfilesKr, setSpProfilesKr] = useState<SuperpowerProfile[]>(parseSPProfiles(member.superpowerDetailsKr || []));
   const [refinedChallenges, setRefinedChallenges] = useState<string[]>(member.challengeDetails || []);
   const [refinedChallengesKr, setRefinedChallengesKr] = useState<string[]>(member.challengeDetailsKr || []);
   const [generating, setGenerating] = useState(false);
@@ -331,12 +322,11 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
   const [dreamConnection, setDreamConnection] = useState(member.dreamConnection || "");
   const [dreamRefined, setDreamRefined] = useState(member.dreamConnectionRefined || "");
   const [dreamRefinedKr, setDreamRefinedKr] = useState(member.dreamConnectionRefinedKr || "");
-  const [dreamSuggestions, setDreamSuggestions] = useState<string[]>([]);
   const [showDreamConnect, setShowDreamConnect] = useState(!!member.dreamConnection);
-  const [refiningDream, setRefiningDream] = useState(false);
 
   // Expand/collapse on done card
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const cardMountedRef = useRef(false);
 
   // Editing
   const [editingIdx, setEditingIdx] = useState<{ type: "sp" | "ch"; idx: number } | null>(null);
@@ -351,16 +341,27 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [customPhoto, setCustomPhoto] = useState<string | null>(member.customPhotoUrl);
 
+  // Post-completion stats
+  const [totalMembers, setTotalMembers] = useState(0);
+  const [domainPeerCount, setDomainPeerCount] = useState(0);
+
+  // Unveil animation state
+  const [unveilPhase, setUnveilPhase] = useState<"skeleton" | "card" | "title" | "titles" | "complete">("skeleton");
+
   const [saving, setSaving] = useState(false);
 
   const memberNumber = member.memberNumber ? String(member.memberNumber).padStart(3, "0") : null;
   const memberSince = new Date(member.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" });
   const photoUrl = customPhoto || member.imageUrl;
 
+  // Superpower updated date for "living credential"
+  const spUpdatedLabel = member.superpowerUpdatedAt
+    ? new Date(member.superpowerUpdatedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })
+    : memberSince;
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (!file.type.startsWith("image/")) {
       toast.error(lang === "kr" ? "이미지 파일만 업로드 가능합니다" : "Please select an image file");
       return;
@@ -369,16 +370,11 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
       toast.error(lang === "kr" ? "파일 크기는 5MB 이하여야 합니다" : "File size must be under 5MB");
       return;
     }
-
     setUploadingPhoto(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
-
-      const res = await fetch("/api/members/me/photo", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch("/api/members/me/photo", { method: "POST", body: formData });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || "Upload failed");
@@ -400,8 +396,7 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
     return lang === "kr" ? opt.kr : opt.en;
   };
 
-  // Human-readable names (for display)
-  const domainName = spDomain === "other" ? (spDomainCustom || "Other") : dimLabel(DOMAINS, spDomain);
+  const domainName = spDomains.map(d => d === "other" ? (spDomainCustom || "Other") : dimLabel(DOMAINS, d)).join(", ");
   const actionNames = spActions.map(a => a === "custom" ? (spActionCustom || "Custom") : dimLabel(ACTIONS, a));
   const scaleNames = spScales.map(s => dimLabel(SCALES, s));
   const stageNames = spStages.map(s => dimLabel(STAGES, s));
@@ -410,25 +405,19 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
   // ── AI Generate from 5 dimensions ──
   const generateWithAI = async () => {
     setGenerating(true);
+    setUnveilPhase("skeleton");
     try {
-      // Build challenge hints
       const ch1 = challengeSpec1 ? `${CHALLENGE_TYPES.find(t => t.id === challengeType1)?.en || ""}: ${challengeSpec1}` : "";
       const ch2 = challengeSpec2 ? `${CHALLENGE_TYPES.find(t => t.id === challengeType2)?.en || ""}: ${challengeSpec2}` : "";
       const challengeHint = [ch1, ch2].filter(Boolean).join("; ");
 
-      // Fire both API calls in parallel
       const suggestPromise = fetch("/api/members/me/card/suggest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          spDomain: domainName,
-          spAction: actionNames.join(", "),
-          spScale: scaleNames.join(", "),
-          spStage: stageNames.join(", "),
-          spGeo: geoNames.join(", "),
-          challengeHint,
-          jobTitle,
-          company,
+          spDomain: domainName, spAction: actionNames.join(", "),
+          spScale: scaleNames.join(", "), spStage: stageNames.join(", "),
+          spGeo: geoNames.join(", "), challengeHint, jobTitle, company,
         }),
       });
 
@@ -441,11 +430,8 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
         : null;
 
       const [suggestRes, dreamRes] = await Promise.all([suggestPromise, dreamPromise]);
-
       const data = await suggestRes.json();
-      if (!suggestRes.ok) {
-        throw new Error(data.detail || data.error || "Failed");
-      }
+      if (!suggestRes.ok) throw new Error(data.detail || data.error || "Failed");
 
       const spData = (data.superpowers || []).map((sp: SuperpowerProfile | string) =>
         typeof sp === "string" ? { title: sp, bullets: [], proof: "" } : sp
@@ -457,45 +443,29 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
       setSpProfilesKr(spDataKr);
       setRefinedChallenges(data.challenges || []);
       setRefinedChallengesKr(data.challengesKr || []);
-
-      // Derive legacy keyword arrays from dimensions for card display
       setSelectedSPKeywords([domainName, ...actionNames]);
 
       if (dreamRes?.ok) {
         const dreamData = await dreamRes.json();
         setDreamRefined(dreamData.refined || "");
         setDreamRefinedKr(dreamData.refinedKr || "");
-        setDreamSuggestions(dreamData.suggestions || []);
       }
 
-      setStep("refine");
+      // ── The Unveil: staggered animation ──
+      setStep("generate");
+      setTimeout(() => setUnveilPhase("card"), 400);
+      setTimeout(() => setUnveilPhase("title"), 900);
+      setTimeout(() => setUnveilPhase("titles"), 1400);
+      setTimeout(() => {
+        setUnveilPhase("complete");
+        setStep("refine");
+      }, 2200);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
       toast.error(`Couldn't generate: ${msg}`);
+      setStep("challenges");
     } finally {
       setGenerating(false);
-    }
-  };
-
-  // ── Refine dream connection ──
-  const refineDream = async () => {
-    if (!dreamConnection.trim()) return;
-    setRefiningDream(true);
-    try {
-      const res = await fetch("/api/members/me/card/refine-dream", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rawDescription: dreamConnection, jobTitle, company }),
-      });
-      if (!res.ok) throw new Error("Failed");
-      const data = await res.json();
-      setDreamRefined(data.refined || "");
-      setDreamRefinedKr(data.refinedKr || "");
-      setDreamSuggestions(data.suggestions || []);
-    } catch {
-      toast.error("Couldn't refine. Try again.");
-    } finally {
-      setRefiningDream(false);
     }
   };
 
@@ -507,9 +477,7 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
       setMatchSuggestions(data.matches || []);
-    } catch {
-      // silently fail
-    } finally {
+    } catch { /* silently fail */ } finally {
       setLoadingMatches(false);
     }
   }, []);
@@ -522,26 +490,17 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // 5 dimensions (arrays joined as comma-separated)
-          spDomain,
-          spAction: spActions.join(","),
-          spScale: spScales.join(","),
-          spStage: spStages.join(","),
-          spGeo: spGeos.join(","),
+          spDomain, spAction: spActions.join(","), spScale: spScales.join(","),
+          spStage: spStages.join(","), spGeo: spGeos.join(","),
           spDomainCustom: spDomain === "other" ? spDomainCustom : undefined,
           spActionCustom: spActions.includes("custom") ? spActionCustom : undefined,
-          // typed challenges
-          challengeType1: challengeType1 || undefined,
-          challengeSpec1: challengeSpec1 || undefined,
-          challengeType2: challengeType2 || undefined,
-          challengeSpec2: challengeSpec2 || undefined,
-          // legacy arrays (for backward compat + matching)
+          challengeType1: challengeType1 || undefined, challengeSpec1: challengeSpec1 || undefined,
+          challengeType2: challengeType2 || undefined, challengeSpec2: challengeSpec2 || undefined,
           superpowers: selectedSPKeywords,
           superpowerDetails: spProfiles.map((p) => JSON.stringify(p)),
           challenges: [challengeSpec1, challengeSpec2].filter(Boolean),
           challengeDetails: refinedChallenges,
-          dreamConnection,
-          dreamConnectionRefined: dreamRefined || undefined,
+          dreamConnection, dreamConnectionRefined: dreamRefined || undefined,
           preferredLang: lang,
           superpowersKr: selectedSPKeywords.map((_, i) => spProfilesKr[i]?.title || ""),
           superpowerDetailsKr: spProfilesKr.map((p) => JSON.stringify(p)),
@@ -549,10 +508,7 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
           challengeDetailsKr: refinedChallengesKr,
           dreamConnectionKr: dreamRefinedKr || undefined,
           dreamConnectionRefinedKr: dreamRefinedKr || undefined,
-          knownFor,
-          company,
-          jobTitle,
-          linkedinUrl,
+          knownFor, company, jobTitle, linkedinUrl,
         }),
       });
       if (!res.ok) {
@@ -561,13 +517,13 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
       }
       const savedData = await res.json();
       if (savedData.elev8Titles) setSavedTitles(savedData.elev8Titles);
+      if (savedData.totalMembers) setTotalMembers(savedData.totalMembers);
+      if (savedData.domainPeerCount !== undefined) setDomainPeerCount(savedData.domainPeerCount);
       setStep("done");
-      toast.success("Your member card is complete.");
       loadMatches();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong.";
       toast.error(msg);
-      console.error("Save error:", err);
     } finally {
       setSaving(false);
     }
@@ -576,81 +532,77 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
   // ── Language toggle ──
   const LanguageToggle = () => (
     <div className="flex items-center rounded-full border border-white/[0.08] bg-white/[0.02] overflow-hidden">
-      <button
-        onClick={() => setLang("en")}
+      <button onClick={() => setLang("en")}
         className={`px-3 py-1 text-[10px] font-medium transition-all ${
-          lang === "en"
-            ? "bg-amber-400/15 text-amber-300/70"
-            : "text-white/25 hover:text-white/40"
-        }`}
-      >
-        EN
-      </button>
-      <button
-        onClick={() => setLang("kr")}
+          lang === "en" ? "bg-amber-400/15 text-amber-300/70" : "text-white/25 hover:text-white/40"
+        }`}>EN</button>
+      <button onClick={() => setLang("kr")}
         className={`px-3 py-1 text-[10px] font-medium transition-all ${
-          lang === "kr"
-            ? "bg-amber-400/15 text-amber-300/70"
-            : "text-white/25 hover:text-white/40"
-        }`}
-      >
-        KR
-      </button>
+          lang === "kr" ? "bg-amber-400/15 text-amber-300/70" : "text-white/25 hover:text-white/40"
+        }`}>KR</button>
     </div>
   );
 
-  // ── Clean display text ──
-  const cleanText = (text: string) => text.replace(/\(\s*$/, "").replace(/\)\s*$/, ")").trim();
+  const cleanText = (text: string | null | undefined) => (text || "").replace(/\(\s*$/, "").replace(/\)\s*$/, ")").trim();
 
-  // ── Dimension Option Button ──
-  const DimOption = ({ selected, label, onClick, icon }: {
-    selected: boolean; label: string; onClick: () => void; icon?: string;
+  // ── Chip selector (for multi-select) ──
+  const Chip = ({ selected, label, desc, onClick, icon }: {
+    selected: boolean; label: string; desc?: string; onClick: () => void; icon?: string;
   }) => (
-    <button
-      onClick={onClick}
-      className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all ${
+    <button onClick={onClick}
+      className={`text-left px-4 py-3 rounded-xl border transition-all w-full ${
         selected
           ? "bg-amber-400/10 border-amber-400/25 text-amber-300/80"
           : "bg-white/[0.02] border-white/[0.06] text-white/50 hover:border-white/[0.12] hover:text-white/70"
-      }`}
-    >
-      {icon && <span className="mr-2">{icon}</span>}
-      <span className="text-[13px]">{label}</span>
-      {selected && <Check className="size-4 inline ml-2 text-amber-400/60" />}
+      }`}>
+      <span className="flex items-center">
+        {icon && <span className="mr-2">{icon}</span>}
+        <span className="text-[13px]">{label}</span>
+        {selected && <Check className="size-4 ml-2 text-amber-400/60" />}
+      </span>
+      {desc && <span className="text-[10px] text-white/25 mt-0.5 block">{desc}</span>}
     </button>
   );
 
-  // ── Hide page header during generate/refine/done steps ──
-  useEffect(() => {
-    const header = document.getElementById("profile-page-header");
-    if (!header) return;
-    if (step === "intro" || step === "generate" || step === "refine" || step === "done") {
-      header.style.display = "none";
-    } else {
-      header.style.display = "";
-    }
-  }, [step]);
-
-  // ── Progress indicator ── (intro is not counted as a numbered step)
-  const WIZARD_STEPS: Step[] = ["intro", "domain", "action", "scale", "stage", "geo", "challenges"];
-  const NUMBERED_STEPS: Step[] = ["domain", "action", "scale", "stage", "geo", "challenges"];
+  // ── Progress indicator (3 steps now) ──
+  const WIZARD_STEPS: Step[] = ["about", "expertise", "context", "challenges"];
   const wizardIdx = WIZARD_STEPS.indexOf(step);
-  const numberedIdx = NUMBERED_STEPS.indexOf(step);
-  const totalNumberedSteps = NUMBERED_STEPS.length;
-
-  const ProgressBar = () => numberedIdx >= 0 ? (
+  // Map steps → pillars: about=Share, expertise/context=Earn, challenges=Connect
+  const activePillar = wizardIdx === 0 ? 0 : wizardIdx <= 2 ? 1 : 2;
+  const PILLARS = [
+    { en: "Share", kr: "공유", done: activePillar > 0 },
+    { en: "Earn", kr: "획득", done: activePillar > 1 },
+    { en: "Connect", kr: "연결", done: false },
+  ];
+  const ProgressBar = () => wizardIdx >= 0 ? (
     <div className="mb-6">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] text-white/30">
-          {lang === "kr" ? `${numberedIdx + 1} / ${totalNumberedSteps} 단계` : `Step ${numberedIdx + 1} of ${totalNumberedSteps}`}
-        </span>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1.5">
+          {PILLARS.map((p, i) => {
+            const isActive = i === activePillar;
+            const isDone = p.done;
+            return (
+              <div key={p.en} className="flex items-center gap-1.5">
+                {i > 0 && <span className="text-white/10 text-[10px] mx-0.5">›</span>}
+                <span className={`text-[10px] px-2.5 py-1 rounded-full border transition-all duration-300 ${
+                  isActive
+                    ? "border-amber-400/30 bg-amber-400/10 text-amber-300/90 font-semibold"
+                    : isDone
+                      ? "border-white/[0.08] bg-white/[0.03] text-white/50"
+                      : "border-white/[0.05] bg-transparent text-white/20"
+                }`}>
+                  {isDone && <span className="mr-1">✓</span>}
+                  {lang === "kr" ? p.kr : p.en}
+                </span>
+              </div>
+            );
+          })}
+        </div>
         <LanguageToggle />
       </div>
       <div className="h-[2px] bg-white/[0.06] rounded-full overflow-hidden">
-        <div
-          className="h-full bg-amber-400/40 transition-all duration-300"
-          style={{ width: `${((numberedIdx + 1) / totalNumberedSteps) * 100}%` }}
-        />
+        <div className="h-full bg-amber-400/40 transition-all duration-300"
+          style={{ width: `${((wizardIdx + 1) / WIZARD_STEPS.length) * 100}%` }} />
       </div>
     </div>
   ) : null;
@@ -665,54 +617,64 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
           <ArrowLeft className="size-4 mr-1" /> {lang === "kr" ? "이전" : "Back"}
         </Button>
       )}
-      <Button
-        onClick={onNext}
-        disabled={!canNext}
-        className="flex-1 h-10 bg-white text-black hover:bg-white/90 rounded-xl text-sm font-medium disabled:opacity-30"
-      >
+      <Button onClick={onNext} disabled={!canNext}
+        className="flex-1 h-10 bg-white text-black hover:bg-white/90 rounded-xl text-sm font-medium disabled:opacity-30">
         {nextLabel || (lang === "kr" ? "다음" : "Next")} <ArrowRight className="size-4 ml-1" />
       </Button>
     </div>
   );
 
-  // ── Card Preview ──
-  const CardPreview = ({ interactive, mode = "full" }: { interactive?: boolean; mode?: "compact" | "full" }) => {
+  // ── Hide page header during generate/refine/done ──
+  useEffect(() => {
+    const header = document.getElementById("profile-page-header");
+    if (!header) return;
+    if (step === "generate" || step === "refine" || step === "done") {
+      header.style.display = "none";
+    } else {
+      header.style.display = "";
+    }
+  }, [step]);
+
+  // ══════════════════════════════════════════════════════════
+  // CARD PREVIEW — Two modes: "discovery" and "profile"
+  // ══════════════════════════════════════════════════════════
+  const CardPreview = ({ interactive, mode = "profile", compact }: {
+    interactive?: boolean; mode?: "discovery" | "profile"; compact?: boolean;
+  }) => {
     const profiles = lang === "kr" ? spProfilesKr : spProfiles;
     const chDetails = lang === "kr" ? refinedChallengesKr : refinedChallenges;
-    const dreamText = lang === "kr"
-      ? (dreamRefinedKr || dreamConnection)
-      : (dreamRefined || dreamConnection);
+    const dreamText = lang === "kr" ? (dreamRefinedKr || dreamConnection) : (dreamRefined || dreamConnection);
     const primaryProfile = profiles[0];
     const domainBadges = profiles.slice(1);
     const spExpanded = expandedItem === "sp-primary";
-
-    // Challenge display labels
     const chLabels = [challengeSpec1, challengeSpec2].filter(Boolean) as string[];
+
+    // Parse superpower history
+    const history = (member.superpowerHistory || []).map(h => {
+      try { return JSON.parse(h); } catch { return null; }
+    }).filter(Boolean) as { title: string; date: string }[];
 
     return (
       <>
       <style>{`
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes borderGlow {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.7; }
-        }
+        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        @keyframes borderGlow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.7; } }
         .animate-shimmer { animation: shimmer 2.5s ease-in-out infinite; }
         .animate-border-glow { animation: borderGlow 3s ease-in-out infinite; }
         .bg-gradient-conic { background: conic-gradient(from 0deg, var(--tw-gradient-stops)); }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-shimmer, .animate-border-glow, .animate-pulse, .animate-spin { animation: none !important; }
+        }
       `}</style>
-      <div className={`relative ${mode === "full" ? "animate-in fade-in zoom-in-95 duration-500" : ""}`}>
+      <div className={`relative ${!compact && !cardMountedRef.current ? "animate-in fade-in zoom-in-95 duration-500" : ""}`} ref={() => { cardMountedRef.current = true; }}>
         {/* Ambient glow */}
         <div className="absolute -inset-4 rounded-3xl bg-gradient-to-b from-amber-500/[0.06] via-amber-400/[0.02] to-transparent blur-2xl animate-pulse" style={{ animationDuration: "3s" }} />
-        {/* Rotating border glow */}
+        {/* Rotating border */}
         <div className="absolute -inset-[1px] rounded-2xl overflow-hidden">
           <div className="absolute inset-0 bg-gradient-conic from-amber-400/20 via-transparent via-30% to-amber-400/10 animate-spin" style={{ animationDuration: "8s" }} />
         </div>
         <div className="relative rounded-2xl border border-white/[0.10] bg-[#111118] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5),0_0_80px_rgba(251,191,36,0.04),inset_0_1px_0_rgba(255,255,255,0.03)]">
-          {/* Top accent line with shimmer */}
+          {/* Top shimmer line */}
           <div className="relative h-[1.5px] overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
@@ -723,280 +685,276 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
               <div className="flex items-center gap-2.5">
                 <span className="text-[10px] font-semibold tracking-[0.25em] text-amber-400/60 uppercase" style={{ textShadow: "0 0 12px rgba(251,191,36,0.2)" }}>Elev8</span>
                 {memberNumber && (
-                  <>
-                    <span className="text-white/[0.08]">|</span>
-                    <span className="text-[10px] tracking-wider text-white/30">#{memberNumber}</span>
-                  </>
+                  <><span className="text-white/[0.08]">|</span><span className="text-[10px] tracking-wider text-white/30">#{memberNumber}</span></>
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                {mode === "full" && <LanguageToggle />}
-              </div>
+              {!compact && <LanguageToggle />}
             </div>
 
-            {/* Profile + Badge Tier */}
-            <div className="flex items-center gap-3.5 mb-1.5">
-              {photoUrl ? (
-                <img src={photoUrl} alt="" className="size-13 rounded-full object-cover ring-2 ring-amber-400/25 shadow-[0_0_15px_rgba(251,191,36,0.1)]" />
-              ) : (
-                <div className="relative flex size-13 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/[0.08] to-white/[0.02] text-sm font-semibold text-white/50 ring-2 ring-amber-400/20">
-                  {member.firstName[0]}{member.lastName[0]}
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-[16px] font-semibold text-white/90 tracking-tight">{member.firstName} {member.lastName}</h2>
-                  {linkedinUrl && (
-                    <a href={linkedinUrl.startsWith("http") ? linkedinUrl : `https://${linkedinUrl}`} target="_blank" rel="noopener noreferrer"
-                      className="text-white/20 hover:text-blue-400/60 transition-colors">
-                      <Linkedin className="size-3.5" />
-                    </a>
-                  )}
-                </div>
-                {(jobTitle || company) && (
-                  <p className="text-[12px] text-white/50 mt-0.5 truncate">
-                    {cleanText(jobTitle)}{jobTitle && company && " · "}{cleanText(company)}
-                  </p>
-                )}
-              </div>
-            </div>
-            {/* Founding Member + Elev8 Titles */}
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 ml-[3.75rem] mb-5">
-              <div className="relative group/fm flex items-center gap-1 cursor-help">
-                <span className="text-amber-400/50 text-[11px]" style={{ textShadow: "0 0 6px rgba(251,191,36,0.3)" }}>◆</span>
-                <span className="text-[10px] text-amber-400/40 font-medium tracking-wide group-hover/fm:text-amber-400/60 transition-colors" style={{ textShadow: "0 0 8px rgba(251,191,36,0.1)" }}>
-                  Founding Member
-                </span>
-                <div className="absolute bottom-full left-0 mb-1.5 px-2.5 py-1.5 rounded-md bg-[#1a1a1a] border border-white/[0.08] text-[10px] text-white/60 whitespace-nowrap opacity-0 pointer-events-none group-hover/fm:opacity-100 transition-opacity duration-150 z-10">
-                  {lang === "kr" ? "Elev8 초기 멤버로서 커뮤니티를 함께 만들어가고 있습니다" : "One of the first members shaping the Elev8 community"}
-                </div>
-              </div>
-              {earnedTitles.length > 0 && (
-                <>
-                  <span className="text-white/[0.08]">|</span>
-                  {earnedTitles.map((t) => {
-                    const title = ELEV8_TITLES[t];
-                    return title ? (
-                      <div key={t} className="relative group/et flex items-center cursor-help">
-                        <span className="text-[10px] text-white/45 font-medium group-hover/et:text-white/65 transition-colors">
-                          {title.icon} {lang === "kr" ? title.kr : title.en}
-                        </span>
-                        <div className="absolute bottom-full left-0 mb-1.5 px-2.5 py-1.5 rounded-md bg-[#1a1a1a] border border-white/[0.08] text-[10px] text-white/60 whitespace-nowrap opacity-0 pointer-events-none group-hover/et:opacity-100 transition-opacity duration-150 z-10">
-                          {lang === "kr" ? title.descKr : title.descEn}
-                        </div>
-                      </div>
-                    ) : null;
-                  })}
-                </>
-              )}
-            </div>
-
-            {/* ── Divider ── */}
-            <div className="h-[1px] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent mb-4" />
-
-            {/* Primary Superpower */}
-            {primaryProfile?.title ? (
-              <div className="mb-4 space-y-2">
-                {/* Verified label */}
-                <div className="flex items-center gap-1.5">
-                  <Check className="size-3 text-amber-400/60" />
-                  <p className="text-[9px] tracking-[0.2em] text-amber-400/55 uppercase font-semibold">
-                    {lang === "kr" ? "검증된 핵심 역량" : "Verified Superpower"}
-                  </p>
-                </div>
-
-                {/* Title + expand/collapse */}
-                <button
-                  onClick={() => setExpandedItem(spExpanded ? null : "sp-primary")}
-                  className="flex items-start justify-between w-full text-left group"
-                >
-                  <h3 className="text-[22px] font-bold text-white/95 tracking-tight leading-tight pr-3" style={{ textShadow: "0 0 20px rgba(251,191,36,0.08)" }}>
-                    {primaryProfile.title}
-                  </h3>
-                  {primaryProfile.bullets.length > 0 && (
-                    <span className="mt-1 shrink-0 text-white/25 group-hover:text-white/45 transition-colors">
-                      {spExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                    </span>
-                  )}
-                </button>
-
-                {/* Expanded: Bullets + Proof */}
-                {spExpanded && primaryProfile.bullets.length > 0 && (
-                  <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <p className="text-[10px] text-amber-400/50 font-medium tracking-wide uppercase">
-                      {lang === "kr" ? "이런 도움을 드릴 수 있습니다" : "I can help you with"}
+            {/* ── DISCOVERY MODE: Superpower first, name second ── */}
+            {mode === "discovery" && primaryProfile?.title ? (
+              <>
+                {/* Superpower as hero */}
+                <div className="mb-4 space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <Check className="size-3 text-amber-400/60" />
+                    <p className="text-[9px] tracking-[0.2em] text-amber-400/55 uppercase font-semibold">
+                      {lang === "kr" ? "현재 핵심 역량" : "Current Superpower"}
                     </p>
-                    {primaryProfile.bullets.map((b, j) => (
-                      <div key={j} className="flex items-start gap-2">
-                        <span className="text-amber-400/40 text-[13px] mt-[1px] shrink-0">→</span>
-                        <span className="text-[13px] text-white/60 leading-snug">{b}</span>
-                      </div>
-                    ))}
-                    {primaryProfile.proof && (
-                      <div className="mt-2 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-                        <p className="text-[10px] text-white/35 leading-relaxed italic">{primaryProfile.proof}</p>
-                      </div>
+                    <span className="text-[8px] text-white/20 ml-1">
+                      · {lang === "kr" ? `${spUpdatedLabel} 업데이트` : `Updated ${spUpdatedLabel}`}
+                    </span>
+                  </div>
+                  <button onClick={() => setExpandedItem(spExpanded ? null : "sp-primary")}
+                    className="flex items-start justify-between w-full text-left group">
+                    <h3 className="text-[22px] font-bold text-white/95 tracking-tight leading-tight pr-3" style={{ textShadow: "0 0 20px rgba(251,191,36,0.08)" }}>
+                      {primaryProfile.title}
+                    </h3>
+                    {primaryProfile.bullets.length > 0 && (
+                      <span className="mt-1 shrink-0 text-white/25 group-hover:text-white/45 transition-colors">
+                        {spExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                      </span>
+                    )}
+                  </button>
+                  {spExpanded && primaryProfile.bullets.length > 0 && (
+                    <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <p className="text-[10px] text-amber-400/50 font-medium tracking-wide uppercase">
+                        {lang === "kr" ? "이런 도움을 드릴 수 있습니다" : "I can help you with"}
+                      </p>
+                      {primaryProfile.bullets.map((b, j) => (
+                        <div key={j} className="flex items-start gap-2">
+                          <span className="text-amber-400/40 text-[13px] mt-[1px] shrink-0">→</span>
+                          <span className="text-[13px] text-white/60 leading-snug">{b}</span>
+                        </div>
+                      ))}
+                      {primaryProfile.proof && (
+                        <div className="mt-2 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                          <p className="text-[10px] text-white/35 leading-relaxed italic">{primaryProfile.proof}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* Divider */}
+                <div className="h-[1px] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent mb-4" />
+                {/* Name as subtitle */}
+                <div className="flex items-center gap-3.5 mb-4">
+                  {photoUrl ? (
+                    <img src={photoUrl} alt="" className="size-10 rounded-full object-cover ring-1 ring-amber-400/20" />
+                  ) : (
+                    <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/[0.08] to-white/[0.02] text-xs font-semibold text-white/50 ring-1 ring-amber-400/15">
+                      {member.firstName[0]}{member.lastName[0]}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[14px] font-medium text-white/75">{member.firstName} {member.lastName}</p>
+                      {linkedinUrl && (
+                        <a href={linkedinUrl.startsWith("http") ? linkedinUrl : `https://${linkedinUrl}`} target="_blank" rel="noopener noreferrer" className="text-white/20 hover:text-blue-400/60 transition-colors">
+                          <Linkedin className="size-3" />
+                        </a>
+                      )}
+                    </div>
+                    {(jobTitle || company) && (
+                      <p className="text-[11px] text-white/40 truncate">{cleanText(jobTitle)}{jobTitle && company && " · "}{cleanText(company)}</p>
                     )}
                   </div>
-                )}
-
-                {/* Domain badges */}
-                {domainBadges.length > 0 && (
-                  <div className="pt-2 space-y-1.5">
-                    <p className="text-[8px] tracking-[0.2em] text-white/20 uppercase font-medium">
-                      {lang === "kr" ? "전문 분야" : "Domain Expertise"}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {domainBadges.map((badge, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setExpandedItem(expandedItem === `badge-${i}` ? null : `badge-${i}`)}
-                          className={`text-[11px] px-3 py-1.5 rounded-full border transition-all cursor-pointer hover:border-amber-400/20 hover:text-white/60 ${
-                            expandedItem === `badge-${i}` ? "bg-amber-400/[0.06] border-amber-400/20 text-amber-300/70" : "text-white/45 bg-white/[0.02] border-white/[0.06]"
-                          }`}
-                        >
-                          {badge.title || `Domain ${i + 2}`}
-                          {badge.bullets.length > 0 && (
-                            expandedItem === `badge-${i}` ? <ChevronUp className="size-3 inline ml-1 opacity-50" /> : <ChevronDown className="size-3 inline ml-1 opacity-50" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                    {domainBadges.map((badge, i) => (
-                      expandedItem === `badge-${i}` && badge.bullets.length > 0 && (
-                        <div key={`badge-detail-${i}`} className="rounded-lg bg-white/[0.015] px-3 py-2.5 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                          <p className="text-[9px] text-white/25 italic">
-                            {lang === "kr" ? "이런 도움을 드릴 수 있습니다:" : "I can help you with:"}
-                          </p>
-                          {badge.bullets.map((b, j) => (
-                            <div key={j} className="flex items-start gap-2">
-                              <span className="text-amber-400/25 text-[11px] mt-[1px] shrink-0">→</span>
-                              <span className="text-[11px] text-white/45 leading-snug">{b}</span>
-                            </div>
-                          ))}
-                          {badge.proof && (
-                            <p className="text-[9px] text-white/25 italic mt-1 pt-1 border-t border-white/[0.03]">{badge.proof}</p>
-                          )}
-                        </div>
-                      )
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* No profile yet — show dimension summary */
-              spDomain && (
-                <div className="mb-4">
-                  <p className="text-[9px] tracking-[0.2em] text-amber-400/45 uppercase font-semibold mb-2">
-                    {lang === "kr" ? "핵심 역량" : "Superpower"}
-                  </p>
-                  <p className="text-[14px] text-white/60">
-                    {domainName} · {actionNames.join(", ")}
-                  </p>
-                  {spScales.length > 0 && <p className="text-[11px] text-white/30 mt-1">{scaleNames.join(", ")} · {stageNames.join(", ")} · {geoNames.join(", ")}</p>}
                 </div>
-              )
-            )}
-
-            {/* ── Full mode only: Exploring + Connect + CTA ── */}
-            {mode === "full" && (
-              <>
-                {/* Divider */}
-                <div className="h-[1px] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent mb-5 mt-1" />
-
-                {/* Currently Exploring */}
-                {chLabels.length > 0 && (
-                  <div className="mb-5">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <p className="text-[8px] tracking-[0.2em] text-white/30 uppercase font-medium">
-                        {lang === "kr" ? "함께 풀고 싶은 고민" : "Seeking Perspectives"}
-                      </p>
-                      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/[0.02] border border-white/[0.05]">
-                        <Lock className="size-2 text-white/20" />
-                        <span className="text-[7px] text-white/20 uppercase tracking-wide">
-                          {lang === "kr" ? "매칭 후 공개" : "Matches only"}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {chLabels.map((c, i) => {
-                        const cType = i === 0 ? challengeType1 : challengeType2;
-                        const typeInfo = CHALLENGE_TYPES.find(t => t.id === cType);
-                        return (
-                          <button
-                            key={i}
-                            onClick={() => interactive && setExpandedItem(expandedItem === `ch-${i}` ? null : `ch-${i}`)}
-                            className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
-                              interactive ? "cursor-pointer hover:border-white/15 hover:text-white/55" : ""
-                            } ${expandedItem === `ch-${i}` ? "bg-white/[0.04] border-white/[0.12] text-white/60" : "text-white/40 bg-white/[0.02] border-white/[0.06]"}`}
-                          >
-                            {typeInfo?.icon} {lang === "kr" ? (CHALLENGE_OPTIONS[cType || ""]?.find(o => o.en === c)?.kr || c) : c}
-                            {interactive && chDetails[i] && (
-                              expandedItem === `ch-${i}` ? <ChevronUp className="size-2.5 inline ml-1 opacity-50" /> : <ChevronDown className="size-2.5 inline ml-1 opacity-50" />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {interactive && chLabels.map((_, i) => (
-                      expandedItem === `ch-${i}` && chDetails[i] && (
-                        <p key={`ch-detail-${i}`} className="mt-2 text-[11px] text-white/40 leading-relaxed px-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                          {chDetails[i]}
-                        </p>
-                      )
-                    ))}
+                {/* Titles + peer recognition */}
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-4">
+                  <div className="relative group/fm flex items-center gap-1 cursor-help">
+                    <span className="text-amber-400/50 text-[11px]" style={{ textShadow: "0 0 6px rgba(251,191,36,0.3)" }}>◆</span>
+                    <span className="text-[10px] text-amber-400/40 font-medium tracking-wide">Founding Member</span>
                   </div>
-                )}
+                  {earnedTitles.length > 0 && (
+                    <><span className="text-white/[0.08]">|</span>
+                    {earnedTitles.map((t) => {
+                      const title = ELEV8_TITLES[t];
+                      return title ? (
+                        <span key={t} className="text-[10px] text-white/45 font-medium">{title.icon} {lang === "kr" ? title.kr : title.en}</span>
+                      ) : null;
+                    })}</>
+                  )}
+                  {member.peerRecognitionCount > 0 && (
+                    <><span className="text-white/[0.08]">|</span>
+                    <span className="text-[9px] text-white/25">
+                      {lang === "kr" ? `${member.peerRecognitionCount}명의 동료 리더가 인정` : `Recognized by ${member.peerRecognitionCount} peers`}
+                    </span></>
+                  )}
+                </div>
+              </>
+            ) : (
+              /* ── PROFILE MODE: Name first, Superpower below ── */
+              <>
+                {/* Profile header */}
+                <div className="flex items-center gap-3.5 mb-1.5">
+                  {photoUrl ? (
+                    <img src={photoUrl} alt="" className="size-13 rounded-full object-cover ring-2 ring-amber-400/25 shadow-[0_0_15px_rgba(251,191,36,0.1)]" />
+                  ) : (
+                    <div className="relative flex size-13 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/[0.08] to-white/[0.02] text-sm font-semibold text-white/50 ring-2 ring-amber-400/20">
+                      {member.firstName[0]}{member.lastName[0]}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-[16px] font-semibold text-white/90 tracking-tight">{member.firstName} {member.lastName}</h2>
+                      {linkedinUrl && (
+                        <a href={linkedinUrl.startsWith("http") ? linkedinUrl : `https://${linkedinUrl}`} target="_blank" rel="noopener noreferrer" className="text-white/20 hover:text-blue-400/60 transition-colors">
+                          <Linkedin className="size-3.5" />
+                        </a>
+                      )}
+                    </div>
+                    {(jobTitle || company) && (
+                      <p className="text-[12px] text-white/50 mt-0.5 truncate">{cleanText(jobTitle)}{jobTitle && company && " · "}{cleanText(company)}</p>
+                    )}
+                  </div>
+                </div>
+                {/* Founding Member + Titles + Peer Recognition */}
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 ml-[3.75rem] mb-5">
+                  <div className="relative group/fm flex items-center gap-1 cursor-help">
+                    <span className="text-amber-400/50 text-[11px]" style={{ textShadow: "0 0 6px rgba(251,191,36,0.3)" }}>◆</span>
+                    <span className="text-[10px] text-amber-400/40 font-medium tracking-wide group-hover/fm:text-amber-400/60 transition-colors" style={{ textShadow: "0 0 8px rgba(251,191,36,0.1)" }}>Founding Member</span>
+                    <div className="absolute bottom-full left-0 mb-1.5 px-2.5 py-1.5 rounded-md bg-[#1a1a1a] border border-white/[0.08] text-[10px] text-white/60 whitespace-nowrap opacity-0 pointer-events-none group-hover/fm:opacity-100 transition-opacity duration-150 z-10">
+                      {lang === "kr" ? "Elev8 초기 멤버로서 커뮤니티를 함께 만들어가고 있습니다" : "One of the first members shaping the Elev8 community"}
+                    </div>
+                  </div>
+                  {earnedTitles.length > 0 && (
+                    <><span className="text-white/[0.08]">|</span>
+                    {earnedTitles.map((t) => {
+                      const title = ELEV8_TITLES[t];
+                      return title ? (
+                        <div key={t} className="relative group/et flex items-center cursor-help">
+                          <span className="text-[10px] text-white/45 font-medium group-hover/et:text-white/65 transition-colors">{title.icon} {lang === "kr" ? title.kr : title.en}</span>
+                          <div className="absolute bottom-full left-0 mb-1.5 px-2.5 py-1.5 rounded-md bg-[#1a1a1a] border border-white/[0.08] text-[10px] text-white/60 whitespace-nowrap opacity-0 pointer-events-none group-hover/et:opacity-100 transition-opacity duration-150 z-10">
+                            {lang === "kr" ? title.descKr : title.descEn}
+                          </div>
+                        </div>
+                      ) : null;
+                    })}</>
+                  )}
+                  {member.peerRecognitionCount > 0 && (
+                    <><span className="text-white/[0.08]">|</span>
+                    <span className="text-[9px] text-white/25">
+                      {lang === "kr" ? `${member.peerRecognitionCount}명의 동료가 인정` : `${member.peerRecognitionCount} peer recognitions`}
+                    </span></>
+                  )}
+                </div>
 
-                {/* Divider before Looking to Connect */}
-                {dreamText && chLabels.length > 0 && (
-                  <div className="h-[1px] bg-gradient-to-r from-transparent via-white/[0.05] to-transparent mb-5" />
-                )}
+                <div className="h-[1px] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent mb-4" />
 
-                {/* Looking to Connect — tag style with expand */}
-                {dreamText && (
-                  <div className="mb-5">
-                    <p className="text-[8px] tracking-[0.2em] text-white/30 uppercase mb-2 font-medium">
-                      {lang === "kr" ? "연결하고 싶은 분" : "Looking to Connect"}
-                    </p>
-                    <button
-                      onClick={() => interactive && setExpandedItem(expandedItem === "dream" ? null : "dream")}
-                      className={`text-[11px] px-3 py-1.5 rounded-full border transition-all ${
-                        interactive ? "cursor-pointer hover:border-white/15 hover:text-white/55" : ""
-                      } ${expandedItem === "dream" ? "bg-white/[0.04] border-white/[0.12] text-white/60" : "text-white/40 bg-white/[0.02] border-white/[0.06]"}`}
-                    >
-                      {dreamText.length > 40 ? dreamText.slice(0, 40) + "…" : dreamText}
-                      {interactive && dreamText.length > 40 && (
-                        expandedItem === "dream" ? <ChevronUp className="size-2.5 inline ml-1 opacity-50" /> : <ChevronDown className="size-2.5 inline ml-1 opacity-50" />
+                {/* Superpower */}
+                {primaryProfile?.title ? (
+                  <div className="mb-4 space-y-2">
+                    <div className="flex items-center gap-1.5">
+                      <Check className="size-3 text-amber-400/60" />
+                      <p className="text-[9px] tracking-[0.2em] text-amber-400/55 uppercase font-semibold">
+                        {lang === "kr" ? "현재 핵심 역량" : "Current Superpower"}
+                      </p>
+                      <span className="text-[8px] text-white/20 ml-1">
+                        · {lang === "kr" ? `${spUpdatedLabel} 업데이트` : `Updated ${spUpdatedLabel}`}
+                      </span>
+                    </div>
+                    <button onClick={() => setExpandedItem(spExpanded ? null : "sp-primary")}
+                      className="flex items-start justify-between w-full text-left group">
+                      <h3 className="text-[22px] font-bold text-white/95 tracking-tight leading-tight pr-3" style={{ textShadow: "0 0 20px rgba(251,191,36,0.08)" }}>
+                        {primaryProfile.title}
+                      </h3>
+                      {primaryProfile.bullets.length > 0 && (
+                        <span className="mt-1 shrink-0 text-white/25 group-hover:text-white/45 transition-colors">
+                          {spExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                        </span>
                       )}
                     </button>
-                    {expandedItem === "dream" && dreamText.length > 40 && (
-                      <p className="mt-2 text-[11px] text-white/40 leading-relaxed px-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                        {dreamText}
-                      </p>
+                    {spExpanded && primaryProfile.bullets.length > 0 && (
+                      <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <p className="text-[10px] text-amber-400/50 font-medium tracking-wide uppercase">
+                          {lang === "kr" ? "이런 도움을 드릴 수 있습니다" : "I can help you with"}
+                        </p>
+                        {primaryProfile.bullets.map((b, j) => (
+                          <div key={j} className="flex items-start gap-2">
+                            <span className="text-amber-400/40 text-[13px] mt-[1px] shrink-0">→</span>
+                            <span className="text-[13px] text-white/60 leading-snug">{b}</span>
+                          </div>
+                        ))}
+                        {primaryProfile.proof && (
+                          <div className="mt-2 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                            <p className="text-[10px] text-white/35 leading-relaxed italic">{primaryProfile.proof}</p>
+                          </div>
+                        )}
+                      </div>
                     )}
+                    {/* Domain badges */}
+                    {domainBadges.length > 0 && (
+                      <div className="pt-2 space-y-1.5">
+                        <p className="text-[8px] tracking-[0.2em] text-white/20 uppercase font-medium">
+                          {lang === "kr" ? "전문 분야" : "Domain Expertise"}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {domainBadges.map((badge, i) => (
+                            <button key={i} onClick={() => setExpandedItem(expandedItem === `badge-${i}` ? null : `badge-${i}`)}
+                              className={`text-[11px] px-3 py-1.5 rounded-full border transition-all cursor-pointer hover:border-amber-400/20 hover:text-white/60 ${
+                                expandedItem === `badge-${i}` ? "bg-amber-400/[0.06] border-amber-400/20 text-amber-300/70" : "text-white/45 bg-white/[0.02] border-white/[0.06]"
+                              }`}>
+                              {badge.title || `Domain ${i + 2}`}
+                              {badge.bullets.length > 0 && (expandedItem === `badge-${i}` ? <ChevronUp className="size-3 inline ml-1 opacity-50" /> : <ChevronDown className="size-3 inline ml-1 opacity-50" />)}
+                            </button>
+                          ))}
+                        </div>
+                        {domainBadges.map((badge, i) => (
+                          expandedItem === `badge-${i}` && badge.bullets.length > 0 && (
+                            <div key={`badge-detail-${i}`} className="rounded-lg bg-white/[0.015] px-3 py-2.5 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                              <p className="text-[9px] text-white/25 italic">{lang === "kr" ? "이런 도움을 드릴 수 있습니다:" : "I can help you with:"}</p>
+                              {badge.bullets.map((b, j) => (
+                                <div key={j} className="flex items-start gap-2">
+                                  <span className="text-amber-400/25 text-[11px] mt-[1px] shrink-0">→</span>
+                                  <span className="text-[11px] text-white/45 leading-snug">{b}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    )}
+                    {/* Superpower History */}
+                    {history.length > 0 && (
+                      <div className="pt-2">
+                        <button onClick={() => setExpandedItem(expandedItem === "history" ? null : "history")}
+                          className="text-[8px] text-white/15 hover:text-white/30 transition-colors uppercase tracking-wider">
+                          {lang === "kr" ? "이전 역량 보기" : "Previously"} {expandedItem === "history" ? "▴" : "▾"}
+                        </button>
+                        {expandedItem === "history" && (
+                          <div className="mt-1.5 space-y-1 animate-in fade-in duration-200">
+                            {history.map((h, i) => (
+                              <p key={i} className="text-[9px] text-white/20">· {h.title} <span className="text-white/10">({new Date(h.date).toLocaleDateString("en-US", { month: "short", year: "numeric" })})</span></p>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : spDomain && (
+                  <div className="mb-4">
+                    <p className="text-[9px] tracking-[0.2em] text-amber-400/45 uppercase font-semibold mb-2">Superpower</p>
+                    <p className="text-[14px] text-white/60">{domainName} · {actionNames.join(", ")}</p>
                   </div>
                 )}
               </>
             )}
 
-            {/* Request Exchange CTA */}
-            {(primaryProfile?.title || spDomain) && (
-              <div className={`${mode === "full" ? "pt-2" : "pt-3"}`}>
-                {mode === "compact" ? (
-                  <div className="flex gap-2">
-                    <button className="flex-1 h-9 rounded-lg border border-white/[0.08] bg-white/[0.02] text-[11px] text-white/40 hover:text-white/60 hover:border-white/[0.12] transition-all">
-                      {lang === "kr" ? "프로필 보기" : "View Profile"}
-                    </button>
-                    <button className="flex-1 h-9 rounded-lg bg-amber-400/90 text-[11px] text-black font-semibold hover:bg-amber-400 transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(251,191,36,0.2),0_0_40px_rgba(251,191,36,0.08)] animate-border-glow">
-                      <Sparkles className="size-3" />
-                      {lang === "kr" ? "교류 요청" : "Request Exchange"}
-                    </button>
-                  </div>
-                ) : (
-                  <button className="w-full h-11 rounded-xl bg-amber-400/90 text-[13px] text-black font-semibold hover:bg-amber-400 transition-all flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(251,191,36,0.2),0_0_50px_rgba(251,191,36,0.08)] animate-border-glow">
+            {/* ── Challenges & dream connection hidden from card (used for internal matching only) ── */}
+
+            {/* ── CTA: Context-dependent ── */}
+            {(primaryProfile?.title || spDomain) && !compact && (
+              <div className="pt-2">
+                {mode === "discovery" ? (
+                  <button className="w-full h-11 rounded-xl bg-amber-400/90 text-[13px] text-black font-semibold hover:bg-amber-400 transition-all flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(251,191,36,0.2)]">
                     <Sparkles className="size-3.5" />
-                    {lang === "kr" ? "교류 요청하기" : "Request Exchange"}
+                    {lang === "kr" ? "이 관점에 대해 더 알아보기" : "Explore this perspective"}
+                  </button>
+                ) : (
+                  <button className="w-full h-11 rounded-xl border border-white/[0.08] bg-white/[0.02] text-[13px] text-white/50 hover:text-white/70 hover:border-white/[0.15] transition-all flex items-center justify-center gap-2">
+                    <Share2 className="size-3.5" />
+                    {lang === "kr" ? "카드 공유하기" : "Share Your Card"}
                   </button>
                 )}
               </div>
@@ -1014,421 +972,258 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
   };
 
   // ════════════════════════════════════════════════════════
-  // INTRO STEP — Explain Superpower & Elev8 Titles
+  // STEP 1: ABOUT — Title, Company, Photo, Domain (combined)
   // ════════════════════════════════════════════════════════
-  if (step === "intro") {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-end">
-          <LanguageToggle />
-        </div>
-        <div className="space-y-5">
-          {/* Superpower explanation */}
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-5 space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-amber-400/70 text-lg">✦</span>
-              <h3 className="text-sm font-semibold text-white/85">
-                {lang === "kr" ? "Superpower란?" : "What's a Superpower?"}
-              </h3>
-            </div>
-            <p className="text-[12px] text-white/50 leading-relaxed">
-              {lang === "kr"
-                ? "당신만의 전문성과 경험입니다. 어떤 분야에서, 어떤 규모로, 어떤 역할을 해왔는지 — 이것이 다른 멤버가 당신을 찾는 이유가 됩니다."
-                : "Your unique expertise and experience. What domain you work in, what you do best, and at what scale — this is how other members find and connect with you."}
-            </p>
-          </div>
-
-          {/* Elev8 Titles explanation */}
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-5 space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">⚡💡🧭🚀🔗</span>
-            </div>
-            <h3 className="text-sm font-semibold text-white/85">
-              {lang === "kr" ? "Elev8 Titles란?" : "What are Elev8 Titles?"}
-            </h3>
-            <p className="text-[12px] text-white/50 leading-relaxed">
-              {lang === "kr"
-                ? "커뮤니티에서 다른 멤버를 도운 경험이 인정받으면 얻는 타이틀입니다. 처음에는 당신의 Superpower에 기반한 기본 타이틀이 부여되고, 실제로 다른 멤버의 고민을 해결하고 긍정적인 피드백을 받으면 타이틀이 추가됩니다."
-                : "Titles you earn by helping other members in the community. You'll start with a default title based on your superpower. As you help others solve real challenges and receive positive peer feedback, you earn more titles."}
-            </p>
-            <div className="flex flex-wrap gap-2 mt-1">
-              {Object.entries(ELEV8_TITLES).map(([key, t]) => (
-                <span key={key} className="text-[10px] text-white/35 bg-white/[0.03] border border-white/[0.05] rounded-full px-2.5 py-1">
-                  {t.icon} {lang === "kr" ? t.kr : t.en}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* How it works */}
-          <div className="rounded-xl border border-amber-400/[0.08] bg-amber-400/[0.02] p-5 space-y-2">
-            <h3 className="text-[11px] font-semibold text-amber-300/70 uppercase tracking-wider">
-              {lang === "kr" ? "어떻게 진행되나요?" : "How this works"}
-            </h3>
-            <div className="space-y-2">
-              {[
-                { n: "1", en: "Define your Superpower (5 quick questions)", kr: "Superpower 정의하기 (5개 질문)" },
-                { n: "2", en: "Share what you're working through right now", kr: "현재 고민하고 있는 것 공유하기" },
-                { n: "3", en: "AI builds your profile — you review & edit", kr: "AI가 프로필 생성 — 직접 검토 & 수정" },
-                { n: "4", en: "Get your first Elev8 Title automatically", kr: "첫 번째 Elev8 Title 자동 부여" },
-              ].map((s) => (
-                <div key={s.n} className="flex items-start gap-2.5">
-                  <span className="text-[10px] text-amber-400/50 font-bold mt-0.5">{s.n}</span>
-                  <p className="text-[11px] text-white/45">{lang === "kr" ? s.kr : s.en}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <NavButtons
-          onNext={() => setStep("domain")}
-          canNext={true}
-        />
-      </div>
-    );
-  }
-
-  // ════════════════════════════════════════════════════════
-  // STEP 1: DOMAIN — "Which domain?"
-  // ════════════════════════════════════════════════════════
-  if (step === "domain") {
+  if (step === "about") {
     return (
       <div className="space-y-6">
         <ProgressBar />
 
         {/* About you section */}
         <section className="space-y-4 rounded-xl border border-white/[0.05] bg-white/[0.01] p-5">
-          <h3 className="text-sm font-medium text-white/80">{lang === "kr" ? "기본 정보" : "About you"}</h3>
+          <h3 className="text-sm font-medium text-white/80">
+            {lang === "kr" ? "기본 정보 입력" : "About you"}
+          </h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="text-[10px] text-white/40 font-medium">Title</label>
-              <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="VP of Engineering" className="h-9 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25" />
+              <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="VP of Engineering"
+                className="h-9 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25" />
             </div>
             <div className="space-y-1">
               <label className="text-[10px] text-white/40 font-medium">Company</label>
-              <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Google" className="h-9 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25" />
+              <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Google"
+                className="h-9 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25" />
             </div>
           </div>
-          <div className="space-y-1">
-            <label className="text-[10px] text-white/40 font-medium">LinkedIn</label>
-            <Input value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="linkedin.com/in/you" className="h-9 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25" />
-          </div>
-
-          {/* Photo upload */}
-          <div className="space-y-2">
-            <label className="text-[10px] text-white/40 font-medium">
-              {lang === "kr" ? "프로필 사진" : "Profile Photo"}
-            </label>
-            <div className="flex items-center gap-3">
-              <label className="relative cursor-pointer group">
-                {photoUrl ? (
-                  <img src={photoUrl} alt="" className="size-12 rounded-full object-cover ring-1 ring-white/10 group-hover:ring-amber-400/30 transition-all" />
-                ) : (
-                  <div className="size-12 rounded-full bg-white/[0.05] border border-white/[0.08] group-hover:border-amber-400/25 flex items-center justify-center transition-all">
-                    <Camera className="size-5 text-white/20 group-hover:text-amber-400/50 transition-colors" />
-                  </div>
-                )}
-                {uploadingPhoto && (
-                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
-                    <RefreshCw className="size-4 text-amber-400/60 animate-spin" />
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handlePhotoUpload}
-                  disabled={uploadingPhoto}
-                  className="hidden"
-                />
-              </label>
-              <p className="text-[9px] text-white/25">
-                {lang === "kr" ? "클릭하여 업로드 · JPG, PNG, WebP · 최대 5MB" : "Click to upload · JPG, PNG, or WebP · Max 5MB"}
-              </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-[10px] text-white/40 font-medium">LinkedIn</label>
+              <Input value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="linkedin.com/in/you"
+                className="h-9 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25" />
             </div>
-            {!photoUrl && !photoPromptDismissed && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-400/10 bg-amber-400/[0.02]">
-                <p className="text-[10px] text-amber-300/40 flex-1">
-                  {lang === "kr" ? "💡 사진이 있으면 연결 요청이 3배 더 많아집니다" : "💡 Members with photos get 3x more connection requests"}
-                </p>
-                <button onClick={() => setPhotoPromptDismissed(true)} className="text-white/15 hover:text-white/30">
-                  <X className="size-3" />
-                </button>
+            <div className="space-y-2">
+              <label className="text-[10px] text-white/40 font-medium">{lang === "kr" ? "프로필 사진" : "Photo"}</label>
+              <div className="flex items-center gap-2">
+                <label className="relative cursor-pointer group">
+                  {photoUrl ? (
+                    <img src={photoUrl} alt="" className="size-9 rounded-full object-cover ring-1 ring-white/10 group-hover:ring-amber-400/30 transition-all" />
+                  ) : (
+                    <div className="size-9 rounded-full bg-white/[0.05] border border-white/[0.08] group-hover:border-amber-400/25 flex items-center justify-center transition-all">
+                      <Camera className="size-4 text-white/20 group-hover:text-amber-400/50 transition-colors" />
+                    </div>
+                  )}
+                  {uploadingPhoto && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                      <RefreshCw className="size-3 text-amber-400/60 animate-spin" />
+                    </div>
+                  )}
+                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoUpload} disabled={uploadingPhoto} className="hidden" />
+                </label>
+                <p className="text-[8px] text-white/20">JPG, PNG, WebP · Max 5MB</p>
               </div>
-            )}
+            </div>
           </div>
+          {!photoUrl && !photoPromptDismissed && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-400/10 bg-amber-400/[0.02]">
+              <p className="text-[10px] text-amber-300/40 flex-1">
+                {lang === "kr" ? "사진을 올리면 동료 연결이 3배 늘어납니다" : "Members with photos get 3x more connection requests"}
+              </p>
+              <button onClick={() => setPhotoPromptDismissed(true)} className="text-white/15 hover:text-white/30"><X className="size-3" /></button>
+            </div>
+          )}
         </section>
 
         <div className="h-[1px] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
 
+        {/* Domain selection */}
         <div>
           <h3 className="text-sm font-medium text-white/80 mb-1">
-            {lang === "kr" ? "어떤 분야의 전문가인가요?" : "Which domain best describes your expertise?"}
+            {lang === "kr" ? "동료들이 주로 어떤 분야로 찾아오나요?" : "What do people come to you for?"}
           </h3>
           <p className="text-[11px] text-white/35 mb-4">
-            {lang === "kr" ? "하나만 선택하세요 — 이 분야에서 당신을 찾게 됩니다" : "Pick one — this is how other members will find you"}
+            {lang === "kr" ? "최대 2개 — 이걸 기준으로 멤버들이 연결됩니다" : "Pick up to 2 — this is how other members will find you"}
           </p>
           <div className="space-y-2">
             {DOMAINS.map((d) => (
-              <DimOption
-                key={d.id}
-                selected={spDomain === d.id}
+              <Chip key={d.id}
+                selected={spDomains.includes(d.id)}
                 label={lang === "kr" ? d.kr : d.en}
-                onClick={() => setSpDomain(d.id)}
-              />
+                desc={d.id !== "other" ? (lang === "kr" ? d.descKr : d.descEn) : undefined}
+                onClick={() => {
+                  if (d.id === "other") {
+                    setSpDomains(spDomains.includes("other") ? spDomains.filter(x => x !== "other") : [...spDomains.filter(x => x !== "other"), "other"]);
+                  } else {
+                    toggleMulti(d.id, spDomains, setSpDomains, 2);
+                  }
+                }} />
             ))}
           </div>
-          {spDomain === "other" && (
-            <Input
-              value={spDomainCustom}
-              onChange={(e) => setSpDomainCustom(e.target.value)}
-              placeholder={lang === "kr" ? "분야를 입력하세요 (예: Product Management)" : "Type your domain (e.g. Product Management)"}
-              className="mt-3 h-10 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25"
-              autoFocus
-            />
+          {spDomains.includes("other") && (
+            <Input value={spDomainCustom} onChange={(e) => setSpDomainCustom(e.target.value)}
+              placeholder={lang === "kr" ? "분야를 입력하세요" : "Type your domain"}
+              className="mt-3 h-10 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25" autoFocus />
           )}
+          <p className="text-[10px] text-white/20 mt-3">
+            {lang === "kr" ? "나중에 언제든 바꿀 수 있어요" : "You can change this anytime"}
+          </p>
         </div>
 
-        <NavButtons
-          onNext={() => setStep("action")}
-          canNext={!!spDomain && (spDomain !== "other" || !!spDomainCustom.trim())}
-          onBack={() => setStep("intro")}
-        />
+        <NavButtons onNext={() => setStep("expertise")} canNext={spDomains.length > 0 && (!spDomains.includes("other") || !!spDomainCustom.trim()) && !!jobTitle.trim()} />
       </div>
     );
   }
 
   // ════════════════════════════════════════════════════════
-  // STEP 2: ACTION — "What do you do?" (multi-select up to 3)
+  // STEP 2: EXPERTISE — Action + Elev8 Titles hint
   // ════════════════════════════════════════════════════════
-  if (step === "action") {
+  if (step === "expertise") {
     return (
       <div className="space-y-6">
         <ProgressBar />
         <div>
           <h3 className="text-sm font-medium text-white/80 mb-1">
-            {lang === "kr"
-              ? `${domainName}에서 무엇을 잘하시나요?`
-              : `What makes you exceptional in ${domainName}?`}
+            {lang === "kr" ? `${domainName} 분야에서 가장 자신 있는 역할은?` : `What makes you exceptional in ${domainName}?`}
           </h3>
           <p className="text-[11px] text-white/35 mb-1">
             {lang === "kr" ? "최대 3개 선택" : "Select up to 3"}
             {spActions.length > 0 && <span className="text-amber-400/50 ml-1">({spActions.length}/3)</span>}
           </p>
           <p className="text-[10px] text-amber-400/30 mb-4">
-            {lang === "kr" ? "✦ 이 선택이 당신의 첫 번째 Elev8 Title을 결정합니다" : "✦ This determines your first Elev8 Title"}
+            {lang === "kr" ? "✦ 여기서 첫 Elev8 타이틀이 정해집니다" : "✦ This determines your first Elev8 Title"}
           </p>
           <div className="space-y-2">
             {ACTIONS.map((a) => (
-              <DimOption
-                key={a.id}
-                selected={spActions.includes(a.id)}
-                label={lang === "kr" ? a.kr : a.en}
-                onClick={() => toggleMulti(a.id, spActions, setSpActions)}
-              />
+              <Chip key={a.id} selected={spActions.includes(a.id)} label={lang === "kr" ? a.kr : a.en}
+                onClick={() => toggleMulti(a.id, spActions, setSpActions)} />
             ))}
           </div>
           {spActions.includes("custom") && (
-            <Input
-              value={spActionCustom}
-              onChange={(e) => setSpActionCustom(e.target.value)}
-              placeholder={lang === "kr" ? "구체적인 역할을 입력하세요" : "Describe your specific expertise"}
-              className="mt-3 h-10 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25"
-              autoFocus
-            />
+            <Input value={spActionCustom} onChange={(e) => setSpActionCustom(e.target.value)}
+              placeholder={lang === "kr" ? "어떤 역할인지 적어주세요" : "Describe your specific expertise"}
+              className="mt-3 h-10 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25" autoFocus />
+          )}
+          {/* Live title preview */}
+          {earnedTitles.length > 0 && (
+            <div className="mt-4 px-4 py-3 rounded-xl border border-amber-400/20 bg-amber-400/[0.04]">
+              <p className="text-[9px] tracking-[0.15em] text-amber-400/45 uppercase font-semibold mb-1">
+                {lang === "kr" ? "받게 될 Elev8 타이틀" : "Elev8 Titles you'll earn"}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {earnedTitles.map(t => ELEV8_TITLES[t] ? (
+                  <span key={t} className="text-[13px] font-medium text-amber-300/75">{ELEV8_TITLES[t].icon} {lang === "kr" ? ELEV8_TITLES[t].kr : ELEV8_TITLES[t].en}</span>
+                ) : null)}
+              </div>
+            </div>
           )}
         </div>
-        <NavButtons
-          onNext={() => setStep("scale")}
-          canNext={spActions.length > 0 && (!spActions.includes("custom") || !!spActionCustom.trim())}
-          onBack={() => setStep("domain")}
-        />
+        <NavButtons onNext={() => setStep("context")} canNext={spActions.length > 0 && (!spActions.includes("custom") || !!spActionCustom.trim())} onBack={() => setStep("about")} />
       </div>
     );
   }
 
   // ════════════════════════════════════════════════════════
-  // STEP 3: SCALE — "How big?" (multi-select up to 3)
+  // STEP 3: CONTEXT — Scale + Stage + Geo (combined)
   // ════════════════════════════════════════════════════════
-  if (step === "scale") {
+  if (step === "context") {
     return (
       <div className="space-y-6">
         <ProgressBar />
+
+        {/* Scale */}
         <div>
-          <h3 className="text-sm font-medium text-white/80 mb-1">
-            {lang === "kr" ? "어느 규모에서 경험하셨나요?" : "At what scale have you done this?"}
-          </h3>
-          <p className="text-[11px] text-white/35 mb-4">
-            {lang === "kr" ? "최대 3개 선택" : "Select up to 3"}
-            {spScales.length > 0 && <span className="text-amber-400/50 ml-1">({spScales.length}/3)</span>}
-          </p>
-          <div className="space-y-2">
+          <h3 className="text-sm font-medium text-white/80 mb-1">{lang === "kr" ? "어느 정도 규모의 조직에서 일해보셨나요?" : "At what scale?"}</h3>
+          <p className="text-[11px] text-white/35 mb-3">{lang === "kr" ? "최대 3개" : "Up to 3"}{spScales.length > 0 && <span className="text-amber-400/50 ml-1">({spScales.length}/3)</span>}</p>
+          <div className="flex flex-wrap gap-1.5">
             {SCALES.map((s) => (
-              <DimOption
-                key={s.id}
-                selected={spScales.includes(s.id)}
-                label={lang === "kr" ? s.kr : s.en}
-                onClick={() => toggleMulti(s.id, spScales, setSpScales)}
-              />
+              <button key={s.id} onClick={() => toggleMulti(s.id, spScales, setSpScales)}
+                className={`text-[11px] px-3 py-2 rounded-lg border transition-all ${
+                  spScales.includes(s.id) ? "bg-amber-400/10 border-amber-400/25 text-amber-300/80" : "bg-white/[0.02] border-white/[0.06] text-white/45 hover:border-white/[0.12]"
+                }`}>{lang === "kr" ? s.kr : s.en}</button>
             ))}
           </div>
         </div>
-        <NavButtons
-          onNext={() => setStep("stage")}
-          canNext={spScales.length > 0}
-          onBack={() => setStep("action")}
-        />
-      </div>
-    );
-  }
 
-  // ════════════════════════════════════════════════════════
-  // STEP 4: STAGE — "What company stage?" (multi-select up to 3)
-  // ════════════════════════════════════════════════════════
-  if (step === "stage") {
-    return (
-      <div className="space-y-6">
-        <ProgressBar />
+        <div className="h-[1px] bg-white/[0.04]" />
+
+        {/* Stage */}
         <div>
-          <h3 className="text-sm font-medium text-white/80 mb-1">
-            {lang === "kr" ? "어떤 단계의 회사에서 경험하셨나요?" : "At what company stage?"}
-          </h3>
-          <p className="text-[11px] text-white/35 mb-4">
-            {lang === "kr" ? "최대 3개 선택" : "Select up to 3"}
-            {spStages.length > 0 && <span className="text-amber-400/50 ml-1">({spStages.length}/3)</span>}
-          </p>
-          <div className="space-y-2">
+          <h3 className="text-sm font-medium text-white/80 mb-1">{lang === "kr" ? "어떤 단계의 회사를 경험하셨나요?" : "At what company stage?"}</h3>
+          <p className="text-[11px] text-white/35 mb-3">{lang === "kr" ? "최대 3개" : "Up to 3"}{spStages.length > 0 && <span className="text-amber-400/50 ml-1">({spStages.length}/3)</span>}</p>
+          <div className="flex flex-wrap gap-1.5">
             {STAGES.map((s) => (
-              <DimOption
-                key={s.id}
-                selected={spStages.includes(s.id)}
-                label={lang === "kr" ? s.kr : s.en}
-                onClick={() => toggleMulti(s.id, spStages, setSpStages)}
-              />
+              <button key={s.id} onClick={() => toggleMulti(s.id, spStages, setSpStages)}
+                className={`text-[11px] px-3 py-2 rounded-lg border transition-all ${
+                  spStages.includes(s.id) ? "bg-amber-400/10 border-amber-400/25 text-amber-300/80" : "bg-white/[0.02] border-white/[0.06] text-white/45 hover:border-white/[0.12]"
+                }`}>{lang === "kr" ? s.kr : s.en}</button>
             ))}
           </div>
         </div>
-        <NavButtons
-          onNext={() => setStep("geo")}
-          canNext={spStages.length > 0}
-          onBack={() => setStep("scale")}
-        />
-      </div>
-    );
-  }
 
-  // ════════════════════════════════════════════════════════
-  // STEP 5: GEOGRAPHY — "Where?" (multi-select up to 3)
-  // ════════════════════════════════════════════════════════
-  if (step === "geo") {
-    return (
-      <div className="space-y-6">
-        <ProgressBar />
+        <div className="h-[1px] bg-white/[0.04]" />
+
+        {/* Geography */}
         <div>
-          <h3 className="text-sm font-medium text-white/80 mb-1">
-            {lang === "kr" ? "어디에서 경험하셨나요?" : "Where did you do this?"}
-          </h3>
-          <p className="text-[11px] text-white/35 mb-4">
-            {lang === "kr" ? "최대 3개 선택" : "Select up to 3"}
-            {spGeos.length > 0 && <span className="text-amber-400/50 ml-1">({spGeos.length}/3)</span>}
-          </p>
-          <div className="space-y-2">
+          <h3 className="text-sm font-medium text-white/80 mb-1">{lang === "kr" ? "주로 어디서 일하셨나요?" : "Where?"}</h3>
+          <p className="text-[11px] text-white/35 mb-3">{lang === "kr" ? "최대 3개" : "Up to 3"}{spGeos.length > 0 && <span className="text-amber-400/50 ml-1">({spGeos.length}/3)</span>}</p>
+          <div className="flex flex-wrap gap-1.5">
             {GEOS.map((g) => (
-              <DimOption
-                key={g.id}
-                selected={spGeos.includes(g.id)}
-                label={lang === "kr" ? g.kr : g.en}
-                onClick={() => toggleMulti(g.id, spGeos, setSpGeos)}
-              />
+              <button key={g.id} onClick={() => toggleMulti(g.id, spGeos, setSpGeos)}
+                className={`text-[11px] px-3 py-2 rounded-lg border transition-all ${
+                  spGeos.includes(g.id) ? "bg-amber-400/10 border-amber-400/25 text-amber-300/80" : "bg-white/[0.02] border-white/[0.06] text-white/45 hover:border-white/[0.12]"
+                }`}>{lang === "kr" ? g.kr : g.en}</button>
             ))}
           </div>
           {spGeos.includes("geo-other") && (
-            <Input
-              value={spGeoCustom}
-              onChange={(e) => setSpGeoCustom(e.target.value)}
+            <Input value={spGeoCustom} onChange={(e) => setSpGeoCustom(e.target.value)}
               placeholder={lang === "kr" ? "지역을 입력하세요" : "Type your region"}
-              className="mt-3 h-10 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25"
-              autoFocus
-            />
+              className="mt-2 h-9 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25" autoFocus />
           )}
         </div>
-        <NavButtons
-          onNext={() => setStep("challenges")}
-          canNext={spGeos.length > 0 && (!spGeos.includes("geo-other") || !!spGeoCustom.trim())}
-          onBack={() => setStep("stage")}
-        />
+
+        <NavButtons onNext={() => setStep("challenges")}
+          canNext={spScales.length > 0 && spStages.length > 0 && spGeos.length > 0 && (!spGeos.includes("geo-other") || !!spGeoCustom.trim())}
+          onBack={() => setStep("expertise")} />
       </div>
     );
   }
 
   // ════════════════════════════════════════════════════════
-  // STEP 6: CHALLENGES — "Where could you use a hand?"
+  // STEP 4: CHALLENGES — "What are you navigating?"
   // ════════════════════════════════════════════════════════
   if (step === "challenges") {
-    // Helper to render a challenge block with type + spec + custom "Other"
     const renderChallengeBlock = (idx: number, type: string, setType: (v: string) => void, spec: string, setSpec: (v: string) => void, customText: string, setCustomText: (v: string) => void) => (
       <div className="space-y-3">
         <p className="text-[10px] tracking-[0.15em] text-amber-400/55 uppercase font-semibold">
-          {idx === 1
-            ? (lang === "kr" ? "고민 1" : "Challenge 1")
-            : (lang === "kr" ? "고민 2 (선택)" : "Challenge 2 (optional)")}
+          {idx === 1 ? (lang === "kr" ? "첫 번째 주제" : "Topic 1") : (lang === "kr" ? "두 번째 주제 (선택)" : "Topic 2 (optional)")}
         </p>
         <div className="flex flex-wrap gap-1.5">
           {CHALLENGE_TYPES.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => { setType(t.id); setSpec(""); setCustomText(""); }}
+            <button key={t.id} onClick={() => { setType(t.id); setSpec(""); setCustomText(""); }}
               className={`text-[11px] px-3 py-1.5 rounded-full border transition-all ${
-                type === t.id
-                  ? "bg-amber-400/10 border-amber-400/25 text-amber-300/80"
-                  : "bg-white/[0.02] border-white/[0.06] text-white/40 hover:border-white/[0.12]"
-              }`}
-            >
-              {t.icon} {lang === "kr" ? t.kr : t.en}
-            </button>
+                type === t.id ? "bg-amber-400/10 border-amber-400/25 text-amber-300/80" : "bg-white/[0.02] border-white/[0.06] text-white/40 hover:border-white/[0.12]"
+              }`}>{t.icon} {lang === "kr" ? t.kr : t.en}</button>
           ))}
         </div>
         {type && CHALLENGE_OPTIONS[type] && (
           <div className="space-y-1.5 pl-1">
             {CHALLENGE_OPTIONS[type].map((opt) => (
-              <button
-                key={opt.en}
-                onClick={() => { if (opt.en !== spec) { setSpec(opt.en); setCustomText(""); } }}
+              <button key={opt.en} onClick={() => { if (opt.en !== spec) { setSpec(opt.en); setCustomText(""); } }}
                 className={`block w-full text-left px-3.5 py-2.5 rounded-lg border text-[12px] transition-all ${
-                  spec === opt.en
-                    ? "bg-amber-400/[0.06] border-amber-400/20 text-white/70"
-                    : "bg-white/[0.02] border-white/[0.05] text-white/45 hover:border-white/[0.1]"
-                }`}
-              >
-                {lang === "kr" ? opt.kr : opt.en}
-              </button>
+                  spec === opt.en ? "bg-amber-400/[0.06] border-amber-400/20 text-white/70" : "bg-white/[0.02] border-white/[0.05] text-white/45 hover:border-white/[0.1]"
+                }`}>{lang === "kr" ? opt.kr : opt.en}</button>
             ))}
             {spec === "Other" && (
-              <Input
-                value={customText}
-                onChange={(e) => setCustomText(e.target.value)}
-                placeholder={lang === "kr" ? "구체적으로 적어주세요" : "Describe your specific challenge"}
-                className="mt-2 h-9 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25"
-                autoFocus
-              />
+              <Input value={customText} onChange={(e) => setCustomText(e.target.value)}
+                placeholder={lang === "kr" ? "간단히 적어주세요" : "Describe your specific challenge"}
+                className="mt-2 h-9 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25" autoFocus />
             )}
             {spec && spec !== "Other" && (
               <div className="mt-3 space-y-1.5">
-                <p className="text-[11px] text-white/50 font-medium">
-                  {lang === "kr" ? "자세히 알려주세요 *" : "Tell us more *"}
-                </p>
-                <p className="text-[10px] text-white/30 leading-relaxed">
-                  {lang === "kr"
-                    ? "구체적으로 적을수록 같은 고민을 해결한 멤버를 정확히 매칭할 수 있습니다."
-                    : "The more specific you are, the better we can match you with someone who's solved this exact problem."}
-                </p>
-                <Textarea
-                  value={customText}
-                  onChange={(e) => setCustomText(e.target.value)}
-                  placeholder={lang === "kr" ? "예: 시리즈 B에서 엔지니어링 팀을 20명에서 50명으로 스케일하면서 문화를 유지하는 게 어렵습니다" : "e.g. Struggling to maintain eng culture while scaling from 20 to 50 at Series B"}
-                  className="min-h-14 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25 leading-relaxed"
-                  maxLength={300}
-                />
+                <p className="text-[11px] text-white/50 font-medium">{lang === "kr" ? "구체적으로 어떤 부분이 궁금한가요?" : "What would you want to discuss?"}</p>
+                <Textarea value={customText} onChange={(e) => setCustomText(e.target.value)}
+                  placeholder={lang === "kr" ? "예: 팀 20→50명 키우면서 문화 유지하는 법이 궁금해요" : "e.g. I'd love to talk to someone who scaled eng from 20 to 50 at Series B while keeping the culture intact"}
+                  className="min-h-14 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25 leading-relaxed" maxLength={300} />
               </div>
             )}
           </div>
@@ -1436,106 +1231,113 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
       </div>
     );
 
-    // Resolve actual spec (if "Other", use custom text)
     const resolvedSpec1 = challengeSpec1 === "Other" ? customChallengeText1 : challengeSpec1;
 
     return (
       <div className="space-y-6">
         <ProgressBar />
+
         <div>
           <h3 className="text-sm font-medium text-white/80 mb-1">
-            {lang === "kr" ? "요즘 어떤 고민이 있으세요?" : "Where could you use a hand right now?"}
+            {lang === "kr" ? "요즘 어떤 고민을 하고 계세요?" : "If you could sit down with someone who's been there — what would you talk about?"}
           </h3>
-          <p className="text-[11px] text-white/35 mb-0.5">
-            {lang === "kr" ? "최대 2개 — 이 고민을 해결한 멤버와 매칭됩니다" : "Up to 2 — we'll match you with members who've solved this"}
-          </p>
-          <p className="text-[10px] text-white/25 mb-2">
-            {lang === "kr" ? "매칭된 멤버에게만 공개됩니다" : "Only visible to matched peers"}
+          <p className="text-[11px] text-white/30 mb-4">
+            {lang === "kr" ? "비슷한 경험을 가진 멤버를 연결해 드릴게요" : "We'll use this to connect you with the right peer"}
           </p>
 
-          {/* Why this matters */}
-          <div className="rounded-lg border border-amber-400/10 bg-amber-400/[0.02] px-3.5 py-2.5 mb-5">
-            <p className="text-[11px] text-amber-300/50 leading-relaxed">
-              {lang === "kr"
-                ? "💡 솔직하고 구체적일수록 좋습니다. 이 정보를 바탕으로 정확히 도움을 줄 수 있는 멤버를 매칭해 드립니다. 다른 멤버에게는 절대 공개되지 않습니다."
-                : "💡 The more honest and specific you are, the better we can match you with someone who's solved this exact problem. This stays completely private — only matched members see it."}
-            </p>
-          </div>
-
-          {/* Challenge 1 */}
           <div className="mb-6">
             {renderChallengeBlock(1, challengeType1, setChallengeType1, challengeSpec1, setChallengeSpec1, customChallengeText1, setCustomChallengeText1)}
           </div>
-
-          {/* Challenge 2 (optional) */}
           {resolvedSpec1 && renderChallengeBlock(2, challengeType2, setChallengeType2, challengeSpec2, setChallengeSpec2, customChallengeText2, setCustomChallengeText2)}
 
-          {/* Anyone specific? — foldable optional section */}
+          {/* Dream connection — optional */}
           {resolvedSpec1 && (
             <>
               <div className="h-[1px] bg-white/[0.04] my-6" />
-              <button
-                type="button"
-                onClick={() => setShowDreamConnect(!showDreamConnect)}
-                className="flex items-center justify-between w-full text-left group"
-              >
+              <button type="button" onClick={() => setShowDreamConnect(!showDreamConnect)} className="flex items-center justify-between w-full text-left group">
                 <div>
                   <h4 className="text-sm font-medium text-white/70 group-hover:text-white/80 transition-colors">
-                    {lang === "kr" ? "특별히 만나고 싶은 Elev8 멤버가 있나요?" : "Anyone specific Elev8 member you'd like to meet?"}
+                    {lang === "kr" ? "만나보고 싶은 분이 있으세요?" : "Anyone specific you'd like to meet?"}
                   </h4>
-                  <p className="text-[10px] text-white/30 mt-0.5">
-                    {lang === "kr" ? "선택사항 — 이름, 회사, 만나고 싶은 이유 등" : "Optional — name, company, why you'd like to meet, etc."}
-                  </p>
+                  <p className="text-[10px] text-white/30 mt-0.5">{lang === "kr" ? "안 적으셔도 돼요" : "Optional"}</p>
                 </div>
                 {showDreamConnect ? <ChevronUp className="size-4 text-white/30" /> : <ChevronDown className="size-4 text-white/30" />}
               </button>
               {showDreamConnect && (
-                <div className="mt-3">
-                  <Textarea
-                    value={dreamConnection}
-                    onChange={(e) => { setDreamConnection(e.target.value); setDreamRefined(""); setDreamRefinedKr(""); }}
-                    placeholder={lang === "kr" ? "예: 100명+ 크로스펑셔널 엔지니어링 팀을 스케일한 경험이 있는 리더" : "e.g. Someone who's scaled cross-functional engineering teams past 100"}
-                    className="min-h-14 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25 leading-relaxed"
-                    spellCheck
-                    maxLength={280}
-                  />
-                </div>
+                <Textarea value={dreamConnection} onChange={(e) => { setDreamConnection(e.target.value); setDreamRefined(""); setDreamRefinedKr(""); }}
+                  placeholder={lang === "kr" ? "예: 100명 넘는 팀을 이끌어 본 분" : "e.g. Someone who's scaled cross-functional teams past 100"}
+                  className="mt-3 min-h-14 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25 leading-relaxed" maxLength={280} />
               )}
             </>
           )}
         </div>
         <NavButtons
           onNext={() => { setStep("generate"); generateWithAI(); }}
-          canNext={!!resolvedSpec1 && !!customChallengeText1.trim()}
-          nextLabel={lang === "kr" ? "내 프로필 만들기" : "Build My Profile"}
-          onBack={() => setStep("geo")}
-        />
+          canNext={!!resolvedSpec1}
+          nextLabel={lang === "kr" ? "프로필 완성하기" : "Build My Profile"}
+          onBack={() => setStep("context")} />
       </div>
     );
   }
 
   // ════════════════════════════════════════════════════════
-  // STEP: GENERATE — AI is working
+  // THE UNVEIL — Staggered card reveal animation
   // ════════════════════════════════════════════════════════
   if (step === "generate") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 space-y-4 -mt-20">
-        <RefreshCw className="size-8 text-amber-400/40 animate-spin" />
-        <p className="text-sm text-white/50">
-          {lang === "kr" ? "프로필을 만들고 있습니다..." : "Building your profile..."}
-        </p>
-        <p className="text-[11px] text-white/25">
-          {domainName} · {actionNames.join(", ")} · {spScales.map(s => dimLabel(SCALES, s)).join(", ")}
-        </p>
-        <p className="text-[10px] text-white/20 mt-4">
-          {lang === "kr" ? "다음 단계에서 확인하고 수정할 수 있습니다" : "You'll be able to review and edit in the next step"}
-        </p>
+      <div className="py-8 -mt-12 space-y-6">
+        {/* Skeleton → Card animation */}
+        {unveilPhase === "skeleton" ? (
+          <div className="relative rounded-2xl border border-white/[0.06] bg-[#111118] p-7 space-y-4">
+            <div className="h-3 w-16 rounded bg-white/[0.04] animate-pulse" />
+            <div className="flex items-center gap-3">
+              <div className="size-12 rounded-full bg-white/[0.04] animate-pulse" />
+              <div className="space-y-2 flex-1">
+                <div className="h-4 w-32 rounded bg-white/[0.04] animate-pulse" />
+                <div className="h-3 w-24 rounded bg-white/[0.03] animate-pulse" />
+              </div>
+            </div>
+            <div className="h-[1px] bg-white/[0.04]" />
+            <div className="space-y-2">
+              <div className="h-3 w-20 rounded bg-white/[0.03] animate-pulse" />
+              <div className="h-6 w-full rounded bg-white/[0.04] animate-pulse" />
+              <div className="h-6 w-3/4 rounded bg-white/[0.04] animate-pulse" />
+            </div>
+            <p className="text-center text-[11px] text-white/30 pt-4">
+              {lang === "kr" ? `${member.firstName}님만의 프로필을 만들고 있습니다...` : "Crafting your Superpower profile..."}
+            </p>
+          </div>
+        ) : (
+          <div className="transition-all duration-700 opacity-100 translate-y-0">
+            <CardPreview compact />
+          </div>
+        )}
+
+        {/* Titles earned — staggered reveal */}
+        {(unveilPhase === "titles" || unveilPhase === "complete") && earnedTitles.length > 0 && (
+          <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <p className="text-[10px] text-white/30 uppercase tracking-wider">
+              {lang === "kr" ? "획득한 타이틀" : "Titles Earned"}
+            </p>
+            <div className="flex justify-center gap-3">
+              {earnedTitles.map((t, i) => {
+                const title = ELEV8_TITLES[t];
+                return title ? (
+                  <span key={t} className="text-[13px] text-amber-300/70 font-medium animate-in fade-in zoom-in-50 duration-300"
+                    style={{ animationDelay: `${i * 200}ms` }}>
+                    {title.icon} {title.en}
+                  </span>
+                ) : null;
+              })}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   // ════════════════════════════════════════════════════════
-  // STEP: REFINE — Review AI-enhanced descriptions
+  // REFINE — Review & edit AI-generated profile
   // ════════════════════════════════════════════════════════
   if (step === "refine") {
     const profiles = lang === "kr" ? spProfilesKr : spProfiles;
@@ -1548,7 +1350,6 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
       updated[idx] = { ...updated[idx], [field]: value };
       setProfiles(updated);
     };
-
     const updateBullet = (profileIdx: number, bulletIdx: number, value: string) => {
       const updated = [...profiles];
       const newBullets = [...updated[profileIdx].bullets];
@@ -1559,15 +1360,14 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
 
     return (
       <div className="space-y-10">
-        {/* Clear instruction header */}
         <div className="rounded-xl border border-amber-400/15 bg-amber-400/[0.03] px-5 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-white/90">
-                {lang === "kr" ? "프로필을 확인하고 수정하세요" : "Review & edit your profile"}
+                {lang === "kr" ? "프로필 확인 후 수정해 보세요" : "Review & edit your profile"}
               </h3>
               <p className="text-[12px] text-white/45 mt-1">
-                {lang === "kr" ? "아래 내용을 확인하고, 텍스트를 탭하면 수정할 수 있습니다. 완료되면 저장하세요." : "Check the details below. Tap any text to edit. Save when you're happy."}
+                {lang === "kr" ? "텍스트를 탭하면 바로 수정할 수 있어요" : "Tap any text to edit. Save when you're happy."}
               </p>
             </div>
             <LanguageToggle />
@@ -1589,28 +1389,17 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
                   </span>
                 </div>
               )}
-              {/* Editable title */}
               {editingIdx?.type === "sp" && editingIdx.idx === i * 10 ? (
-                <Textarea
-                  value={editVal}
-                  onChange={(e) => setEditVal(e.target.value)}
+                <Textarea value={editVal} onChange={(e) => setEditVal(e.target.value)}
                   onBlur={() => { updateProfile(i, "title", editVal); setEditingIdx(null); }}
-                  className="text-[15px] font-bold bg-transparent border-white/[0.08] text-white/90 min-h-12 resize-none"
-                  autoFocus
-                />
+                  className="text-[15px] font-bold bg-transparent border-white/[0.08] text-white/90 min-h-12 resize-none" autoFocus />
               ) : (
-                <button
-                  onClick={() => { setEditingIdx({ type: "sp", idx: i * 10 }); setEditVal(profile.title); }}
-                  className="text-left w-full group"
-                >
+                <button onClick={() => { setEditingIdx({ type: "sp", idx: i * 10 }); setEditVal(profile.title); }} className="text-left w-full group">
                   <h4 className="text-[15px] font-bold text-white/90 group-hover:text-white transition-colors">
-                    {profile.title}
-                    <Pencil className="size-3 inline ml-2 opacity-0 group-hover:opacity-40" />
+                    {profile.title}<Pencil className="size-3 inline ml-2 opacity-0 group-hover:opacity-40" />
                   </h4>
                 </button>
               )}
-
-              {/* Editable bullets */}
               <div className="space-y-1.5">
                 <p className="text-[9px] text-amber-400/40 font-medium uppercase tracking-wide">
                   {lang === "kr" ? "이런 도움을 드릴 수 있습니다" : "I can help you with"}
@@ -1619,39 +1408,25 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
                   <div key={j} className="flex items-start gap-2">
                     <span className="text-amber-400/30 text-[12px] mt-[1px] shrink-0">→</span>
                     {editingIdx?.type === "sp" && editingIdx.idx === i * 10 + j + 1 ? (
-                      <Textarea
-                        value={editVal}
-                        onChange={(e) => setEditVal(e.target.value)}
+                      <Textarea value={editVal} onChange={(e) => setEditVal(e.target.value)}
                         onBlur={() => { updateBullet(i, j, editVal); setEditingIdx(null); }}
-                        className="flex-1 text-[12px] bg-transparent border-white/[0.08] text-white/70 min-h-10 resize-none"
-                        autoFocus
-                      />
+                        className="flex-1 text-[12px] bg-transparent border-white/[0.08] text-white/70 min-h-10 resize-none" autoFocus />
                     ) : (
-                      <button
-                        onClick={() => { setEditingIdx({ type: "sp", idx: i * 10 + j + 1 }); setEditVal(b); }}
-                        className="flex-1 text-left text-[12px] text-white/55 hover:text-white/70 transition-colors group"
-                      >
+                      <button onClick={() => { setEditingIdx({ type: "sp", idx: i * 10 + j + 1 }); setEditVal(b); }}
+                        className="flex-1 text-left text-[12px] text-white/55 hover:text-white/70 transition-colors group">
                         {b}<Pencil className="size-2.5 inline ml-1 opacity-0 group-hover:opacity-30" />
                       </button>
                     )}
                   </div>
                 ))}
               </div>
-
-              {/* Editable proof */}
               {editingIdx?.type === "sp" && editingIdx.idx === i * 10 + 9 ? (
-                <Textarea
-                  value={editVal}
-                  onChange={(e) => setEditVal(e.target.value)}
+                <Textarea value={editVal} onChange={(e) => setEditVal(e.target.value)}
                   onBlur={() => { updateProfile(i, "proof", editVal); setEditingIdx(null); }}
-                  className="text-[11px] bg-white/[0.02] border-white/[0.08] text-white/50 min-h-12"
-                  autoFocus
-                />
+                  className="text-[11px] bg-white/[0.02] border-white/[0.08] text-white/50 min-h-12" autoFocus />
               ) : (
-                <button
-                  onClick={() => { setEditingIdx({ type: "sp", idx: i * 10 + 9 }); setEditVal(profile.proof); }}
-                  className="w-full text-left px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.04] group"
-                >
+                <button onClick={() => { setEditingIdx({ type: "sp", idx: i * 10 + 9 }); setEditVal(profile.proof); }}
+                  className="w-full text-left px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.04] group">
                   <p className="text-[11px] text-white/35 italic leading-relaxed">
                     {profile.proof || (lang === "kr" ? "증명 라인을 추가하세요" : "Add your proof line")}
                     <Pencil className="size-2.5 inline ml-1 opacity-0 group-hover:opacity-30" />
@@ -1664,28 +1439,16 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
 
         {/* Challenge descriptions */}
         <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <p className="text-[10px] tracking-[0.15em] text-amber-400/55 uppercase font-semibold">
-              {lang === "kr" ? "함께 풀고 싶은 고민" : "Seeking Perspectives"}
-            </p>
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">
-              <Lock className="size-2 text-white/20" />
-              <span className="text-[7px] text-white/20 uppercase">{lang === "kr" ? "비공개" : "Private"}</span>
-            </span>
-          </div>
+          <p className="text-[10px] tracking-[0.15em] text-amber-400/55 uppercase font-semibold">
+            {lang === "kr" ? "현재 풀고 있는 과제" : "Currently Navigating"}
+          </p>
           <div className="space-y-2">
             {chDetails.map((c, i) => (
               <div key={i}>
                 {editingIdx?.type === "ch" && editingIdx.idx === i ? (
-                  <div className="space-y-1.5">
-                    <Textarea
-                      value={editVal}
-                      onChange={(e) => setEditVal(e.target.value)}
-                      onBlur={() => { const updated = [...chDetails]; updated[i] = editVal; setChDetails(updated); setEditingIdx(null); }}
-                      className="text-[13px] bg-white/[0.02] border-white/[0.07] text-white/65 min-h-16"
-                      autoFocus
-                    />
-                  </div>
+                  <Textarea value={editVal} onChange={(e) => setEditVal(e.target.value)}
+                    onBlur={() => { const updated = [...chDetails]; updated[i] = editVal; setChDetails(updated); setEditingIdx(null); }}
+                    className="text-[13px] bg-white/[0.02] border-white/[0.07] text-white/65 min-h-16" autoFocus />
                 ) : (
                   <div className="flex items-start gap-2 px-3.5 py-3 rounded-lg bg-white/[0.03] border border-white/[0.07] group">
                     <span className="text-[13px] text-white/65 flex-1 leading-relaxed">{c}</span>
@@ -1707,18 +1470,14 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
               {lang === "kr" ? "연결하고 싶은 분" : "Looking to Connect"}
             </p>
             <div className="px-3.5 py-3 rounded-lg bg-white/[0.03] border border-white/[0.07]">
-              <p className="text-[13px] text-white/60 leading-relaxed">
-                {lang === "kr" ? (dreamRefinedKr || dreamRefined) : dreamRefined}
-              </p>
+              <p className="text-[13px] text-white/60 leading-relaxed">{lang === "kr" ? (dreamRefinedKr || dreamRefined) : dreamRefined}</p>
             </div>
           </section>
         )}
 
         {/* Card Preview */}
         <section className="space-y-3">
-          <p className="text-[10px] tracking-[0.15em] text-white/30 uppercase font-medium">
-            {lang === "kr" ? "카드 미리보기" : "Card Preview"}
-          </p>
+          <p className="text-[10px] tracking-[0.15em] text-white/30 uppercase font-medium">{lang === "kr" ? "카드 미리보기" : "Card Preview"}</p>
           <CardPreview />
         </section>
 
@@ -1728,17 +1487,14 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
             className="w-full h-11 bg-white text-black hover:bg-white/90 rounded-xl text-sm font-medium">
             {saving ? (lang === "kr" ? "저장 중..." : "Saving...") : (lang === "kr" ? "저장하고 프로필 보기" : "Save & View My Profile")}
           </Button>
-          <Button variant="ghost" onClick={() => setStep("challenges")}
-            className="w-full h-9 text-white/30 hover:text-white/50 text-sm">
-            <ArrowLeft className="size-4 mr-1" /> {lang === "kr" ? "이전으로 돌아가기" : "Go back"}
+          <Button variant="ghost" onClick={() => setStep("challenges")} className="w-full h-9 text-white/30 hover:text-white/50 text-sm">
+            <ArrowLeft className="size-4 mr-1" /> {lang === "kr" ? "이전으로" : "Go back"}
           </Button>
           <div className="flex gap-3 justify-center">
-            <Button variant="ghost" onClick={() => setStep("domain")}
-              className="h-8 text-white/20 hover:text-white/40 text-[11px]">
+            <Button variant="ghost" onClick={() => setStep("about")} className="h-8 text-white/20 hover:text-white/40 text-[11px]">
               {lang === "kr" ? "처음부터 다시" : "Start over"}
             </Button>
-            <Button variant="ghost" onClick={generateWithAI} disabled={generating}
-              className="h-8 text-white/20 hover:text-white/40 text-[11px]">
+            <Button variant="ghost" onClick={generateWithAI} disabled={generating} className="h-8 text-white/20 hover:text-white/40 text-[11px]">
               <RefreshCw className={`size-3 mr-1 ${generating ? "animate-spin" : ""}`} />
               {lang === "kr" ? "다시 생성" : "Regenerate"}
             </Button>
@@ -1749,22 +1505,40 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
   }
 
   // ════════════════════════════════════════════════════════
-  // STEP: DONE — Card saved
+  // DONE — Card saved + Post-completion transition
   // ════════════════════════════════════════════════════════
   return (
     <div className="space-y-10">
-      <CardPreview interactive />
+      <CardPreview interactive mode="profile" />
 
+      {/* Post-completion: "Your card is live" */}
       <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-2 text-white/55">
-          <Check className="size-4" />
-          <span className="text-sm">{lang === "kr" ? "카드 저장 완료" : "Card saved"}</span>
+        <div className="rounded-xl border border-amber-400/10 bg-amber-400/[0.02] px-5 py-4 space-y-2">
+          {totalMembers > 0 && (
+            <p className="text-[13px] text-white/70 font-medium">
+              {lang === "kr"
+                ? `님의 카드가 ${totalMembers}명의 멤버에게 공개되었습니다`
+                : `Your card is now visible to ${totalMembers} members`}
+            </p>
+          )}
+          {domainPeerCount > 0 && (
+            <p className="text-[11px] text-white/40">
+              {lang === "kr"
+                ? `${domainPeerCount}명의 멤버가 같은 분야에서 활동 중입니다`
+                : `${domainPeerCount} members share your domain expertise`}
+            </p>
+          )}
+          {totalMembers === 0 && (
+            <p className="text-[13px] text-white/70 font-medium">
+              {lang === "kr" ? "카드가 저장되었습니다" : "Your card is saved"}
+            </p>
+          )}
         </div>
+
         <p className="text-[11px] text-white/30">
           {lang === "kr" ? "키워드를 탭하면 전체 설명을 볼 수 있습니다" : "Tap any keyword to see the full description"}
         </p>
-        <Button variant="ghost" onClick={() => setStep("domain")}
-          className="h-9 text-white/35 hover:text-white/55 text-[11px]">
+        <Button variant="ghost" onClick={() => setStep("about")} className="h-9 text-white/35 hover:text-white/55 text-[11px]">
           {lang === "kr" ? "카드 수정" : "Edit my card"}
         </Button>
       </div>
@@ -1778,11 +1552,7 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
               {lang === "kr" ? "추천 연결" : "Suggested connections"}
             </h3>
           </div>
-          <button
-            onClick={loadMatches}
-            disabled={loadingMatches}
-            className="text-[10px] text-white/35 hover:text-white/55 transition-colors"
-          >
+          <button onClick={loadMatches} disabled={loadingMatches} className="text-[10px] text-white/35 hover:text-white/55 transition-colors">
             {loadingMatches ? <RefreshCw className="size-3 animate-spin" /> : (lang === "kr" ? "새로고침" : "Refresh")}
           </button>
         </div>
@@ -1811,16 +1581,11 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
             ))}
           </div>
         ) : (
-          <button
-            onClick={loadMatches}
-            disabled={loadingMatches}
-            className="w-full rounded-xl border border-dashed border-white/[0.08] py-6 text-center text-[12px] text-white/35 hover:text-white/50 hover:border-white/[0.15] transition-all"
-          >
+          <button onClick={loadMatches} disabled={loadingMatches}
+            className="w-full rounded-xl border border-dashed border-white/[0.08] py-6 text-center text-[12px] text-white/35 hover:text-white/50 hover:border-white/[0.15] transition-all">
             {loadingMatches ? (
               <span className="flex items-center justify-center gap-2"><RefreshCw className="size-3 animate-spin" /> {lang === "kr" ? "최적의 매칭을 찾는 중..." : "Finding your best matches..."}</span>
-            ) : (
-              lang === "kr" ? "연결 추천 보기" : "See who you should connect with"
-            )}
+            ) : (lang === "kr" ? "연결 추천 보기" : "See who you should connect with")}
           </button>
         )}
       </div>

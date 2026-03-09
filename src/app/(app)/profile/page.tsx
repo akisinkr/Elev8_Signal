@@ -13,9 +13,8 @@ export default async function ProfilePage() {
         <h1 className="text-xl font-semibold tracking-tight text-white/90">
           {member.firstName}, let&apos;s build your profile
         </h1>
-        <p className="text-sm text-white/45 mt-2 leading-relaxed">
-          Share your superpower, earn Elev8 Titles, and connect with
-          the right peers who need exactly what you bring.
+        <p className="text-[12px] text-white/35 mt-2">
+          Share your superpower, earn Elev8 Titles, connect with peers.
         </p>
       </div>
       <MemberCardForm
@@ -62,6 +61,11 @@ export default async function ProfilePage() {
           challengeSpec2: member.challengeSpec2,
           // Elev8 Titles
           elev8Titles: member.elev8Titles,
+          // Living credential fields
+          superpowerUpdatedAt: member.superpowerUpdatedAt?.toISOString() ?? null,
+          peerRecognitionCount: member.peerRecognitionCount,
+          lastActiveAt: member.lastActiveAt?.toISOString() ?? null,
+          superpowerHistory: member.superpowerHistory,
         }}
       />
     </div>
