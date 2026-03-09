@@ -9,7 +9,15 @@ export default function SignInPage() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 50% 40% at 50% 35%, rgba(200,168,78,0.03) 0%, transparent 70%)",
+            "radial-gradient(ellipse 60% 50% at 50% 35%, rgba(200,168,78,0.04) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* Grain texture overlay */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.015]"
+        style={{
+          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
         }}
       />
 
@@ -29,10 +37,10 @@ export default function SignInPage() {
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 pb-12">
         <div className="text-center mb-8 space-y-2">
           <h1 className="text-lg font-semibold tracking-tight" style={{ color: "#E8E4DD" }}>
-            Welcome back
+            This week&apos;s Signal is live
           </h1>
           <p className="text-[13px]" style={{ color: "#7A7670" }}>
-            Sign in with your registered email
+            Sign in to vote and see how your peers answered
           </p>
         </div>
 
@@ -65,12 +73,16 @@ export default function SignInPage() {
               dividerText: "text-[#7A7670]",
               footer: "hidden",
               footerAction: "hidden",
+              footerActionText: "hidden",
+              footerActionLink__signUp: "hidden",
+              signUp: "hidden",
+              otherMethodsBlockButton: "hidden",
             },
           }}
         />
 
-        <p className="mt-6 text-[11px]" style={{ color: "#7A7670" }}>
-          Invite-only community &middot; Use your registered email to sign in
+        <p className="mt-6 text-[11px]" style={{ color: "#4A4640" }}>
+          Invite-only
         </p>
       </main>
     </div>
