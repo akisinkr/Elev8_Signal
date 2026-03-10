@@ -3,9 +3,9 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { CheckCircle2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { SignalLanguageToggle } from "@/components/signal/signal-language-toggle";
+import { PostVoteHub } from "@/components/signal/post-vote-hub";
 import Link from "next/link";
 import type { Lang } from "@/lib/signal-translations";
 
@@ -255,43 +255,22 @@ export function VoteFormWrapper({
     );
   }
 
-  // --- THANKS SCREEN ---
+  // --- POST-VOTE HUB (replaces simple thanks screen) ---
   if (step === "thanks") {
+    // Find the selected option's label for display
+    const selectedOpt = options.find((o) => o.key === selected);
+    const selectedLabel = selectedOpt
+      ? (lang === "kr" && selectedOpt.labelKr ? selectedOpt.labelKr : selectedOpt.label)
+      : "";
+
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <div className="relative mb-6">
-          <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
-          <CheckCircle2 className="relative size-16 text-primary" />
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight animate-in fade-in slide-in-from-bottom-2 duration-500">
-          {txt.youreIn}
-        </h1>
-        <p
-          className="mt-3 text-muted-foreground text-sm animate-in fade-in slide-in-from-bottom-2 duration-500"
-          style={{ animationDelay: "200ms", animationFillMode: "both" }}
-        >
-          {txt.perspectiveRecorded}
-        </p>
-        <p
-          className="mt-1 text-muted-foreground text-xs animate-in fade-in slide-in-from-bottom-2 duration-500"
-          style={{ animationDelay: "400ms", animationFillMode: "both" }}
-        >
-          {txt.resultsShared}
-        </p>
-        <Link
-          href="/"
-          className={cn(
-            "mt-8 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition-all",
-            "bg-primary text-primary-foreground",
-            "hover:bg-primary/90 active:scale-[0.98]",
-            "animate-in fade-in slide-in-from-bottom-2 duration-500"
-          )}
-          style={{ animationDelay: "600ms", animationFillMode: "both" }}
-        >
-          {lang === "kr" ? "홈으로 돌아가기" : "Back to Home"}
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
-        </Link>
-      </div>
+      <PostVoteHub
+        signalNumber={signalNumber}
+        email={email}
+        selectedOption={selected || ""}
+        selectedOptionLabel={selectedLabel}
+        lang={lang}
+      />
     );
   }
 
