@@ -125,11 +125,7 @@ export function VoteFormWrapper({
       }
 
       if (data.alreadyVoted) {
-        setEmailError(
-          lang === "kr"
-            ? "이미 의견을 남기셨습니다. 결과를 기대해 주세요."
-            : "You've already shared your perspective. Results coming soon."
-        );
+        setStep("thanks");
         return;
       }
 

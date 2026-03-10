@@ -16,6 +16,8 @@ interface PostVoteHubProps {
 interface PostVoteData {
   voteCount: number;
   deadline: string | null;
+  yourPick: string | null;
+  yourPickLabel: string | null;
 }
 
 export function PostVoteHub({
@@ -126,24 +128,26 @@ export function PostVoteHub({
         </div>
 
         {/* ── Section 2: Your Pick ── */}
-        <div
-          className="rounded-2xl border border-border/60 bg-card p-5"
-          style={{ animation: "fadeInUp 0.6s ease-out 0.15s both" }}
-        >
-          <div className="flex items-start gap-4">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
-              {selectedOption}
-            </span>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                {txt.yourPick}
-              </p>
-              <p className="text-sm font-medium text-foreground leading-relaxed">
-                {selectedOptionLabel}
-              </p>
+        {(selectedOption || data?.yourPick) && (
+          <div
+            className="rounded-2xl border border-border/60 bg-card p-5"
+            style={{ animation: "fadeInUp 0.6s ease-out 0.15s both" }}
+          >
+            <div className="flex items-start gap-4">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
+                {selectedOption || data?.yourPick}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                  {txt.yourPick}
+                </p>
+                <p className="text-sm font-medium text-foreground leading-relaxed">
+                  {selectedOptionLabel || data?.yourPickLabel}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* ── Section 3: Live Pulse + Countdown ── */}
         <div
