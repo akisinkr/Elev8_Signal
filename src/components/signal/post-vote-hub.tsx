@@ -91,6 +91,7 @@ export function PostVoteHub({
       buildCard: "Complete Your Superpower Card",
       buildCardSub: "So other leaders can find you when results drop",
       explorePast: "Explore Past Signals",
+      editProfile: "Edit my profile",
       backHome: "Back to Elev8",
     },
     kr: {
@@ -103,6 +104,7 @@ export function PostVoteHub({
       buildCard: "Superpower 카드 완성하기",
       buildCardSub: "결과 공개 시 다른 리더들이 님을 찾을 수 있게 됩니다",
       explorePast: "지난 Signal 보기",
+      editProfile: "내 프로필 수정하기",
       backHome: "Elev8으로 돌아가기",
     },
   };
@@ -215,17 +217,25 @@ export function PostVoteHub({
               </Link>
             </>
           ) : (
-            <Link
-              href={archiveUrl}
-              className={cn(
-                "flex items-center justify-center gap-2 rounded-2xl py-3.5 px-5",
-                "bg-card border border-border/60 text-sm font-medium text-foreground",
-                "hover:bg-muted/50 active:scale-[0.98] transition-all"
-              )}
-            >
-              {txt.explorePast}
-              <ArrowRight className="size-4" />
-            </Link>
+            <>
+              <Link
+                href={archiveUrl}
+                className={cn(
+                  "flex items-center justify-center gap-2 rounded-2xl py-3.5 px-5",
+                  "bg-card border border-border/60 text-sm font-medium text-foreground",
+                  "hover:bg-muted/50 active:scale-[0.98] transition-all"
+                )}
+              >
+                {txt.explorePast}
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                href={profileUrl}
+                className="text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+              >
+                {txt.editProfile} →
+              </Link>
+            </>
           )}
         </div>
 
