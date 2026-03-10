@@ -473,14 +473,14 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
   const loadMatches = useCallback(async () => {
     setLoadingMatches(true);
     try {
-      const res = await fetch("/api/members/me/card/match-suggestions");
+      const res = await fetch(`/api/members/me/card/match-suggestions?lang=${lang}`);
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
       setMatchSuggestions(data.matches || []);
     } catch { /* silently fail */ } finally {
       setLoadingMatches(false);
     }
-  }, []);
+  }, [lang]);
 
   // ── Save ──
   const handleSave = async () => {

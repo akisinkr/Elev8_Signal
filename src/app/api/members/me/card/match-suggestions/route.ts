@@ -7,9 +7,11 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const member = await requireMember();
+    const { searchParams } = new URL(req.url);
+    const lang = searchParams.get("lang") === "kr" ? "kr" : "en";
 
     // Fetch current member's card data
     const me = await prisma.member.findUnique({
@@ -60,21 +62,21 @@ export async function GET() {
       return NextResponse.json({ matches: [] });
     }
 
-    // Build AI-safe candidate list (no PII — only IDs, superpowers, challenges, job titles)
+    // Build AI-safe candidate list — filtered to the requested language
     const candidatesForAI = candidates.map((c) => ({
       id: c.id,
       jobTitle: c.jobTitle || "Unknown",
-      superpowers: [...c.superpowers, ...c.superpowersKr].filter(Boolean),
-      superpowerDetails: [...c.superpowerDetails, ...c.superpowerDetailsKr].filter(Boolean),
-      challenges: [...c.challenges, ...c.challengesKr].filter(Boolean),
-      challengeDetails: [...c.challengeDetails, ...c.challengeDetailsKr].filter(Boolean),
+      superpowers: (lang === "kr" ? c.superpowersKr : c.superpowers).filter(Boolean),
+      superpowerDetails: (lang === "kr" ? c.superpowerDetailsKr : c.superpowerDetails).filter(Boolean),
+      challenges: (lang === "kr" ? c.challengesKr : c.challenges).filter(Boolean),
+      challengeDetails: (lang === "kr" ? c.challengeDetailsKr : c.challengeDetails).filter(Boolean),
     }));
 
     const myProfile = {
-      superpowers: [...me.superpowers, ...me.superpowersKr].filter(Boolean),
-      superpowerDetails: [...me.superpowerDetails, ...me.superpowerDetailsKr].filter(Boolean),
-      challenges: [...me.challenges, ...me.challengesKr].filter(Boolean),
-      challengeDetails: [...me.challengeDetails, ...me.challengeDetailsKr].filter(Boolean),
+      superpowers: (lang === "kr" ? me.superpowersKr : me.superpowers).filter(Boolean),
+      superpowerDetails: (lang === "kr" ? me.superpowerDetailsKr : me.superpowerDetails).filter(Boolean),
+      challenges: (lang === "kr" ? me.challengesKr : me.challenges).filter(Boolean),
+      challengeDetails: (lang === "kr" ? me.challengeDetailsKr : me.challengeDetails).filter(Boolean),
     };
 
     const message = await anthropic.messages.create({
@@ -91,11 +93,13 @@ Matching rules:
 - Prefer matches where both directions align (mutual benefit)
 - Quality over keyword overlap — understand the MEANING behind each superpower and challenge
 
+LANGUAGE: Return ALL text fields (matchReason, matchedSuperpower, matchedChallenge) in ${lang === "kr" ? "Korean (한국어)" : "English"}.
+
 CRITICAL: Return ONLY valid JSON — an array of exactly 3 objects (or fewer if less than 3 candidates):
 [
   {
     "memberId": "the candidate's id",
-    "matchReason": "1-2 sentence explanation of WHY they match (e.g. 'Their expertise in scaling engineering teams directly addresses your challenge in senior hiring and team growth')",
+    "matchReason": "1-2 sentence explanation of WHY they match",
     "matchedSuperpower": "the specific superpower that creates the match (theirs or yours)",
     "matchedChallenge": "the specific challenge that the superpower addresses (yours or theirs)"
   }
