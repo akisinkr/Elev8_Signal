@@ -35,6 +35,7 @@ async function buildResultsResponse(num: number, memberId: string) {
     memberAnswer: results.memberAnswer,
     topAnswer: results.topAnswer,
     topAnswerLabel: results.topAnswerLabel,
+    topAnswerLabelKr: results.topAnswerLabelKr,
     anonymousQuotes: results.anonymousQuotes,
     headlineInsight: results.question.headlineInsight,
   });

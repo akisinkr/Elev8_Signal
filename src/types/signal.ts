@@ -15,6 +15,7 @@ export type SignalQuestionWithVotes = SignalQuestion & {
 export type SignalResultDistribution = {
   answer: SignalAnswer;
   label: string;
+  labelKr: string | null;
   count: number;
   percentage: number;
 };
@@ -25,6 +26,7 @@ export type SignalResults = {
   distribution: SignalResultDistribution[];
   topAnswer: SignalAnswer;
   topAnswerLabel: string;
+  topAnswerLabelKr: string | null;
   memberAnswer: SignalAnswer | null;
   anonymousQuotes: string[];
 };

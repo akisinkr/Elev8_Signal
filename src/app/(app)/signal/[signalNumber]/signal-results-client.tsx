@@ -30,6 +30,7 @@ type ResultsData = {
   distribution: {
     answer: string;
     label: string;
+    labelKr: string | null;
     count: number;
     percentage: number;
   }[];
@@ -37,6 +38,7 @@ type ResultsData = {
   memberAnswer: string | null;
   topAnswer: string;
   topAnswerLabel: string;
+  topAnswerLabelKr: string | null;
   anonymousQuotes: string[];
   headlineInsight: string | null;
 };
@@ -424,15 +426,16 @@ export function SignalResultsClient({
   const memberAnswerOption = results.memberAnswer
     ? {
         key: results.memberAnswer,
-        label:
-          results.distribution.find((d) => d.answer === results.memberAnswer)
-            ?.label ?? "",
+        label: (() => {
+          const d = results.distribution.find((d) => d.answer === results.memberAnswer);
+          return (lang === "kr" && d?.labelKr) ? d.labelKr : (d?.label ?? "");
+        })(),
       }
     : null;
 
   const topAnswerOption = {
     key: results.topAnswer,
-    label: results.topAnswerLabel,
+    label: (lang === "kr" && results.topAnswerLabelKr) ? results.topAnswerLabelKr : results.topAnswerLabel,
   };
 
   const memberPercentage = memberAnswerOption

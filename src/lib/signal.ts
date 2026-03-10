@@ -17,6 +17,20 @@ function getOptionLabel(
   return map[answer];
 }
 
+function getOptionLabelKr(
+  question: { optionAKr?: string | null; optionBKr?: string | null; optionCKr?: string | null; optionDKr?: string | null; optionEKr?: string | null },
+  answer: SignalAnswer
+): string | null {
+  const map: Record<SignalAnswer, string | null | undefined> = {
+    A: question.optionAKr,
+    B: question.optionBKr,
+    C: question.optionCKr,
+    D: question.optionDKr,
+    E: question.optionEKr,
+  };
+  return map[answer] ?? null;
+}
+
 export async function getCurrentSignal() {
   return prisma.signalQuestion.findFirst({
     where: { status: "LIVE" },
@@ -66,6 +80,7 @@ export async function computeResults(
     return {
       answer,
       label: getOptionLabel(question, answer),
+      labelKr: getOptionLabelKr(question, answer),
       count,
       percentage: Math.round((count / totalVotes) * 100),
     };
@@ -75,6 +90,7 @@ export async function computeResults(
   const sorted = [...distribution].sort((a, b) => b.count - a.count);
   const topAnswer = sorted[0].answer;
   const topAnswerLabel = sorted[0].label;
+  const topAnswerLabelKr = sorted[0].labelKr ?? null;
 
   // Member's answer
   let memberAnswer: SignalAnswer | null = null;
@@ -96,6 +112,7 @@ export async function computeResults(
     distribution,
     topAnswer,
     topAnswerLabel,
+    topAnswerLabelKr,
     memberAnswer,
     anonymousQuotes,
   };
