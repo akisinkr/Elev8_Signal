@@ -1,8 +1,15 @@
-import { requireMember } from "@/lib/auth";
+import { getCurrentMember } from "@/lib/auth";
+import { getMemberSession } from "@/lib/member-auth";
+import { redirect } from "next/navigation";
 import { MemberCardForm } from "@/components/member-card/member-card-form";
 
 export default async function ProfilePage() {
-  const member = await requireMember();
+  // Accept either Clerk auth (app members) or OTP session (signal members)
+  const member = (await getCurrentMember()) ?? (await getMemberSession());
+
+  if (!member) {
+    redirect("/signal");
+  }
 
   return (
     <div className="max-w-lg mx-auto py-8">
