@@ -1545,7 +1545,7 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
         </div>
         <p className="text-[11px] text-white/30 -mt-2">
           {lang === "kr"
-            ? "함께하면 시너지가 날 멤버, AI가 찾았습니다"
+            ? "함께하면 시너지가 날 멤버, Elev8이 찾았습니다"
             : "Peers matched to your current priorities"}
         </p>
 
