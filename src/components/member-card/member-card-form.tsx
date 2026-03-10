@@ -1545,8 +1545,8 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
         </div>
         <p className="text-[11px] text-white/30 -mt-2">
           {lang === "kr"
-            ? "내 슈퍼파워·고민 기반 AI 매칭 — ⚡ 상대 강점 · → 나와의 연관성"
-            : "AI-matched by superpower & challenge fit — ⚡ what they bring · → why it's relevant"}
+            ? "내 고민을 해결해 줄 수 있는 멤버를 AI가 골랐어요"
+            : "Members whose strengths can help with what you're working on"}
         </p>
 
 
