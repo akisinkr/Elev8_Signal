@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, ArrowRight, Clock, Users } from "lucide-react";
+import { CheckCircle2, ArrowRight } from "lucide-react";
 
 interface PostVoteHubProps {
   signalNumber: number;
@@ -115,18 +115,20 @@ export function PostVoteHub({
   const archiveUrl = `/signal/archive?${archiveParams.toString()}`;
   const profileUrl = `/profile${email ? `?email=${encodeURIComponent(email)}` : ""}`;
 
+  const hasDeadline = !loading && !!data?.deadline && !!timeLeft;
+
   return (
-    <div className="flex flex-col items-center px-4 py-10 sm:py-16">
-      <div className="w-full max-w-sm space-y-8">
+    <div className="flex flex-col items-center px-4 py-12 sm:py-20">
+      <div className="w-full max-w-sm space-y-6">
 
         {/* ── Confirmation ── */}
         <div
-          className="text-center space-y-3"
+          className="text-center space-y-2"
           style={{ animation: "fadeInUp 0.5s ease-out both" }}
         >
-          <div className="relative inline-flex">
+          <div className="relative inline-flex mb-1">
             <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
-            <CheckCircle2 className="relative size-12 text-primary" />
+            <CheckCircle2 className="relative size-11 text-primary" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             {txt.youreIn}
@@ -140,14 +142,14 @@ export function PostVoteHub({
             style={{ animation: "fadeInUp 0.5s ease-out 0.1s both" }}
           >
             <div className="flex items-center gap-3">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground text-base font-bold">
                 {selectedOption || data?.yourPick}
               </span>
               <div className="min-w-0">
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
                   {txt.yourPick}
                 </p>
-                <p className="text-sm font-medium text-foreground leading-snug mt-0.5">
+                <p className="text-sm font-medium text-foreground leading-snug">
                   {selectedOptionLabel || data?.yourPickLabel}
                 </p>
               </div>
@@ -155,35 +157,30 @@ export function PostVoteHub({
           </div>
         )}
 
-        {/* ── Stat row: vote count + countdown ── */}
+        {/* ── Stats ── */}
         <div
-          className="flex items-center justify-between text-sm text-muted-foreground px-1"
+          className={cn("grid gap-2", hasDeadline ? "grid-cols-2" : "grid-cols-1")}
           style={{ animation: "fadeInUp 0.5s ease-out 0.2s both" }}
         >
-          <div className="flex items-center gap-1.5">
-            <Users className="size-3.5" />
+          <div className="rounded-xl border border-border/40 bg-card/50 px-3 py-3 text-center">
             {loading ? (
-              <span className="h-4 w-20 rounded bg-muted animate-pulse inline-block" />
+              <div className="h-6 w-10 rounded bg-muted animate-pulse mx-auto mb-1" />
             ) : (
-              <span>
-                <span className="font-semibold text-foreground">{data?.voteCount ?? 0}</span>
-                {" "}{txt.leadersVoted}
-              </span>
+              <p className="text-xl font-bold text-foreground">{data?.voteCount ?? 0}</p>
             )}
+            <p className="text-[10px] text-muted-foreground">{txt.leadersVoted}</p>
           </div>
-          {data?.deadline && timeLeft ? (
-            <div className="flex items-center gap-1.5">
-              <Clock className="size-3.5" />
-              <span>{txt.resultsIn} <span className="font-semibold text-primary">{timeLeft}</span></span>
+          {hasDeadline && (
+            <div className="rounded-xl border border-border/40 bg-card/50 px-3 py-3 text-center">
+              <p className="text-xl font-bold text-primary">{timeLeft}</p>
+              <p className="text-[10px] text-muted-foreground">{txt.resultsIn}</p>
             </div>
-          ) : (!data?.deadline && !loading) ? (
-            <span className="text-xs">{txt.resultsWhenClosed}</span>
-          ) : null}
+          )}
         </div>
 
         {/* ── Teaser ── */}
         <p
-          className="text-sm text-muted-foreground leading-relaxed text-center px-2"
+          className="text-[13px] text-muted-foreground leading-relaxed text-center px-1"
           style={{ animation: "fadeInUp 0.5s ease-out 0.3s both" }}
         >
           {txt.teaser}
@@ -191,10 +188,9 @@ export function PostVoteHub({
 
         {/* ── CTAs ── */}
         <div
-          className="flex flex-col gap-3"
+          className="flex flex-col gap-2.5"
           style={{ animation: "fadeInUp 0.5s ease-out 0.4s both" }}
         >
-          {/* Primary action depends on card state */}
           {!loading && !cardCompleted ? (
             <>
               <Link
@@ -213,7 +209,7 @@ export function PostVoteHub({
               </Link>
               <Link
                 href={archiveUrl}
-                className="text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
+                className="text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
               >
                 {txt.explorePast} →
               </Link>
@@ -231,13 +227,6 @@ export function PostVoteHub({
               <ArrowRight className="size-4" />
             </Link>
           )}
-
-          <Link
-            href="/"
-            className="text-center text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors py-1"
-          >
-            {txt.backHome}
-          </Link>
         </div>
 
       </div>
