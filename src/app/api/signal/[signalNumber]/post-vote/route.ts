@@ -79,6 +79,7 @@ export async function POST(
       signalStatus: signal.status,
       match: matches[0] ?? null,
       matches,
+      cardCompleted: !!member.cardCompletedAt,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

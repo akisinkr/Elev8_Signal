@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, ArrowRight, Clock, Users, Sparkles } from "lucide-react";
+import { CheckCircle2, ArrowRight, Clock, Users, Sparkles, Zap } from "lucide-react";
 
 interface PostVoteHubProps {
   signalNumber: number;
@@ -18,6 +18,7 @@ interface PostVoteData {
   deadline: string | null;
   yourPick: string | null;
   yourPickLabel: string | null;
+  cardCompleted: boolean;
 }
 
 export function PostVoteHub({
@@ -91,6 +92,9 @@ export function PostVoteHub({
       superpowerTeaser: "Our members include leaders with deep expertise across AI strategy, org design, scaling teams, and more. The analysis will reveal which of these experts share your perspective — and who sees it differently.",
       explorePast: "Explore Past Signals",
       backHome: "Back to Elev8",
+      cardNudgeTitle: "Make yourself findable",
+      cardNudgeDesc: "When results drop, other leaders will see who shares their perspective. Your Superpower card is what gets you in the room. Takes 3 minutes.",
+      cardNudgeCta: "Complete Your Superpower Card",
     },
     kr: {
       // ─ 한국어 전문가 에이전트 기준: 영어 번역 아님, 한국어로 재창작
@@ -105,6 +109,9 @@ export function PostVoteHub({
       superpowerTeaser: "Elev8에는 AI 전략, 조직 설계, 팀 빌딩 등 각 분야 최전선에서 활동하는 리더들이 있습니다. 분석 결과에서 님과 비슷한 시각을 가진 리더 — 그리고 다른 시각을 가진 리더 — 를 직접 확인하실 수 있습니다.",
       explorePast: "지난 Signal 보기",
       backHome: "Elev8으로 돌아가기",
+      cardNudgeTitle: "리더들이 님을 찾을 수 있게 해보세요",
+      cardNudgeDesc: "결과가 공개되면 비슷한 관점을 가진 리더들이 서로를 찾게 됩니다. Superpower 카드가 있어야 그 자리에 함께할 수 있습니다. 3분이면 충분합니다.",
+      cardNudgeCta: "Superpower 카드 완성하기",
     },
   };
   const txt = t[lang];
@@ -206,7 +213,38 @@ export function PostVoteHub({
           </p>
         </div>
 
-        {/* ── Section 5: Navigation ── */}
+        {/* ── Section 5: Superpower Card Nudge (only if card not completed) ── */}
+        {data && !data.cardCompleted && (
+          <div
+            className="rounded-2xl border-2 border-primary/30 bg-gradient-to-b from-primary/[0.06] to-transparent p-6 space-y-4"
+            style={{ animation: "fadeInUp 0.6s ease-out 0.55s both" }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                <Zap className="size-5 text-primary" />
+              </div>
+              <h2 className="text-sm font-semibold text-foreground">
+                {txt.cardNudgeTitle}
+              </h2>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {txt.cardNudgeDesc}
+            </p>
+            <Link
+              href="/profile"
+              className={cn(
+                "flex items-center justify-center gap-2 rounded-xl py-3.5 px-5",
+                "bg-primary text-primary-foreground text-sm font-semibold",
+                "hover:bg-primary/90 active:scale-[0.98] transition-all"
+              )}
+            >
+              {txt.cardNudgeCta}
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+        )}
+
+        {/* ── Section 6: Navigation ── */}
         <div
           className="flex flex-col gap-3 pt-2"
           style={{ animation: "fadeInUp 0.6s ease-out 0.6s both" }}
