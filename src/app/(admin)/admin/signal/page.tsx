@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { SignalStatusBadge } from "@/components/signal/signal-status-badge";
 import { SignalCreateDialog } from "@/components/admin/signal/signal-create-dialog";

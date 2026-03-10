@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/shared/page-header";
 import { SignalStatusBadge } from "@/components/signal/signal-status-badge";
