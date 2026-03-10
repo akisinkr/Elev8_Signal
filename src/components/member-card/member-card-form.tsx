@@ -1524,8 +1524,9 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
           <ArrowRight className="size-3.5" />
         </a>
 
-        <Button variant="ghost" onClick={() => setStep("about")} className="h-9 text-white/35 hover:text-white/55 text-[11px]">
-          {lang === "kr" ? "카드 수정" : "Edit my card"}
+        <Button variant="outline" onClick={() => setStep("refine")} className="w-full h-10 text-[13px] border-white/15 text-white/60 hover:text-white/90 hover:border-white/30 hover:bg-white/5 transition-all">
+          <Pencil className="size-3.5 mr-1.5" />
+          {lang === "kr" ? "카드 수정하기" : "Edit my card"}
         </Button>
       </div>
 
