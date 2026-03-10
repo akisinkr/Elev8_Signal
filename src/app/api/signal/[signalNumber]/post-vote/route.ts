@@ -80,6 +80,7 @@ export async function POST(
       match: matches[0] ?? null,
       matches,
       cardCompleted: !!member.cardCompletedAt,
+      memberFirstName: member.firstName ?? null,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

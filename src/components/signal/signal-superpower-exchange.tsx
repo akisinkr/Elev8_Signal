@@ -28,6 +28,7 @@ export function SignalSuperpowerExchange({
   lang,
 }: SignalSuperpowerExchangeProps) {
   const [members, setMembers] = React.useState<SuperpowerMember[]>([]);
+  const [memberFirstName, setMemberFirstName] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [introSending, setIntroSending] = React.useState(false);
@@ -43,6 +44,7 @@ export function SignalSuperpowerExchange({
         });
         if (res.ok) {
           const data = await res.json();
+          if (data.memberFirstName) setMemberFirstName(data.memberFirstName);
           // Collect up to 3 matches
           if (data.matches && data.matches.length > 0) {
             setMembers(data.matches);
@@ -97,7 +99,7 @@ export function SignalSuperpowerExchange({
       // ─ 인정(recognition) + 인맥(peer network) 문화 반영
       // ─ 명령형 지양, -요체 사용, 번역체 제거
       title: "이 주제를 깊이 아는 리더와 직접 이야기해 보세요",
-      subtitle: "님이 선택하신 관점은 이 분야를 다른 각도에서 탐색하는 리더들과 연결됩니다. 아래 멤버들이 바로 그 접점에 있습니다.",
+      subtitle: `${memberFirstName ? `${memberFirstName}님이` : "님이"} 선택하신 관점은 이 분야를 다른 각도에서 탐색하는 리더들과 연결됩니다. 아래 멤버들이 바로 그 접점에 있습니다.`,
       yourPerspective: "선택하신 관점",
       selectLeader: "어떤 리더의 관점이 가장 끌리세요?",
       whyConnect: "뛰어난 리더일수록 혼자 분석하는 데 그치지 않습니다. 현장을 아는 동료와 직접 대화하며 자신의 사고를 검증하죠. Elev8이 만드는 공간이 바로 그런 자리입니다.",
