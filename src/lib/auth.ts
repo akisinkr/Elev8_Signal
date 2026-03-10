@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
+import { getMemberSession } from "@/lib/member-auth";
 
 export async function getCurrentMember() {
   const user = await currentUser();
@@ -50,7 +51,13 @@ export async function getCurrentMember() {
 }
 
 export async function requireMember() {
-  const member = await getCurrentMember();
+  // Try Clerk auth first
+  let member = await getCurrentMember();
+
+  // Fall back to OTP session (for members who signed in via magic link)
+  if (!member) {
+    try { member = await getMemberSession(); } catch { /* ignore */ }
+  }
 
   if (!member) {
     redirect("/sign-in");
