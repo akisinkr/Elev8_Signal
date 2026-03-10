@@ -1560,7 +1560,7 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
         {matchSuggestions.length > 0 ? (
           <div className="space-y-3">
             {matchSuggestions.map((match) => (
-              <div key={match.memberId} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-2">
+              <div key={match.memberId} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
                 <div className="flex items-center gap-3">
                   {match.imageUrl ? (
                     <img src={match.imageUrl} alt="" className="size-9 rounded-full object-cover ring-1 ring-white/[0.06]" />
@@ -1576,7 +1576,20 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
                     )}
                   </div>
                 </div>
-                <p className="text-[12px] text-amber-300/55 leading-relaxed">{match.matchReason}</p>
+                <div className="flex flex-col gap-1.5">
+                  {match.matchedSuperpower && (
+                    <div className="flex items-start gap-2">
+                      <span className="mt-0.5 text-[10px] text-primary/70 shrink-0">⚡</span>
+                      <span className="text-[11px] text-white/55 leading-snug">{match.matchedSuperpower}</span>
+                    </div>
+                  )}
+                  {match.matchedChallenge && (
+                    <div className="flex items-start gap-2">
+                      <span className="mt-0.5 text-[10px] text-amber-400/60 shrink-0">→</span>
+                      <span className="text-[11px] text-white/40 leading-snug">{match.matchedChallenge}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
