@@ -15,6 +15,7 @@ interface SignalVoteCardProps {
   options: VoteOption[];
   onVote: (answer: string, why?: string) => void;
   isSubmitting: boolean;
+  lang?: "en" | "kr";
 }
 
 export function SignalVoteCard({
@@ -22,9 +23,15 @@ export function SignalVoteCard({
   options,
   onVote,
   isSubmitting,
+  lang = "en",
 }: SignalVoteCardProps) {
   const [selected, setSelected] = React.useState<string | null>(null);
   const [why, setWhy] = React.useState("");
+
+  const whyLabel = lang === "kr" ? "한 줄 의견 (선택사항)" : "Why? (optional)";
+  const whyPlaceholder = lang === "kr" ? "이유를 간단히 적어도 좋습니다..." : "Share your reasoning...";
+  const submitLabel = lang === "kr" ? "의견 제출하기" : "Submit Vote";
+  const submittingLabel = lang === "kr" ? "제출 중..." : "Submitting...";
 
   return (
     <div className="space-y-6">
@@ -63,14 +70,14 @@ export function SignalVoteCard({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-sm text-muted-foreground">
-              Why? (optional)
+              {whyLabel}
             </label>
             <span className="text-xs text-muted-foreground">
               {why.length}/280
             </span>
           </div>
           <Textarea
-            placeholder="Share your reasoning..."
+            placeholder={whyPlaceholder}
             value={why}
             onChange={(e) => setWhy(e.target.value.slice(0, 280))}
             maxLength={280}
@@ -85,7 +92,7 @@ export function SignalVoteCard({
         disabled={!selected || isSubmitting}
         onClick={() => selected && onVote(selected, why || undefined)}
       >
-        {isSubmitting ? "Submitting..." : "Submit Vote"}
+        {isSubmitting ? submittingLabel : submitLabel}
       </Button>
     </div>
   );
