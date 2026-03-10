@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSignalByNumber, getMemberVote } from "@/lib/signal";
+import { checkEmailRatelimit, getIp } from "@/lib/ratelimit";
 import { z } from "zod";
 
 const schema = z.object({
@@ -12,6 +13,17 @@ export async function POST(
   { params }: { params: Promise<{ signalNumber: string }> }
 ) {
   try {
+    // Rate limit: 20 email checks per IP per hour
+    if (checkEmailRatelimit) {
+      const { success } = await checkEmailRatelimit.limit(getIp(req));
+      if (!success) {
+        return NextResponse.json(
+          { error: "Too many requests. Please try again later." },
+          { status: 429 }
+        );
+      }
+    }
+
     const body = await req.json();
     const { email } = schema.parse(body);
 

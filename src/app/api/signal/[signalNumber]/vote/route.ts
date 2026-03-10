@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSignalByNumber, getMemberVote, castVote } from "@/lib/signal";
 import { sendSlackNotification } from "@/lib/slack";
 import { createMemberSession } from "@/lib/member-auth";
+import { voteRatelimit, getIp } from "@/lib/ratelimit";
 import { z } from "zod";
 
 const voteSchema = z.object({
@@ -16,6 +17,17 @@ export async function POST(
   { params }: { params: Promise<{ signalNumber: string }> }
 ) {
   try {
+    // Rate limit: 10 attempts per IP per hour
+    if (voteRatelimit) {
+      const { success } = await voteRatelimit.limit(getIp(req));
+      if (!success) {
+        return NextResponse.json(
+          { error: "Too many requests. Please try again later." },
+          { status: 429 }
+        );
+      }
+    }
+
     const body = await req.json();
     const { answer, why, email } = voteSchema.parse(body);
 

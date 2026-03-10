@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { accessRequestRatelimit, getIp } from "@/lib/ratelimit";
 import { z } from "zod";
 
 const accessRequestSchema = z.object({
@@ -15,6 +16,17 @@ const accessRequestSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    // Rate limit: 5 access requests per IP per hour
+    if (accessRequestRatelimit) {
+      const { success } = await accessRequestRatelimit.limit(getIp(req));
+      if (!success) {
+        return NextResponse.json(
+          { error: "Too many requests. Please try again later." },
+          { status: 429 }
+        );
+      }
+    }
+
     const body = await req.json();
     const data = accessRequestSchema.parse(body);
 
