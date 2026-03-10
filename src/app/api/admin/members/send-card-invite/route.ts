@@ -29,7 +29,6 @@ export async function POST() {
       `https://${process.env.VERCEL_URL}` ||
       "https://elev8-signal.com";
 
-    const cardUrl = `${baseUrl}/profile`;
     const subject = "Your Elev8 Member Card is ready — complete it in 2 minutes";
 
     let sent = 0;
@@ -44,6 +43,7 @@ export async function POST() {
       }
 
       try {
+        const cardUrl = `${baseUrl}/profile?email=${encodeURIComponent(member.email)}`;
         const initials = `${member.firstName[0] || ""}${member.lastName[0] || ""}`;
         const displayTitle = [member.jobTitle, member.company]
           .filter(Boolean)
