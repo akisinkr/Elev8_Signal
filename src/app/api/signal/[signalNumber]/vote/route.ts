@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSignalByNumber, getMemberVote, castVote } from "@/lib/signal";
 import { sendSlackNotification } from "@/lib/slack";
+import { createMemberSession } from "@/lib/member-auth";
 import { z } from "zod";
 
 const voteSchema = z.object({
@@ -49,6 +50,9 @@ export async function POST(
     }
 
     const vote = await castVote(signal.id, member.id, answer, why);
+
+    // Set a session cookie so the member stays authenticated for profile building etc.
+    await createMemberSession(member.id, member.email);
 
     // Slack notification (fire-and-forget — don't block the response)
     sendSlackNotification(
