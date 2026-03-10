@@ -1536,52 +1536,57 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
           <div className="flex items-center gap-2">
             <Users className="size-4 text-amber-400/45" />
             <h3 className="text-sm font-medium text-white/70">
-              {lang === "kr" ? "추천 연결" : "Suggested connections"}
+              {lang === "kr" ? "추천 인맥" : "Peers worth your time"}
             </h3>
           </div>
           <button onClick={loadMatches} disabled={loadingMatches} className="text-[10px] text-white/35 hover:text-white/55 transition-colors">
-            {loadingMatches ? <RefreshCw className="size-3 animate-spin" /> : (lang === "kr" ? "새로고침" : "Refresh")}
+            {loadingMatches ? <RefreshCw className="size-3 animate-spin" /> : (lang === "kr" ? "새로고침" : "Show different peers")}
           </button>
         </div>
         <p className="text-[11px] text-white/30 -mt-2">
           {lang === "kr"
-            ? "함께하면 시너지가 날 멤버, Elev8이 찾았습니다"
-            : "Peers matched to your current priorities"}
+            ? "같이 일하면 빛나는 사람들, Elev8이 골랐습니다"
+            : "Selected based on what you're working through right now"}
         </p>
-
 
         {matchSuggestions.length > 0 ? (
           <div className="space-y-3">
-            {matchSuggestions.map((match) => (
+            {matchSuggestions.slice(0, 2).map((match) => (
               <div key={match.memberId} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
-                <div className="flex items-center gap-3">
-                  {match.imageUrl ? (
-                    <img src={match.imageUrl} alt="" className="size-9 rounded-full object-cover ring-1 ring-white/[0.06]" />
-                  ) : (
-                    <div className="flex size-9 items-center justify-center rounded-full bg-white/[0.03] text-xs font-medium text-white/40 ring-1 ring-white/[0.06]">
-                      {match.firstName[0]}{match.lastName[0]}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-medium text-white/80">{match.firstName} {match.lastName}</p>
-                    {(match.jobTitle || match.company) && (
-                      <p className="text-[11px] text-white/40 truncate">{match.jobTitle}{match.jobTitle && match.company && " · "}{match.company}</p>
-                    )}
-                  </div>
-                </div>
+                {/* Superpower + challenge FIRST */}
                 <div className="flex flex-col gap-1.5">
                   {match.matchedSuperpower && (
                     <div className="flex items-start gap-2">
-                      <span className="mt-0.5 text-[10px] text-primary/70 shrink-0">⚡</span>
-                      <span className="text-[11px] text-white/55 leading-snug">{match.matchedSuperpower}</span>
+                      <span className="mt-0.5 text-[10px] text-primary/70 shrink-0 font-semibold uppercase tracking-wider">
+                        {lang === "kr" ? "강점" : "Superpower"}
+                      </span>
+                      <span className="text-[12px] text-white/70 leading-snug font-medium">{match.matchedSuperpower}</span>
                     </div>
                   )}
                   {match.matchedChallenge && (
                     <div className="flex items-start gap-2">
-                      <span className="mt-0.5 text-[10px] text-amber-400/60 shrink-0">→</span>
-                      <span className="text-[11px] text-white/40 leading-snug">{match.matchedChallenge}</span>
+                      <span className="mt-0.5 text-[10px] text-amber-400/60 shrink-0 font-semibold uppercase tracking-wider">
+                        {lang === "kr" ? "연관" : "Relevant to"}
+                      </span>
+                      <span className="text-[11px] text-white/45 leading-snug">{match.matchedChallenge}</span>
                     </div>
                   )}
+                </div>
+                {/* Person SECOND */}
+                <div className="flex items-center gap-2.5 pt-1 border-t border-white/[0.04]">
+                  {match.imageUrl ? (
+                    <img src={match.imageUrl} alt="" className="size-7 rounded-full object-cover ring-1 ring-white/[0.06] shrink-0" />
+                  ) : (
+                    <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/[0.03] text-[10px] font-medium text-white/40 ring-1 ring-white/[0.06]">
+                      {match.firstName[0]}{match.lastName[0]}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-medium text-white/60">{match.firstName} {match.lastName}</p>
+                    {(match.jobTitle || match.company) && (
+                      <p className="text-[10px] text-white/30 truncate">{match.jobTitle}{match.jobTitle && match.company && " · "}{match.company}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -1590,8 +1595,8 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
           <button onClick={loadMatches} disabled={loadingMatches}
             className="w-full rounded-xl border border-dashed border-white/[0.08] py-6 text-center text-[12px] text-white/35 hover:text-white/50 hover:border-white/[0.15] transition-all">
             {loadingMatches ? (
-              <span className="flex items-center justify-center gap-2"><RefreshCw className="size-3 animate-spin" /> {lang === "kr" ? "최적의 매칭을 찾는 중..." : "Finding your best matches..."}</span>
-            ) : (lang === "kr" ? "연결 추천 보기" : "See who you should connect with")}
+              <span className="flex items-center justify-center gap-2"><RefreshCw className="size-3 animate-spin" /> {lang === "kr" ? "딱 맞는 인맥을 찾고 있어요..." : "Finding your peers..."}</span>
+            ) : (lang === "kr" ? "추천 인맥 보기" : "Matches are updated after each Signal report")}
           </button>
         )}
       </div>
