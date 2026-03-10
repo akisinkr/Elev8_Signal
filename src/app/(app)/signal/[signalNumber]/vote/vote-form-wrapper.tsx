@@ -17,6 +17,7 @@ interface VoteFormWrapperProps {
   deadline?: string | null;
   signalStatus?: string;
   memberEmail?: string;
+  alreadyVoted?: boolean;
 }
 
 type Step = "email" | "vote" | "thanks" | "closed" | "not-member";
@@ -29,11 +30,14 @@ export function VoteFormWrapper({
   deadline,
   signalStatus,
   memberEmail,
+  alreadyVoted,
 }: VoteFormWrapperProps) {
   const hasKorean = !!questionKr;
   const isClosed = signalStatus === "CLOSED" || signalStatus === "PUBLISHED";
   const hasSession = !!memberEmail;
-  const [step, setStep] = React.useState<Step>(isClosed ? "closed" : hasSession ? "vote" : "email");
+  const [step, setStep] = React.useState<Step>(
+    isClosed ? "closed" : alreadyVoted ? "thanks" : hasSession ? "vote" : "email"
+  );
   const [lang, setLang] = React.useState<Lang>("en");
   const [email, setEmail] = React.useState(memberEmail || "");
   const [emailError, setEmailError] = React.useState<string | null>(null);

@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getSignalByNumber } from "@/lib/signal";
 import { getMemberSession } from "@/lib/member-auth";
+import { prisma } from "@/lib/db";
 import { VoteFormWrapper } from "./vote-form-wrapper";
 
 export default async function VotePage({
@@ -23,6 +24,13 @@ export default async function VotePage({
   // Check if user already authenticated via OTP session
   const member = await getMemberSession();
 
+  const alreadyVoted = member
+    ? !!(await prisma.signalVote.findFirst({
+        where: { signalId: signal.id, memberId: member.id },
+        select: { id: true },
+      }))
+    : false;
+
   const options = [
     { key: "A", label: signal.optionA, labelKr: signal.optionAKr ?? undefined },
     { key: "B", label: signal.optionB, labelKr: signal.optionBKr ?? undefined },
@@ -41,6 +49,7 @@ export default async function VotePage({
         deadline={signal.voteDeadline?.toISOString() ?? null}
         signalStatus={signal.status}
         memberEmail={member?.email}
+        alreadyVoted={alreadyVoted}
       />
     </div>
   );
