@@ -336,7 +336,9 @@ export function VoteFormWrapper({
                 "w-full rounded-xl py-4 text-base font-semibold transition-all",
                 "bg-primary text-primary-foreground",
                 "hover:bg-primary/90 active:scale-[0.98]",
-                "disabled:opacity-50 disabled:cursor-not-allowed"
+                "disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none",
+                "shadow-[0_0_20px_rgba(200,168,78,0.4),0_0_40px_rgba(200,168,78,0.15)]",
+                "hover:shadow-[0_0_28px_rgba(200,168,78,0.55),0_0_56px_rgba(200,168,78,0.2)]"
               )}
             >
               {isCheckingEmail ? txt.checking : txt.continue}
