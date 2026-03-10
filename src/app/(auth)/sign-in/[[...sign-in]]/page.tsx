@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 type Step = "email" | "code" | "verifying";
 
@@ -16,7 +17,6 @@ export default function SignInPage() {
   const [sending, setSending] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Auto-focus first digit input when entering code step
   useEffect(() => {
     if (step === "code") {
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
@@ -52,19 +52,17 @@ export default function SignInPage() {
   }
 
   function handleDigitChange(index: number, value: string) {
-    if (!/^\d*$/.test(value)) return; // digits only
+    if (!/^\d*$/.test(value)) return;
 
     const newDigits = [...digits];
-    newDigits[index] = value.slice(-1); // only last char
+    newDigits[index] = value.slice(-1);
     setDigits(newDigits);
     setError("");
 
-    // Auto-advance to next input
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
 
-    // Auto-submit when all 6 digits entered
     const fullCode = newDigits.join("");
     if (fullCode.length === 6) {
       verifyCode(fullCode);
@@ -115,7 +113,6 @@ export default function SignInPage() {
         return;
       }
 
-      // Success — redirect to vote
       router.push(data.redirectTo);
     } catch {
       setError("Network error. Please try again.");
@@ -137,7 +134,7 @@ export default function SignInPage() {
       const data = await res.json();
       if (res.ok) {
         setOtpToken(data.token);
-        setError("New code sent!");
+        setError("Code resent!");
       }
     } catch { /* silent */ }
     setSending(false);
@@ -145,61 +142,42 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#0A0A0A" }}>
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 50% at 50% 35%, rgba(200,168,78,0.04) 0%, transparent 70%)",
-        }}
-      />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.015]"
-        style={{
-          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-        }}
-      />
-
-      <header className="relative z-10 flex items-center justify-between px-6 sm:px-10 py-6">
-        <Link href="/">
-          <span
-            className="text-[13px] font-semibold tracking-[0.3em] uppercase cursor-pointer"
-            style={{ color: "#C8A84E", textShadow: "0 0 20px rgba(200,168,78,0.15)" }}
-          >
-            ELEV8
-          </span>
+    <div className="min-h-screen flex flex-col bg-background">
+      <header className="flex items-center px-6 sm:px-10 py-5 border-b border-border/40">
+        <Link href="/" className="text-sm font-semibold tracking-tight text-foreground">
+          Elev8 Signal
         </Link>
       </header>
 
-      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 pb-12">
-        <div className="text-center mb-8 space-y-2">
-          <h1 className="text-lg font-semibold tracking-tight" style={{ color: "#E8E4DD" }}>
-            This week&apos;s Signal is live
-          </h1>
-          <p className="text-[13px]" style={{ color: "#7A7670" }}>
-            {step === "email"
-              ? "Enter your email to vote"
-              : `Enter the code sent to ${email}`}
-          </p>
-        </div>
+      <main className="flex flex-1 flex-col items-center justify-center px-4 pb-12">
+        <div className="w-full max-w-sm space-y-6">
 
-        <div className="w-full max-w-sm">
-          <div
-            className="rounded-xl border p-6"
-            style={{
-              backgroundColor: "#141414",
-              borderColor: "#1F1F1F",
-              boxShadow: "0 0 40px rgba(0,0,0,0.5)",
-            }}
-          >
+          {/* Header */}
+          <div className="text-center space-y-1">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="h-px w-8 bg-primary/40" />
+              <div className="relative">
+                <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
+                <div className="relative size-2 rounded-full bg-primary" />
+              </div>
+              <div className="h-px w-8 bg-primary/40" />
+            </div>
+            <h1 className="text-lg font-semibold text-foreground">
+              {step === "email" ? "This week's Signal is live" : "Check your email"}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {step === "email"
+                ? "Enter your email to vote"
+                : `We sent a 6-digit code to ${email}`}
+            </p>
+          </div>
+
+          {/* Card */}
+          <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
             {step === "email" ? (
               <form onSubmit={handleSendCode} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-[12px] font-medium mb-1.5"
-                    style={{ color: "#7A7670" }}
-                  >
+                <div className="space-y-1.5">
+                  <label htmlFor="email" className="text-xs font-medium text-muted-foreground">
                     Email address
                   </label>
                   <input
@@ -210,35 +188,35 @@ export default function SignInPage() {
                     placeholder="you@company.com"
                     required
                     autoFocus
-                    className="w-full px-3 py-2.5 rounded-lg text-[14px] outline-none transition-colors"
-                    style={{
-                      backgroundColor: "#1A1A1A",
-                      border: "1px solid #1F1F1F",
-                      color: "#E8E4DD",
-                    }}
+                    className={cn(
+                      "flex h-11 w-full rounded-xl border bg-background px-4 text-sm",
+                      "placeholder:text-muted-foreground/50",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                      error ? "border-destructive" : "border-border"
+                    )}
                   />
                 </div>
 
                 {error && (
-                  <p className="text-[12px]" style={{ color: "#E57373" }}>{error}</p>
+                  <p className="text-xs text-destructive">{error}</p>
                 )}
 
                 <button
                   type="submit"
                   disabled={sending || !email.trim()}
-                  className="w-full py-2.5 rounded-lg text-[14px] font-semibold transition-all disabled:opacity-50"
-                  style={{
-                    backgroundColor: "#C8A84E",
-                    color: "#0A0A0A",
-                    boxShadow: "0 0 20px rgba(200,168,78,0.15)",
-                  }}
+                  className={cn(
+                    "w-full rounded-xl py-3 text-sm font-semibold transition-all",
+                    "bg-primary text-primary-foreground",
+                    "hover:bg-primary/90 active:scale-[0.98]",
+                    "disabled:opacity-50 disabled:cursor-not-allowed"
+                  )}
                 >
-                  {sending ? "Sending..." : "Continue"}
+                  {sending ? "Sending code..." : "Continue"}
                 </button>
               </form>
             ) : (
               <div className="space-y-5">
-                {/* 6-digit code input */}
+                {/* 6-digit code */}
                 <div className="flex justify-center gap-2" onPaste={handlePaste}>
                   {digits.map((digit, i) => (
                     <input
@@ -251,41 +229,40 @@ export default function SignInPage() {
                       onChange={(e) => handleDigitChange(i, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(i, e)}
                       disabled={step === "verifying"}
-                      className="w-11 h-13 text-center text-xl font-mono rounded-lg outline-none transition-colors disabled:opacity-50"
-                      style={{
-                        backgroundColor: "#1A1A1A",
-                        border: `1px solid ${digit ? "rgba(200,168,78,0.4)" : "#1F1F1F"}`,
-                        color: "#E8E4DD",
-                      }}
+                      className={cn(
+                        "w-11 h-12 text-center text-lg font-mono rounded-xl border bg-background",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                        "transition-colors disabled:opacity-50",
+                        digit ? "border-primary/50 text-foreground" : "border-border text-foreground"
+                      )}
                     />
                   ))}
                 </div>
 
                 {step === "verifying" && (
-                  <p className="text-center text-[13px]" style={{ color: "#7A7670" }}>
-                    Verifying...
-                  </p>
+                  <p className="text-center text-sm text-muted-foreground">Verifying...</p>
                 )}
 
                 {error && (
-                  <p className="text-center text-[12px]" style={{ color: error === "New code sent!" ? "#C8A84E" : "#E57373" }}>
+                  <p className={cn(
+                    "text-center text-xs",
+                    error === "Code resent!" ? "text-primary" : "text-destructive"
+                  )}>
                     {error}
                   </p>
                 )}
 
-                <div className="flex items-center justify-between text-[12px]">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <button
                     onClick={() => { setStep("email"); setDigits(["", "", "", "", "", ""]); setError(""); }}
-                    style={{ color: "#7A7670" }}
-                    className="hover:underline"
+                    className="hover:text-foreground transition-colors"
                   >
                     Change email
                   </button>
                   <button
                     onClick={handleResend}
                     disabled={sending}
-                    style={{ color: "#C8A84E" }}
-                    className="hover:underline disabled:opacity-50"
+                    className="text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                   >
                     {sending ? "Sending..." : "Resend code"}
                   </button>
@@ -293,11 +270,9 @@ export default function SignInPage() {
               </div>
             )}
           </div>
-        </div>
 
-        <p className="mt-6 text-[11px]" style={{ color: "#4A4640" }}>
-          Invite-only
-        </p>
+          <p className="text-center text-xs text-muted-foreground/40">Invite-only</p>
+        </div>
       </main>
     </div>
   );
