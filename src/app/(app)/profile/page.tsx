@@ -1,11 +1,23 @@
 import { getCurrentMember } from "@/lib/auth";
 import { getMemberSession } from "@/lib/member-auth";
+import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { MemberCardForm } from "@/components/member-card/member-card-form";
 
-export default async function ProfilePage() {
-  // Accept either Clerk auth (app members) or OTP session (signal members)
-  const member = (await getCurrentMember()) ?? (await getMemberSession());
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string }>;
+}) {
+  const { email: emailParam } = await searchParams;
+
+  // Auth chain: Clerk → OTP session cookie → email URL param (passed from post-vote hub)
+  const member =
+    (await getCurrentMember()) ??
+    (await getMemberSession()) ??
+    (emailParam
+      ? await prisma.member.findUnique({ where: { email: emailParam.toLowerCase() } })
+      : null);
 
   if (!member) {
     redirect("/signal");
