@@ -82,7 +82,7 @@ export function PostVoteHub({
 
   const t = {
     en: {
-      youreIn: "You're in.",
+      youreIn: "Your vote is in.",
       yourPick: "Your pick",
       leadersVoted: "leaders voted",
       resultsIn: "Results in",
@@ -94,7 +94,7 @@ export function PostVoteHub({
       backHome: "Back to Elev8",
     },
     kr: {
-      youreIn: "의견을 남겨주셨습니다.",
+      youreIn: "투표가 완료되었습니다.",
       yourPick: "선택하신 관점",
       leadersVoted: "명 참여",
       resultsIn: "결과 공개까지",
