@@ -69,17 +69,18 @@ export function MembersTable({ members }: MembersTableProps) {
   return (
     <div className="space-y-4">
       {/* Action bar */}
-      <div className="flex items-center justify-between rounded-lg border border-white/10 bg-card p-4">
+      <div className="flex items-center justify-between rounded-2xl border border-border/60 bg-card p-5">
         <div className="text-sm text-muted-foreground">
-          <span className="text-emerald-400 font-medium">{completed}</span>{" "}
+          <span className="text-emerald-400 font-semibold">{completed}</span>{" "}
           completed ·{" "}
-          <span className="text-orange-400 font-medium">{pending}</span>{" "}
+          <span className="text-amber-400 font-semibold">{pending}</span>{" "}
           pending
         </div>
         <Button
           onClick={handleSendCardInvites}
           disabled={sending || pending === 0}
           size="sm"
+          className="rounded-lg"
         >
           <Send className="size-3.5 mr-1.5" />
           {sending
@@ -89,7 +90,7 @@ export function MembersTable({ members }: MembersTableProps) {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-white/10 overflow-hidden">
+      <div className="rounded-2xl border border-border/60 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -111,13 +112,13 @@ export function MembersTable({ members }: MembersTableProps) {
                         className="size-8 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="flex size-8 items-center justify-center rounded-full bg-electric/10 text-xs font-bold text-electric">
+                      <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                         {member.firstName[0]}
                         {member.lastName[0]}
                       </div>
                     )}
                     <div>
-                      <div className="font-medium text-sm">
+                      <div className="font-medium text-sm text-foreground">
                         {member.firstName} {member.lastName}
                       </div>
                       <div className="text-xs text-muted-foreground">
@@ -129,14 +130,10 @@ export function MembersTable({ members }: MembersTableProps) {
                 <TableCell>
                   <div className="text-sm">
                     {member.jobTitle && (
-                      <div className="text-foreground/80">
-                        {member.jobTitle}
-                      </div>
+                      <div className="text-foreground/80">{member.jobTitle}</div>
                     )}
                     {member.company && (
-                      <div className="text-xs text-muted-foreground">
-                        {member.company}
-                      </div>
+                      <div className="text-xs text-muted-foreground">{member.company}</div>
                     )}
                   </div>
                 </TableCell>
@@ -146,7 +143,7 @@ export function MembersTable({ members }: MembersTableProps) {
                       <Badge
                         key={s}
                         variant="secondary"
-                        className="text-[10px] bg-electric/10 text-electric/80"
+                        className="text-[10px] bg-primary/10 text-primary/80"
                       >
                         {s}
                       </Badge>
@@ -160,12 +157,12 @@ export function MembersTable({ members }: MembersTableProps) {
                 </TableCell>
                 <TableCell>
                   {member.cardCompletedAt ? (
-                    <div className="flex items-center gap-1 text-emerald-400">
+                    <div className="flex items-center gap-1.5 text-emerald-400">
                       <Check className="size-3.5" />
-                      <span className="text-xs">Done</span>
+                      <span className="text-xs font-medium">Done</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1 text-muted-foreground">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
                       <Clock className="size-3.5" />
                       <span className="text-xs">Pending</span>
                     </div>

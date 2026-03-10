@@ -51,15 +51,15 @@ export function AdminSidebar() {
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 flex w-56 flex-col border-r border-zinc-800 bg-zinc-950">
-      <div className="flex h-14 items-center gap-2 px-4 border-b border-zinc-800">
-        <span className="text-sm font-semibold text-white">Elev8 Profile</span>
-        <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400">
+    <aside className="fixed inset-y-0 left-0 z-30 flex w-56 flex-col border-r border-border/60 bg-background">
+      <div className="flex h-14 items-center gap-2 px-4 border-b border-border/60">
+        <span className="text-sm font-semibold text-foreground">Elev8 Signal</span>
+        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
           Admin
         </span>
       </div>
 
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="flex-1 space-y-0.5 p-3">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname.startsWith(item.href);
           const showDot =
@@ -70,29 +70,28 @@ export function AdminSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all",
                 isActive
-                  ? "bg-zinc-800 text-white"
-                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
-              <item.icon className="size-4" />
+              <item.icon className="size-4 shrink-0" />
               {item.label}
               {showDot && (
-                <span className="ml-auto size-2 rounded-full bg-red-500" />
+                <span className="ml-auto size-2 rounded-full bg-destructive" />
               )}
             </Link>
           );
         })}
-
       </nav>
 
-      <div className="border-t border-zinc-800 p-3 space-y-2">
+      <div className="border-t border-border/60 p-3">
         <button
           onClick={handleSignOut}
-          className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200 transition-colors"
+          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
         >
-          <LogOut className="size-4" />
+          <LogOut className="size-4 shrink-0" />
           Sign out
         </button>
       </div>
