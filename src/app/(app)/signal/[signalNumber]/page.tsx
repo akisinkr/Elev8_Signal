@@ -36,6 +36,7 @@ export default async function SignalResultsPage({
       <SignalResultsClient
         signalNumber={num}
         question={signal.question}
+        questionKr={signal.questionKr ?? undefined}
         status={signal.status}
         headlineInsight={signal.headlineInsight}
         options={options}

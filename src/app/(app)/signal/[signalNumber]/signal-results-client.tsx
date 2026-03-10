@@ -20,6 +20,7 @@ import { tr } from "@/lib/signal-translations";
 interface SignalResultsClientProps {
   signalNumber: number;
   question: string;
+  questionKr?: string;
   status: string;
   headlineInsight: string | null;
   options: { key: string; label: string }[];
@@ -43,6 +44,7 @@ type ResultsData = {
 export function SignalResultsClient({
   signalNumber,
   question,
+  questionKr,
   status,
   headlineInsight,
   options,
@@ -57,6 +59,8 @@ export function SignalResultsClient({
   const [lang, setLang] = React.useState<Lang>("en");
   const [closedSignal, setClosedSignal] = React.useState(false);
   const [notMember, setNotMember] = React.useState(false);
+
+  const displayQuestion = lang === "kr" && questionKr ? questionKr : question;
 
   // Parse articles from headlineInsight JSON (must be before early returns)
   const articles = React.useMemo(() => {
@@ -173,7 +177,7 @@ export function SignalResultsClient({
           Signal #{signalNumber}
         </h1>
         <div className="space-y-4">
-          <h2 className="text-xl font-bold leading-snug">{question}</h2>
+          <h2 className="text-xl font-bold leading-snug">{displayQuestion}</h2>
           <div className="rounded-lg border bg-card py-12 text-center">
             <h3 className="text-lg font-semibold">{tr("resultsNotAvailable", lang)}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -365,7 +369,7 @@ export function SignalResultsClient({
 
           <div className="space-y-4">
             <h2 className="text-lg font-semibold leading-snug text-center">
-              {question}
+              {displayQuestion}
             </h2>
           </div>
 
@@ -457,7 +461,7 @@ export function SignalResultsClient({
         Signal #{signalNumber}
       </h1>
 
-      <h2 className="text-xl font-bold leading-snug">{question}</h2>
+      <h2 className="text-xl font-bold leading-snug">{displayQuestion}</h2>
 
       <SignalHeadline
         headline={results.headlineInsight}
