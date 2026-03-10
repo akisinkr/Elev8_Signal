@@ -91,16 +91,18 @@ export function PostVoteHub({
       backHome: "Back to Elev8",
     },
     kr: {
-      youreIn: "투표 완료.",
-      yourPick: "선택",
-      leadersVoted: "명의 리더가 투표했습니다",
+      // ─ 한국어 전문가 에이전트 기준: 영어 번역 아님, 한국어로 재창작
+      // ─ 모드 A (자연스럽고, 어색하지 않고): -요체 사용, 명령형 지양
+      youreIn: "의견을 남겨주셨습니다.",
+      yourPick: "선택하신 관점",
+      leadersVoted: "명의 리더가 참여했습니다",
       resultsUnlock: "결과 공개까지",
-      resultsWhenClosed: "투표 마감 후 결과가 공유됩니다",
-      whatsNext: "다음 단계",
-      insightTeaser: "투표가 마감되면 맞춤형 분석을 받게 됩니다 — 동료 리더들의 투표 결과, 당신의 위치, 그리고 커뮤니티의 독점 인사이트까지.",
-      superpowerTeaser: "Elev8 멤버에는 AI 전략, 조직 설계, 팀 스케일링 등 다양한 분야의 전문가들이 포함되어 있습니다. 분석을 통해 어떤 전문가들이 당신과 같은 관점을 공유하는지 확인해 보세요.",
+      resultsWhenClosed: "투표 마감 후 결과를 공유해 드립니다",
+      whatsNext: "이제 어떤 일이 일어나나요",
+      insightTeaser: "투표가 마감되면 맞춤형 분석을 받으실 수 있습니다. 동료 리더들이 어떻게 생각하는지, 그 안에서 님의 관점이 어디에 위치하는지, 그리고 멤버 전용 인사이트까지 확인하실 수 있습니다.",
+      superpowerTeaser: "Elev8에는 AI 전략, 조직 설계, 팀 빌딩 등 각 분야 최전선에서 활동하는 리더들이 있습니다. 분석 결과에서 님과 비슷한 시각을 가진 리더 — 그리고 다른 시각을 가진 리더 — 를 직접 확인하실 수 있습니다.",
       explorePast: "지난 Signal 보기",
-      backHome: "홈으로",
+      backHome: "Elev8으로 돌아가기",
     },
   };
   const txt = t[lang];

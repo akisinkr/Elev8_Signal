@@ -93,17 +93,20 @@ export function SignalSuperpowerExchange({
       noMatches: "Peer matches for this Signal are being curated. Check back soon.",
     },
     kr: {
-      title: "이 분야의 리더와 교류하세요",
-      subtitle: "당신의 관점은 같은 지형을 탐색하는 특정 그룹의 리더들과 함께합니다. 아래 멤버들은 그 최전선에서 다른 시각으로 활동하고 있습니다.",
-      yourPerspective: "당신의 관점",
-      selectLeader: "어떤 전문성에 접근하고 싶으신가요?",
-      whyConnect: "탁월한 리더들은 단순히 인사이트를 소비하는 데 그치지 않습니다 — 현장에 깊이 있는 동료들과 함께 자신의 사고를 검증합니다. 이것이 그 기회입니다.",
+      // ─ 한국어 전문가 에이전트 기준: 재창작, 번역 아님
+      // ─ 인정(recognition) + 인맥(peer network) 문화 반영
+      // ─ 명령형 지양, -요체 사용, 번역체 제거
+      title: "이 주제를 깊이 아는 리더와 직접 이야기해 보세요",
+      subtitle: "님이 선택하신 관점은 이 분야를 다른 각도에서 탐색하는 리더들과 연결됩니다. 아래 멤버들이 바로 그 접점에 있습니다.",
+      yourPerspective: "선택하신 관점",
+      selectLeader: "어떤 리더의 관점이 가장 끌리세요?",
+      whyConnect: "뛰어난 리더일수록 혼자 분석하는 데 그치지 않습니다. 현장을 아는 동료와 직접 대화하며 자신의 사고를 검증하죠. Elev8이 만드는 공간이 바로 그런 자리입니다.",
       requestIntro: "피어 교류 요청하기",
-      introSent: "교류 요청 완료",
+      introSent: "교류 요청이 접수되었습니다",
       introDesc: "Andrew가 24시간 이내에 직접 연결해 드립니다.",
       sending: "요청 중...",
       superpower: "전문 분야",
-      noMatches: "이 Signal의 피어 매칭이 준비 중입니다. 곧 다시 확인해 주세요.",
+      noMatches: "이 Signal에 맞는 리더 매칭을 준비하고 있습니다. 곧 확인해 주세요.",
     },
   };
   const txt = t[lang];
