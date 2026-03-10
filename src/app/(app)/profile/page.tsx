@@ -11,13 +11,24 @@ export default async function ProfilePage({
 }) {
   const { email: emailParam } = await searchParams;
 
-  // Auth chain: Clerk → OTP session cookie → email URL param (passed from post-vote hub)
-  const member =
-    (await getCurrentMember()) ??
-    (await getMemberSession()) ??
-    (emailParam
-      ? await prisma.member.findUnique({ where: { email: emailParam.toLowerCase() } })
-      : null);
+  let member = null;
+
+  // 1. Direct email lookup (most reliable — used by signal→profile flow)
+  if (emailParam) {
+    member = await prisma.member.findUnique({
+      where: { email: emailParam.toLowerCase() },
+    });
+  }
+
+  // 2. OTP session cookie
+  if (!member) {
+    try { member = await getMemberSession(); } catch { /* ignore */ }
+  }
+
+  // 3. Clerk auth (for members who sign in via Clerk — wrapped in case of key errors)
+  if (!member) {
+    try { member = await getCurrentMember(); } catch { /* ignore */ }
+  }
 
   if (!member) {
     redirect("/signal");

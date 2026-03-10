@@ -17,8 +17,9 @@ export default async function SignalArchivePage({
 }) {
   const { email, from } = await searchParams;
 
-  // Try Clerk auth first, fall back to email param
-  const clerkMember = await getCurrentMember();
+  // Try Clerk auth first (wrapped — Clerk may throw on key mismatch), fall back to email param
+  let clerkMember = null;
+  try { clerkMember = await getCurrentMember(); } catch { /* ignore */ }
   const memberEmail = clerkMember?.email ?? email?.toLowerCase();
 
   if (!memberEmail) {
@@ -90,7 +91,7 @@ export default async function SignalArchivePage({
             </p>
           </div>
           <Link
-            href={`/profile${email ? `?email=${encodeURIComponent(email)}` : ""}`}
+            href={`/profile?email=${encodeURIComponent(memberEmail)}`}
             className="shrink-0 flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all"
           >
             Build card
