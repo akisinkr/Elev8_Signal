@@ -1,17 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-export function BackButton() {
-  const router = useRouter();
+interface BackButtonProps {
+  href: string;
+}
+
+export function BackButton({ href }: BackButtonProps) {
   return (
-    <button
-      onClick={() => router.back()}
+    <Link
+      href={href}
       className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
     >
       <ArrowLeft className="size-4" />
       Back
-    </button>
+    </Link>
   );
 }

@@ -13,9 +13,9 @@ import { Zap, ArrowRight } from "lucide-react";
 export default async function SignalArchivePage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; from?: string }>;
 }) {
-  const { email } = await searchParams;
+  const { email, from } = await searchParams;
 
   // Try Clerk auth first, fall back to email param
   const clerkMember = await getCurrentMember();
@@ -43,10 +43,13 @@ export default async function SignalArchivePage({
   });
 
   if (signals.length === 0) {
+    const backParams = new URLSearchParams();
+    if (email) backParams.set("email", email);
+    const backHref = from ? `/signal/${from}/vote?${backParams.toString()}` : `/signal`;
     return (
       <div className="space-y-6">
         <PageHeader title="Signal Archive">
-          <BackButton />
+          <BackButton href={backHref} />
         </PageHeader>
         <EmptyState
           title="No published signals yet"
@@ -58,13 +61,20 @@ export default async function SignalArchivePage({
 
   const cardCompleted = !!member.cardCompletedAt;
 
+  // Build back href: go to the signal the user came from, or /signal if unknown
+  const backParams = new URLSearchParams();
+  if (email) backParams.set("email", email);
+  const backHref = from
+    ? `/signal/${from}/vote?${backParams.toString()}`
+    : `/signal`;
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Signal Archive"
         description="Browse past Signal questions and community insights."
       >
-        <BackButton />
+        <BackButton href={backHref} />
       </PageHeader>
 
       {/* Soft Superpower card nudge — only shown if card not yet completed */}

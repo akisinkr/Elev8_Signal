@@ -109,7 +109,10 @@ export function PostVoteHub({
   const txt = t[lang];
 
   const cardCompleted = data?.cardCompleted ?? true; // default to true while loading to avoid flash
-  const archiveUrl = `/signal/archive${email ? `?email=${encodeURIComponent(email)}` : ""}`;
+  const archiveParams = new URLSearchParams();
+  if (email) archiveParams.set("email", email);
+  archiveParams.set("from", String(signalNumber));
+  const archiveUrl = `/signal/archive?${archiveParams.toString()}`;
   const profileUrl = `/profile${email ? `?email=${encodeURIComponent(email)}` : ""}`;
 
   return (
