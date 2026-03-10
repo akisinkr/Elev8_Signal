@@ -3,26 +3,19 @@
 import * as React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, ArrowRight, Sparkles, Clock, Users, Zap } from "lucide-react";
+import { CheckCircle2, ArrowRight, Clock, Users, Sparkles } from "lucide-react";
 
 interface PostVoteHubProps {
   signalNumber: number;
   email: string;
-  selectedOption: string;       // "A", "B", etc.
-  selectedOptionLabel: string;  // The full option text
+  selectedOption: string;
+  selectedOptionLabel: string;
   lang: "en" | "kr";
 }
 
 interface PostVoteData {
   voteCount: number;
   deadline: string | null;
-  match: {
-    id: string;
-    initial: string;
-    headline: string;
-    superpower: string;
-    canHelpWith: string;
-  } | null;
 }
 
 export function PostVoteHub({
@@ -34,10 +27,7 @@ export function PostVoteHub({
 }: PostVoteHubProps) {
   const [data, setData] = React.useState<PostVoteData | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [introRequested, setIntroRequested] = React.useState(false);
-  const [introSending, setIntroSending] = React.useState(false);
 
-  // Fetch post-vote data
   React.useEffect(() => {
     async function fetchData() {
       try {
@@ -51,32 +41,13 @@ export function PostVoteHub({
           setData(d);
         }
       } catch {
-        // Silent — the hub still shows confirmation even without extra data
+        // Silent
       } finally {
         setLoading(false);
       }
     }
     fetchData();
   }, [signalNumber, email]);
-
-  async function handleRequestIntro() {
-    if (!data?.match || introRequested || introSending) return;
-    setIntroSending(true);
-    try {
-      const res = await fetch(`/api/signal/${signalNumber}/request-intro`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, matchedMemberId: data.match.id }),
-      });
-      if (res.ok) {
-        setIntroRequested(true);
-      }
-    } catch {
-      // Silent fail
-    } finally {
-      setIntroSending(false);
-    }
-  }
 
   // Countdown timer
   const [timeLeft, setTimeLeft] = React.useState("");
@@ -113,16 +84,11 @@ export function PostVoteHub({
       leadersVoted: "leaders have voted",
       resultsUnlock: "Results unlock in",
       resultsWhenClosed: "Results shared when voting closes",
-      meetSuperpower: "Meet your Superpower match",
-      superpowerDesc: "Based on your perspective, this leader's expertise could be valuable to you.",
-      superpower: "Superpower",
-      canHelpWith: "Specializes in",
-      requestIntro: "Request Introduction",
-      introRequested: "Introduction Requested",
-      introDesc: "Andrew will personally connect you via email within 24 hours.",
+      whatsNext: "What happens next",
+      insightTeaser: "When voting closes, you'll receive a personalized analysis — how your peers voted, where you stand, and exclusive insights from the community.",
+      superpowerTeaser: "Our members include leaders with deep expertise across AI strategy, org design, scaling teams, and more. The analysis will reveal which of these experts share your perspective — and who sees it differently.",
       explorePast: "Explore Past Signals",
       backHome: "Back to Elev8",
-      sending: "Sending...",
     },
     kr: {
       youreIn: "투표 완료.",
@@ -130,16 +96,11 @@ export function PostVoteHub({
       leadersVoted: "명의 리더가 투표했습니다",
       resultsUnlock: "결과 공개까지",
       resultsWhenClosed: "투표 마감 후 결과가 공유됩니다",
-      meetSuperpower: "슈퍼파워 매칭 멤버",
-      superpowerDesc: "당신의 관점을 바탕으로, 이 리더의 전문성이 도움이 될 수 있습니다.",
-      superpower: "슈퍼파워",
-      canHelpWith: "전문 분야",
-      requestIntro: "소개 요청하기",
-      introRequested: "소개 요청 완료",
-      introDesc: "Andrew가 24시간 이내에 이메일로 직접 연결해 드립니다.",
+      whatsNext: "다음 단계",
+      insightTeaser: "투표가 마감되면 맞춤형 분석을 받게 됩니다 — 동료 리더들의 투표 결과, 당신의 위치, 그리고 커뮤니티의 독점 인사이트까지.",
+      superpowerTeaser: "Elev8 멤버에는 AI 전략, 조직 설계, 팀 스케일링 등 다양한 분야의 전문가들이 포함되어 있습니다. 분석을 통해 어떤 전문가들이 당신과 같은 관점을 공유하는지 확인해 보세요.",
       explorePast: "지난 Signal 보기",
       backHome: "홈으로",
-      sending: "전송 중...",
     },
   };
   const txt = t[lang];
@@ -214,83 +175,30 @@ export function PostVoteHub({
           )}
         </div>
 
-        {/* ── Section 4: Superpower Match ── */}
-        {!loading && data?.match && (
-          <div
-            className="rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/[0.04] to-transparent p-6 space-y-5"
-            style={{ animation: "fadeInUp 0.6s ease-out 0.45s both" }}
-          >
-            {/* Header */}
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                <Sparkles className="size-5 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-foreground">{txt.meetSuperpower}</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">{txt.superpowerDesc}</p>
-              </div>
+        {/* ── Section 4: What's Coming (Anticipation Teaser) ── */}
+        <div
+          className="rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/[0.04] to-transparent p-6 space-y-4"
+          style={{ animation: "fadeInUp 0.6s ease-out 0.45s both" }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+              <Sparkles className="size-5 text-primary" />
             </div>
-
-            {/* Anonymous Profile Card */}
-            <div className="rounded-xl border border-border/60 bg-card p-5 space-y-4">
-              {/* Avatar + Headline */}
-              <div className="flex items-center gap-4">
-                <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-lg">
-                  {data.match.initial}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{data.match.headline}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Elev8 Member</p>
-                </div>
-              </div>
-
-              {/* Superpower + Specialization */}
-              <div className="grid grid-cols-1 gap-3">
-                <div className="flex items-start gap-3">
-                  <Zap className="size-4 text-primary mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{txt.superpower}</p>
-                    <p className="text-sm text-foreground mt-0.5">{data.match.superpower}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <ArrowRight className="size-4 text-primary mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{txt.canHelpWith}</p>
-                    <p className="text-sm text-foreground mt-0.5">{data.match.canHelpWith}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Request Intro Button */}
-            {introRequested ? (
-              <div
-                className="text-center space-y-2 py-2"
-                style={{ animation: "fadeInUp 0.4s ease-out both" }}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <CheckCircle2 className="size-5 text-primary" />
-                  <p className="text-sm font-semibold text-primary">{txt.introRequested}</p>
-                </div>
-                <p className="text-xs text-muted-foreground">{txt.introDesc}</p>
-              </div>
-            ) : (
-              <button
-                onClick={handleRequestIntro}
-                disabled={introSending}
-                className={cn(
-                  "w-full rounded-xl py-4 text-sm font-semibold transition-all",
-                  "bg-primary text-primary-foreground",
-                  "hover:bg-primary/90 active:scale-[0.98]",
-                  "disabled:opacity-50 disabled:cursor-not-allowed"
-                )}
-              >
-                {introSending ? txt.sending : txt.requestIntro}
-              </button>
-            )}
+            <h2 className="text-sm font-semibold text-foreground">
+              {txt.whatsNext}
+            </h2>
           </div>
-        )}
+
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {txt.insightTeaser}
+          </p>
+
+          <div className="h-px bg-border/40" />
+
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {txt.superpowerTeaser}
+          </p>
+        </div>
 
         {/* ── Section 5: Navigation ── */}
         <div
