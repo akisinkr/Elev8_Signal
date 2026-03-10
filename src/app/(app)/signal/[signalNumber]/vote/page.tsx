@@ -26,7 +26,7 @@ export default async function VotePage({
 
   const alreadyVoted = member
     ? !!(await prisma.signalVote.findFirst({
-        where: { signalId: signal.id, memberId: member.id },
+        where: { questionId: signal.id, memberId: member.id },
         select: { id: true },
       }))
     : false;
