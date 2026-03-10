@@ -56,6 +56,24 @@ export async function POST(
       }
     }
 
+    // Save to Match table for admin tracking
+    const match = await prisma.match.create({
+      data: {
+        member1Id: requester.id,
+        member2Id: matchedMemberId,
+        status: "PROPOSED",
+        curatorNote: JSON.stringify({
+          source: "signal-intro",
+          signalNumber: num,
+          signalQuestion: signal?.question ?? null,
+          requesterVote: requesterVote
+            ? `${requesterVote.answer} — ${requesterVote.label}`
+            : null,
+          requestedAt: new Date().toISOString(),
+        }),
+      },
+    });
+
     // Send email to Andrew
     const andrewEmail = process.env.INTRO_NOTIFICATION_EMAIL || "andrew@elev8x.io";
 
@@ -71,7 +89,7 @@ export async function POST(
       }),
     });
 
-    return NextResponse.json({ sent: true });
+    return NextResponse.json({ sent: true, matchId: match.id });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
