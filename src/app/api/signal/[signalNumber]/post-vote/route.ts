@@ -43,9 +43,8 @@ export async function POST(
       where: { questionId_memberId: { questionId: signal.id, memberId: member.id } },
     });
 
-    // Find a superpower match — someone whose expertise could help this member
-    // Strategy: find a member with a filled superpower, excluding self
-    const matchedMember = await findSuperpowerMatch(member.id, member.challengeType1);
+    // Find superpower matches — up to 3 members whose expertise could help
+    const matchedMembers = await findSuperpowerMatches(member.id, member.challengeType1, 3);
 
     // Build response
     const voteCount = signal.votes.length;
@@ -64,21 +63,22 @@ export async function POST(
       yourPickLabel = optionMap[memberVote.answer] ?? null;
     }
 
+    const matches = matchedMembers.map((m) => ({
+      id: m.id,
+      initial: m.firstName?.charAt(0)?.toUpperCase() ?? "?",
+      headline: buildAnonymousHeadline(m),
+      superpower: buildSuperpowerLine(m),
+      canHelpWith: buildCanHelpWith(m),
+    }));
+
     return NextResponse.json({
       voteCount,
       deadline,
       yourPick: memberVote?.answer ?? null,
       yourPickLabel,
       signalStatus: signal.status,
-      match: matchedMember
-        ? {
-            id: matchedMember.id,
-            initial: matchedMember.firstName?.charAt(0)?.toUpperCase() ?? "?",
-            headline: buildAnonymousHeadline(matchedMember),
-            superpower: buildSuperpowerLine(matchedMember),
-            canHelpWith: buildCanHelpWith(matchedMember),
-          }
-        : null,
+      match: matches[0] ?? null,
+      matches,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -91,7 +91,7 @@ export async function POST(
 
 // --- Matching logic ---
 
-async function findSuperpowerMatch(excludeMemberId: string, challengeType: string | null) {
+async function findSuperpowerMatches(excludeMemberId: string, challengeType: string | null, limit: number) {
   // Find members with filled superpower data, excluding self
   const candidates = await prisma.member.findMany({
     where: {
@@ -113,9 +113,12 @@ async function findSuperpowerMatch(excludeMemberId: string, challengeType: strin
     },
   });
 
-  if (candidates.length === 0) return null;
+  if (candidates.length === 0) return [];
 
-  // If the member has a challenge type, try to find someone whose superpower domain matches
+  // Shuffle candidates for variety
+  const shuffled = candidates.sort(() => Math.random() - 0.5);
+
+  // If the member has a challenge type, prioritize relevant matches
   if (challengeType) {
     const domainMap: Record<string, string[]> = {
       technical: ["AI & Machine Learning", "Engineering", "Cloud & Infrastructure", "Data & Analytics"],
@@ -125,16 +128,15 @@ async function findSuperpowerMatch(excludeMemberId: string, challengeType: strin
       intro: ["Networking", "Business Development", "Partnerships"],
     };
     const relevantDomains = domainMap[challengeType] || [];
-    const matched = candidates.filter(
+    const relevant = shuffled.filter(
       (c) => c.spDomain && relevantDomains.some((d) => c.spDomain!.toLowerCase().includes(d.toLowerCase()))
     );
-    if (matched.length > 0) {
-      return matched[Math.floor(Math.random() * matched.length)];
-    }
+    const others = shuffled.filter((c) => !relevant.includes(c));
+    // Prioritize relevant, fill with others
+    return [...relevant, ...others].slice(0, limit);
   }
 
-  // Fallback: random member with a superpower
-  return candidates[Math.floor(Math.random() * candidates.length)];
+  return shuffled.slice(0, limit);
 }
 
 function buildAnonymousHeadline(member: { jobTitle?: string | null; company?: string | null }): string {

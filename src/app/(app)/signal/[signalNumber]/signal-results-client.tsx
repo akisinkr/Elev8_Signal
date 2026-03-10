@@ -12,6 +12,7 @@ import { SignalShareCard } from "@/components/signal/signal-share-card";
 import { SignalSuggestQuestion } from "@/components/signal/signal-suggest-question";
 import { SignalDonutChart } from "@/components/signal/signal-donut-chart";
 import { SignalRelatedArticles } from "@/components/signal/signal-related-articles";
+import { SignalSuperpowerExchange } from "@/components/signal/signal-superpower-exchange";
 import { SignalLanguageToggle } from "@/components/signal/signal-language-toggle";
 import type { Lang } from "@/lib/signal-translations";
 import { tr } from "@/lib/signal-translations";
@@ -485,6 +486,14 @@ export function SignalResultsClient({
       />
 
       <SignalPeerQuotes quotes={results.anonymousQuotes} lang={lang} />
+
+      <SignalSuperpowerExchange
+        signalNumber={signalNumber}
+        email={email}
+        memberAnswer={results.memberAnswer}
+        memberAnswerLabel={memberAnswerOption?.label ?? ""}
+        lang={lang}
+      />
 
       <SignalSuggestQuestion email={email} />
 
