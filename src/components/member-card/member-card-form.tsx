@@ -18,7 +18,6 @@ import {
   Camera,
   X,
   Users,
-  Share2,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────
@@ -943,20 +942,13 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
 
             {/* ── Challenges & dream connection hidden from card (used for internal matching only) ── */}
 
-            {/* ── CTA: Context-dependent ── */}
-            {(primaryProfile?.title || spDomain) && !compact && (
+            {/* ── CTA: Discovery mode only ── */}
+            {(primaryProfile?.title || spDomain) && !compact && mode === "discovery" && (
               <div className="pt-2">
-                {mode === "discovery" ? (
-                  <button className="w-full h-11 rounded-xl bg-amber-400/90 text-[13px] text-black font-semibold hover:bg-amber-400 transition-all flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(251,191,36,0.2)]">
-                    <Sparkles className="size-3.5" />
-                    {lang === "kr" ? "이 관점에 대해 더 알아보기" : "Explore this perspective"}
-                  </button>
-                ) : (
-                  <button className="w-full h-11 rounded-xl border border-white/[0.08] bg-white/[0.02] text-[13px] text-white/50 hover:text-white/70 hover:border-white/[0.15] transition-all flex items-center justify-center gap-2">
-                    <Share2 className="size-3.5" />
-                    {lang === "kr" ? "카드 공유하기" : "Share Your Card"}
-                  </button>
-                )}
+                <button className="w-full h-11 rounded-xl bg-amber-400/90 text-[13px] text-black font-semibold hover:bg-amber-400 transition-all flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(251,191,36,0.2)]">
+                  <Sparkles className="size-3.5" />
+                  {lang === "kr" ? "이 관점에 대해 더 알아보기" : "Explore this perspective"}
+                </button>
               </div>
             )}
           </div>
@@ -1511,33 +1503,27 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
     <div className="space-y-10">
       <CardPreview interactive mode="profile" />
 
-      {/* Post-completion: "Your card is live" */}
-      <div className="text-center space-y-4">
-        <div className="rounded-xl border border-amber-400/10 bg-amber-400/[0.02] px-5 py-4 space-y-2">
-          {totalMembers > 0 && (
-            <p className="text-[13px] text-white/70 font-medium">
-              {lang === "kr"
-                ? `님의 카드가 ${totalMembers}명의 멤버에게 공개되었습니다`
-                : `Your card is now visible to ${totalMembers} members`}
-            </p>
-          )}
-          {domainPeerCount > 0 && (
-            <p className="text-[11px] text-white/40">
-              {lang === "kr"
-                ? `${domainPeerCount}명의 멤버가 같은 분야에서 활동 중입니다`
-                : `${domainPeerCount} members share your domain expertise`}
-            </p>
-          )}
-          {totalMembers === 0 && (
-            <p className="text-[13px] text-white/70 font-medium">
-              {lang === "kr" ? "카드가 저장되었습니다" : "Your card is saved"}
-            </p>
-          )}
+      {/* Post-completion */}
+      <div className="text-center space-y-5">
+        <div className="space-y-1.5">
+          <p className="text-[13px] font-medium text-white/70">
+            {lang === "kr" ? "카드가 Elev8에 등록됐습니다." : "Your card is live in Elev8."}
+          </p>
+          <p className="text-[11px] text-white/35">
+            {lang === "kr"
+              ? "같은 고민을 가진 멤버들이 당신을 찾게 됩니다."
+              : "Peers exploring the same challenges will find you."}
+          </p>
         </div>
 
-        <p className="text-[11px] text-white/30">
-          {lang === "kr" ? "키워드를 탭하면 전체 설명을 볼 수 있습니다" : "Tap any keyword to see the full description"}
-        </p>
+        <a
+          href={`/signal/archive?email=${encodeURIComponent(member.email)}`}
+          className="flex w-full h-11 items-center justify-center gap-2 rounded-xl bg-primary text-[13px] font-semibold text-primary-foreground hover:bg-primary/90 transition-all"
+        >
+          {lang === "kr" ? "지난 Signal 보러 가기" : "Explore past Signals"}
+          <ArrowRight className="size-3.5" />
+        </a>
+
         <Button variant="ghost" onClick={() => setStep("about")} className="h-9 text-white/35 hover:text-white/55 text-[11px]">
           {lang === "kr" ? "카드 수정" : "Edit my card"}
         </Button>
