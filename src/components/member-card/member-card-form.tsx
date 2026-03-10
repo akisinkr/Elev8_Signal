@@ -1538,11 +1538,26 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
             <h3 className="text-sm font-medium text-white/70">
               {lang === "kr" ? "추천 연결" : "Suggested connections"}
             </h3>
+            <button
+              onClick={() => setExpandedItem(expandedItem === "__why__" ? null : "__why__")}
+              className="flex items-center justify-center size-4 rounded-full border border-white/[0.12] text-white/30 hover:text-white/60 hover:border-white/25 transition-colors text-[9px] font-bold leading-none"
+            >
+              ?
+            </button>
           </div>
           <button onClick={loadMatches} disabled={loadingMatches} className="text-[10px] text-white/35 hover:text-white/55 transition-colors">
             {loadingMatches ? <RefreshCw className="size-3 animate-spin" /> : (lang === "kr" ? "새로고침" : "Refresh")}
           </button>
         </div>
+
+        {expandedItem === "__why__" && (
+          <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 text-[11px] text-white/45 leading-relaxed">
+            {lang === "kr"
+              ? "AI가 내 슈퍼파워와 고민을 분석해 서로에게 도움이 될 수 있는 멤버를 추천합니다. ⚡는 상대방의 강점, →는 연결이 도움이 될 수 있는 이유입니다."
+              : "AI matches you with members whose superpowers align with your challenges — and vice versa. ⚡ is what they bring. → is why it's relevant to you."}
+          </div>
+        )}
+
 
         {matchSuggestions.length > 0 ? (
           <div className="space-y-3">
