@@ -30,7 +30,7 @@ export function SignalYourVsGroup({
     if (!memberAnswer) return null;
     if (isMatch) return tr("withMajority", lang);
     if (memberPercentage !== undefined && memberPercentage <= 15) {
-      return `${tr("boldPick", lang)} ${memberPercentage}%${lang === "kr" ? "만 이 선택을 했습니다." : " chose this."}`;
+      return `${tr("boldPick", lang)} ${memberPercentage}% ${tr("choseThis", lang)}`;
     }
     if (memberPercentage !== undefined && memberPercentage >= 40) {
       return tr("closeCall", lang);

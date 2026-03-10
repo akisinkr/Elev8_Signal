@@ -91,10 +91,10 @@ export function SignalResultsClient({
         if (res.ok) {
           setResults(data);
         } else {
-          setEmailError(data.error || "Invalid link. Please enter your email.");
+          setEmailError(data.error || (lang === "kr" ? "유효하지 않은 링크입니다. 이메일을 입력해 주세요." : "Invalid link. Please enter your email."));
         }
       } catch {
-        setEmailError("Something went wrong. Please enter your email.");
+        setEmailError(lang === "kr" ? "문제가 발생했습니다. 이메일을 입력해 주세요." : "Something went wrong. Please enter your email.");
       } finally {
         setIsLoading(false);
       }
@@ -119,10 +119,10 @@ export function SignalResultsClient({
         if (res.ok) {
           setResults(data);
         } else {
-          setEmailError(data.error || "Could not load results.");
+          setEmailError(data.error || (lang === "kr" ? "결과를 불러올 수 없습니다." : "Could not load results."));
         }
       } catch {
-        setEmailError("Something went wrong. Please try again.");
+        setEmailError(lang === "kr" ? "문제가 발생했습니다. 다시 시도해 주세요." : "Something went wrong. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -150,7 +150,7 @@ export function SignalResultsClient({
         if (data.needsVote) {
           setClosedSignal(true);
         } else if (data.notPublished) {
-          setEmailError("Results aren't available yet. Stay tuned.");
+          setEmailError(lang === "kr" ? "아직 결과가 공개되지 않았습니다." : "Results aren't available yet. Stay tuned.");
         } else {
           setNotMember(true);
         }
@@ -165,7 +165,7 @@ export function SignalResultsClient({
 
       setResults(data);
     } catch {
-      setEmailError("Something went wrong. Please try again.");
+      setEmailError(lang === "kr" ? "문제가 발생했습니다. 다시 시도해 주세요." : "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -204,7 +204,7 @@ export function SignalResultsClient({
     return (
       <div className="flex flex-col min-h-[60vh] justify-center items-center">
         <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="mt-4 text-sm text-muted-foreground">Loading results...</p>
+        <p className="mt-4 text-sm text-muted-foreground">{tr("loadingResults", lang)}</p>
       </div>
     );
   }
@@ -239,10 +239,10 @@ export function SignalResultsClient({
 
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-foreground">
-                This Signal has closed
+                {tr("signalClosed", lang)}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Stay tuned for the next one — your vote unlocks exclusive peer insights!
+                {tr("signalClosedBody", lang)}
               </p>
             </div>
 
@@ -254,7 +254,7 @@ export function SignalResultsClient({
                 "hover:bg-primary/90 active:scale-[0.98]"
               )}
             >
-              View Past Results
+              {tr("viewPastResults", lang)}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -311,10 +311,10 @@ export function SignalResultsClient({
 
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-foreground">
-                This Conversation is Members-Only
+                {tr("membersOnly", lang)}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Elev8 Signal captures what senior leaders actually think — unfiltered, anonymous, and only available to vetted members. Want in?
+                {tr("membersOnlyDesc", lang)}
               </p>
             </div>
 
@@ -326,7 +326,7 @@ export function SignalResultsClient({
                 "hover:bg-primary/90 active:scale-[0.98]"
               )}
             >
-              Request Access
+              {tr("requestAccess", lang)}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -455,7 +455,7 @@ export function SignalResultsClient({
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5" /><path d="m12 19-7-7 7-7" /></svg>
-          Archive
+          {tr("archive", lang)}
         </Link>
         <SignalLanguageToggle lang={lang} onLangChange={setLang} />
       </div>
@@ -502,7 +502,7 @@ export function SignalResultsClient({
         lang={lang}
       />
 
-      <SignalSuggestQuestion email={email} />
+      <SignalSuggestQuestion email={email} lang={lang} />
 
     </div>
   );

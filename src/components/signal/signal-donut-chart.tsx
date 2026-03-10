@@ -7,6 +7,7 @@ import { tr } from "@/lib/signal-translations";
 interface DistributionItem {
   answer: string;
   label: string;
+  labelKr?: string | null;
   count: number;
   percentage: number;
 }
@@ -126,7 +127,7 @@ export function SignalDonutChart({
                     )}
                   </div>
                   <p className="text-sm text-foreground/80 leading-snug mt-0.5">
-                    {item.label}
+                    {(lang === "kr" && item.labelKr) ? item.labelKr : item.label}
                   </p>
                 </div>
               </div>

@@ -4,12 +4,15 @@ import * as React from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Lightbulb } from "lucide-react";
+import type { Lang } from "@/lib/signal-translations";
+import { tr } from "@/lib/signal-translations";
 
 interface SignalSuggestQuestionProps {
   email: string;
+  lang?: Lang;
 }
 
-export function SignalSuggestQuestion({ email }: SignalSuggestQuestionProps) {
+export function SignalSuggestQuestion({ email, lang = "en" }: SignalSuggestQuestionProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [question, setQuestion] = React.useState("");
   const [context, setContext] = React.useState("");
@@ -34,16 +37,16 @@ export function SignalSuggestQuestion({ email }: SignalSuggestQuestionProps) {
 
       if (!res.ok) {
         const data = await res.json();
-        toast.error(data.error || "Failed to submit suggestion");
+        toast.error(data.error || (lang === "kr" ? "제출에 실패했습니다." : "Failed to submit suggestion"));
         return;
       }
 
-      toast.success("Question submitted! We'll review it soon.");
+      toast.success(lang === "kr" ? "질문을 제안해 주셔서 감사합니다." : "Question submitted! We'll review it soon.");
       setSubmitted(true);
       setQuestion("");
       setContext("");
     } catch {
-      toast.error("Something went wrong. Please try again.");
+      toast.error(lang === "kr" ? "문제가 발생했습니다. 다시 시도해 주세요." : "Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -53,9 +56,9 @@ export function SignalSuggestQuestion({ email }: SignalSuggestQuestionProps) {
     return (
       <div className="rounded-lg border bg-card p-6 text-center">
         <Lightbulb className="mx-auto size-6 text-primary" />
-        <p className="mt-2 text-sm font-medium">Thanks for your suggestion!</p>
+        <p className="mt-2 text-sm font-medium">{tr("suggestThanks", lang)}</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          We&apos;ll review it and may include it in a future Signal.
+          {tr("suggestThanksBody", lang)}
         </p>
       </div>
     );
@@ -71,13 +74,13 @@ export function SignalSuggestQuestion({ email }: SignalSuggestQuestionProps) {
           <Lightbulb className="size-6 text-primary" />
         </div>
         <p className="mt-3 text-base font-semibold text-foreground">
-          Shape the next Signal
+          {tr("suggestShapeNext", lang)}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Suggest a question that matters to you — your peers will vote on it
+          {tr("suggestSubtitle", lang)}
         </p>
         <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
-          Submit a question
+          {tr("suggestCTA", lang)}
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
         </span>
       </button>
@@ -88,19 +91,19 @@ export function SignalSuggestQuestion({ email }: SignalSuggestQuestionProps) {
     <div className="rounded-lg border bg-card p-6">
       <div className="flex items-center gap-2 mb-4">
         <Lightbulb className="size-4 text-primary" />
-        <h3 className="text-sm font-semibold">Suggest a Question</h3>
+        <h3 className="text-sm font-semibold">{tr("suggestTitle", lang)}</h3>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <label htmlFor="suggest-question" className="text-xs font-medium">
-            Your question
+            {tr("suggestQuestionLabel", lang)}
           </label>
           <textarea
             id="suggest-question"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="What would you like to ask other senior leaders?"
+            placeholder={tr("suggestQuestionPlaceholder", lang)}
             maxLength={500}
             rows={3}
             className={cn(
@@ -113,14 +116,14 @@ export function SignalSuggestQuestion({ email }: SignalSuggestQuestionProps) {
 
         <div className="space-y-2">
           <label htmlFor="suggest-context" className="text-xs font-medium">
-            Why does this matter?{" "}
-            <span className="text-muted-foreground">(optional)</span>
+            {tr("suggestWhyLabel", lang)}{" "}
+            <span className="text-muted-foreground">({tr("suggestWhyOptional", lang)})</span>
           </label>
           <textarea
             id="suggest-context"
             value={context}
             onChange={(e) => setContext(e.target.value)}
-            placeholder="Brief context on why this is relevant right now..."
+            placeholder={tr("suggestWhyPlaceholder", lang)}
             maxLength={300}
             rows={2}
             className={cn(
@@ -137,7 +140,7 @@ export function SignalSuggestQuestion({ email }: SignalSuggestQuestionProps) {
             onClick={() => setIsOpen(false)}
             className="rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            Cancel
+            {tr("suggestCancel", lang)}
           </button>
           <button
             type="submit"
@@ -149,7 +152,7 @@ export function SignalSuggestQuestion({ email }: SignalSuggestQuestionProps) {
               "disabled:opacity-50 disabled:cursor-not-allowed"
             )}
           >
-            {isSubmitting ? "Submitting..." : "Submit Question"}
+            {isSubmitting ? tr("suggestSubmitting", lang) : tr("suggestSubmit", lang)}
           </button>
         </div>
       </form>
