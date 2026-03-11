@@ -69,6 +69,8 @@ export async function POST(
       headline: buildAnonymousHeadline(m),
       superpower: buildSuperpowerLine(m),
       canHelpWith: buildCanHelpWith(m),
+      spScale: m.spScale ?? null,
+      challengeSpec1: m.challengeSpec1 ?? null,
     }));
 
     return NextResponse.json({
@@ -112,6 +114,7 @@ async function findSuperpowerMatches(excludeMemberId: string, challengeType: str
       spGeo: true,
       challengeType1: true,
       challengeSpec1: true,
+      // included for profile sheet
     },
   });
 

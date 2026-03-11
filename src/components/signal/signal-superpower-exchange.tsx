@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, ArrowRight, Users } from "lucide-react";
+import { CheckCircle2, ArrowRight, Users, ChevronRight, X } from "lucide-react";
 
 // ─────────────────────────────────────────────
 // Types
@@ -14,6 +14,8 @@ interface SuperpowerMember {
   headline: string;
   superpower: string;
   canHelpWith: string;
+  spScale: string | null;
+  challengeSpec1: string | null;
 }
 
 interface SignalSuperpowerExchangeProps {
@@ -27,27 +29,30 @@ interface SignalSuperpowerExchangeProps {
 type Stage = 1 | 2 | 3;
 
 // ─────────────────────────────────────────────
-// Copy — cognitive-psychology + culture-agent doctrine
+// Copy — cognitive-psychology + culture-agent + ux-design doctrine
 //
-// STAGE 1 — Status Affirmation (self-affirmation before vulnerability)
-//   Affirm the member's contribution before revealing leaders.
-//   Loss aversion framing: their vantage point is rare, not a gap.
+// STAGE 1 — Status Affirmation
+//   Affirm before asking for vulnerability.
+//   Loss aversion: rarity = value, not a gap.
 //
-// STAGE 2 — Leader Reveal (peer browsing, not help-seeking)
-//   Frame as "browsing expertise" not "asking for help".
-//   Social proof normalization: others do this, it's normal.
-//   Button always active — auto-select first member on load.
+// STAGE 2 — Leader Browse (tap card → profile sheet)
+//   "Browsing expertise" framing, not "searching for help".
+//   No CTA button on the list — action lives inside the profile sheet.
+//   This enforces: see the person first, then decide. Deliberate choice.
 //
-// STAGE 3 — Confirmation (platform takes ownership, passive voice in KR)
-//   "Elev8 will connect you" — Elev8 acts, member receives.
-//   Reduces status cost of having requested help.
+// PROFILE SHEET — Full expertise view
+//   Leads with expertise (ux-design: "lead with superpower, not person")
+//   "Request Exchange" CTA is here — earned after seeing the profile.
+//   "Both sides visible" — canHelpWith + challengeSpec1 normalizes vulnerability.
+//
+// STAGE 3 — Confirmation
+//   Platform takes ownership. Passive voice in KR → protects 체면.
 //
 // KR: -요체 throughout. Re-creation, not translation.
 // ─────────────────────────────────────────────
 
 const COPY = {
   en: {
-    // Stage 1
     s1Label: "Your Signal contribution",
     s1Heading: "Your read on this is uncommon.",
     s1Sub:
@@ -55,23 +60,23 @@ const COPY = {
     s1Social: (n: number) => `${n} members requested exchanges on this topic this month.`,
     s1Cta: "See who else is navigating this",
 
-    // Stage 2
     s2Label: "Members navigating this from a different vantage point",
     s2Social: (n: number) => `${n} members requested exchanges on this topic this month.`,
-    s2Cta: "Request Exchange",
-    s2Sending: "Requesting...",
+    s2Tap: "Tap to view profile",
 
-    // Stage 3
+    sheetExpertise: "Expertise",
+    sheetCanHelpWith: "What they can help with",
+    sheetContext: "Context",
+    sheetCta: "Request Exchange",
+    sheetSending: "Requesting...",
+    sheetBack: "Back to all leaders",
+
     s3Heading: "Exchange requested.",
     s3Sub: "Elev8 will make the introduction personally. We'll be in touch within 24 hours.",
 
-    // Shared
     yourPerspective: "Your perspective",
   },
   kr: {
-    // Stage 1
-    // ─ 인정(recognition) + 희소성(rarity as value) 반영
-    // ─ 번역체 제거: "당신의 읽기는" → "이 문제에 대한 시각"
     s1Label: "이번 Signal 응답",
     s1Heading: "이 문제에 대한 시각, 흔하지 않습니다.",
     s1Sub:
@@ -79,20 +84,21 @@ const COPY = {
     s1Social: (n: number) => `이번 달 ${n}명의 멤버가 이 주제로 익스체인지를 신청했습니다.`,
     s1Cta: "같은 지형을 탐색하는 리더 보기",
 
-    // Stage 2
-    // ─ "도움 요청"이 아닌 "전문성 탐색"으로 프레이밍
-    // ─ 소개자(Elev8) 존재 명시 → 체면 보호
     s2Label: "같은 지형, 다른 좌표에서 온 리더들",
     s2Social: (n: number) => `이번 달 ${n}명이 이 주제로 익스체인지를 신청했습니다.`,
-    s2Cta: "익스체인지 신청하기",
-    s2Sending: "신청 중...",
+    s2Tap: "프로필 보기",
 
-    // Stage 3
+    sheetExpertise: "전문 분야",
+    sheetCanHelpWith: "도움이 될 수 있는 영역",
+    sheetContext: "경험 맥락",
+    sheetCta: "익스체인지 신청하기",
+    sheetSending: "신청 중...",
+    sheetBack: "전체 리더 보기",
+
     // ─ 수동태: Elev8이 행동, 멤버는 받는 쪽 → 체면 유지
     s3Heading: "익스체인지가 신청되었습니다.",
     s3Sub: "Elev8이 직접 연결해 드립니다. 24시간 이내에 연락드릴게요.",
 
-    // Shared
     yourPerspective: "나의 관점",
   },
 };
@@ -112,7 +118,7 @@ export function SignalSuperpowerExchange({
   const [exchangeCount, setExchangeCount] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
   const [stage, setStage] = React.useState<Stage>(1);
-  const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const [sheetMember, setSheetMember] = React.useState<SuperpowerMember | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
 
   React.useEffect(() => {
@@ -128,10 +134,7 @@ export function SignalSuperpowerExchange({
           if (typeof data.exchangeCount === "number") setExchangeCount(data.exchangeCount);
           const matches: SuperpowerMember[] =
             data.matches?.length > 0 ? data.matches : data.match ? [data.match] : [];
-          if (matches.length > 0) {
-            setMembers(matches);
-            setSelectedId(matches[0].id); // auto-select first — button always active
-          }
+          if (matches.length > 0) setMembers(matches);
         }
       } catch {
         // Silent
@@ -142,16 +145,19 @@ export function SignalSuperpowerExchange({
     fetchMatches();
   }, [signalNumber, email]);
 
-  async function handleRequestExchange() {
-    if (!selectedId || submitting) return;
+  async function handleRequestExchange(memberId: string) {
+    if (submitting) return;
     setSubmitting(true);
     try {
       const res = await fetch(`/api/signal/${signalNumber}/request-intro`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, matchedMemberId: selectedId }),
+        body: JSON.stringify({ email, matchedMemberId: memberId }),
       });
-      if (res.ok) setStage(3);
+      if (res.ok) {
+        setSheetMember(null);
+        setStage(3);
+      }
     } catch {
       // Silent
     } finally {
@@ -172,149 +178,222 @@ export function SignalSuperpowerExchange({
   if (members.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/[0.03] to-transparent overflow-hidden">
+    <>
+      <div className="rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/[0.03] to-transparent overflow-hidden">
 
-      {/* ── Step indicator ───────────────────────────────────────────── */}
-      <div className="flex items-center justify-center gap-1.5 pt-5 pb-0">
-        {([1, 2, 3] as Stage[]).map((s) => (
-          <span
-            key={s}
-            className={cn(
-              "size-2 rounded-full transition-colors duration-200",
-              s === stage ? "bg-primary" : "bg-muted"
-            )}
-          />
-        ))}
-      </div>
-
-      {/* ── Stage 1: Status Affirmation ──────────────────────────────── */}
-      {stage === 1 && (
-        <div className="p-6 space-y-4">
-          {/* Member's own answer — affirms their contribution */}
-          {memberAnswer && memberAnswerLabel && (
-            <div className="rounded-xl bg-card border border-border/60 px-4 py-3">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
-                {txt.yourPerspective}
-              </p>
-              <div className="flex items-center gap-3">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold">
-                  {memberAnswer}
-                </span>
-                <p className="text-sm text-foreground">{memberAnswerLabel}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Affirmation headline + subtext */}
-          <div className="space-y-2">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-              {txt.s1Label}
-            </p>
-            <h3 className="text-lg font-semibold text-foreground leading-snug">
-              {txt.s1Heading}
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {txt.s1Sub}
-            </p>
-          </div>
-
-          {/* Social proof normalization */}
-          {exchangeCount > 0 && (
-            <div className="flex items-center gap-2">
-              <Users className="size-3.5 text-muted-foreground/60 shrink-0" />
-              <p className="text-xs text-muted-foreground">{txt.s1Social(exchangeCount)}</p>
-            </div>
-          )}
-
-          {/* CTA — always active, single action */}
-          <button
-            onClick={() => setStage(2)}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-4 text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all"
-          >
-            {txt.s1Cta}
-            <ArrowRight className="size-4" />
-          </button>
+        {/* ── Step indicator ─────────────────────────────────────────── */}
+        <div className="flex items-center justify-center gap-1.5 pt-5 pb-0">
+          {([1, 2, 3] as Stage[]).map((s) => (
+            <span
+              key={s}
+              className={cn(
+                "size-2 rounded-full transition-colors duration-200",
+                s === stage ? "bg-primary" : "bg-muted"
+              )}
+            />
+          ))}
         </div>
-      )}
 
-      {/* ── Stage 2: Leader Reveal ────────────────────────────────────── */}
-      {stage === 2 && (
-        <div className="p-6 space-y-4">
-          <div className="space-y-1.5">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-              {txt.s2Label}
-            </p>
+        {/* ── Stage 1: Status Affirmation ──────────────────────────── */}
+        {stage === 1 && (
+          <div className="p-6 space-y-4">
+            {memberAnswer && memberAnswerLabel && (
+              <div className="rounded-xl bg-card border border-border/60 px-4 py-3">
+                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+                  {txt.yourPerspective}
+                </p>
+                <div className="flex items-center gap-3">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold">
+                    {memberAnswer}
+                  </span>
+                  <p className="text-sm text-foreground">{memberAnswerLabel}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                {txt.s1Label}
+              </p>
+              <h3 className="text-lg font-semibold text-foreground leading-snug">
+                {txt.s1Heading}
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {txt.s1Sub}
+              </p>
+            </div>
+
             {exchangeCount > 0 && (
               <div className="flex items-center gap-2">
                 <Users className="size-3.5 text-muted-foreground/60 shrink-0" />
-                <p className="text-xs text-muted-foreground">{txt.s2Social(exchangeCount)}</p>
+                <p className="text-xs text-muted-foreground">{txt.s1Social(exchangeCount)}</p>
               </div>
             )}
-          </div>
 
-          {/* Leader cards — browsing expertise, not asking for help */}
-          <div className="space-y-2">
-            {members.map((member) => (
-              <button
-                key={member.id}
-                type="button"
-                onClick={() => setSelectedId(member.id)}
-                className={cn(
-                  "flex w-full items-center gap-4 rounded-xl border-2 p-4 text-left transition-all active:scale-[0.98]",
-                  selectedId === member.id
-                    ? "border-primary bg-primary/5 shadow-sm shadow-primary/10"
-                    : "border-border/60 bg-card hover:border-muted-foreground/30"
-                )}
-              >
-                <div
-                  className={cn(
-                    "flex size-11 shrink-0 items-center justify-center rounded-full font-bold text-sm transition-colors",
-                    selectedId === member.id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  )}
+            <button
+              onClick={() => setStage(2)}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-4 text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all"
+            >
+              {txt.s1Cta}
+              <ArrowRight className="size-4" />
+            </button>
+          </div>
+        )}
+
+        {/* ── Stage 2: Leader Browse ────────────────────────────────── */}
+        {/* Tap a card → opens profile sheet. No CTA here — action is in the sheet.  */}
+        {/* This enforces deliberate choice: see the person before requesting.         */}
+        {stage === 2 && (
+          <div className="p-6 space-y-4">
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                {txt.s2Label}
+              </p>
+              {exchangeCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <Users className="size-3.5 text-muted-foreground/60 shrink-0" />
+                  <p className="text-xs text-muted-foreground">{txt.s2Social(exchangeCount)}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              {members.map((member) => (
+                <button
+                  key={member.id}
+                  type="button"
+                  onClick={() => setSheetMember(member)}
+                  className="flex w-full items-center gap-4 rounded-xl border-2 border-border/60 bg-card p-4 text-left transition-all hover:border-muted-foreground/30 active:scale-[0.98]"
                 >
-                  {member.initial}
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-muted font-bold text-sm text-muted-foreground">
+                    {member.initial}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{member.headline}</p>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{member.superpower}</p>
+                  </div>
+                  <ChevronRight className="size-4 shrink-0 text-muted-foreground/40" />
+                </button>
+              ))}
+            </div>
+
+            <p className="text-center text-xs text-muted-foreground/60">{txt.s2Tap}</p>
+          </div>
+        )}
+
+        {/* ── Stage 3: Confirmation ────────────────────────────────────── */}
+        {stage === 3 && (
+          <div className="p-8 flex flex-col items-center gap-3 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+              <CheckCircle2 className="size-6 text-primary" />
+            </div>
+            <h3 className="text-base font-semibold text-foreground">{txt.s3Heading}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">{txt.s3Sub}</p>
+          </div>
+        )}
+
+      </div>
+
+      {/* ── Profile Sheet ─────────────────────────────────────────────── */}
+      {/* Fixed overlay — escapes overflow:hidden, works on all devices   */}
+      {/* Lead with expertise (ux-design), both sides visible (psychology) */}
+      {sheetMember && (
+        <div className="fixed inset-0 z-50 flex items-end">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSheetMember(null)}
+          />
+
+          {/* Sheet */}
+          <div className="relative w-full max-h-[85vh] overflow-y-auto rounded-t-2xl bg-background border-t border-border/60 pb-safe">
+
+            {/* Handle + close */}
+            <div className="flex items-center justify-between px-6 pt-4 pb-2">
+              <div className="w-10 h-1 rounded-full bg-muted mx-auto absolute left-1/2 -translate-x-1/2 top-3" />
+              <div />
+              <button
+                onClick={() => setSheetMember(null)}
+                className="ml-auto flex size-8 items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
+              >
+                <X className="size-4 text-muted-foreground" />
+              </button>
+            </div>
+
+            <div className="px-6 pb-8 space-y-5">
+              {/* Avatar + role */}
+              <div className="flex items-center gap-4">
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-lg text-primary">
+                  {sheetMember.initial}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{member.headline}</p>
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">{member.superpower}</p>
+                <div>
+                  <p className="text-base font-semibold text-foreground">{sheetMember.headline}</p>
                 </div>
-                {selectedId === member.id && (
-                  <CheckCircle2 className="size-4 shrink-0 text-primary" />
+              </div>
+
+              {/* Expertise — lead with superpower, not biography */}
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                  {txt.sheetExpertise}
+                </p>
+                <p className="text-sm text-foreground leading-relaxed">{sheetMember.superpower}</p>
+              </div>
+
+              {/* What they can help with */}
+              {sheetMember.canHelpWith && (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                    {txt.sheetCanHelpWith}
+                  </p>
+                  <p className="text-sm text-foreground leading-relaxed">{sheetMember.canHelpWith}</p>
+                </div>
+              )}
+
+              {/* Context — scale or challenge navigated */}
+              {(sheetMember.spScale || sheetMember.challengeSpec1) && (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                    {txt.sheetContext}
+                  </p>
+                  <div className="space-y-1">
+                    {sheetMember.spScale && (
+                      <p className="text-sm text-foreground">{sheetMember.spScale}</p>
+                    )}
+                    {sheetMember.challengeSpec1 && (
+                      <p className="text-sm text-muted-foreground">{sheetMember.challengeSpec1}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Divider */}
+              <div className="h-px bg-border/60" />
+
+              {/* CTA — earned after seeing the profile */}
+              <button
+                onClick={() => handleRequestExchange(sheetMember.id)}
+                disabled={submitting}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-4 text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-60"
+              >
+                {submitting ? txt.sheetSending : (
+                  <>
+                    {txt.sheetCta}
+                    <ArrowRight className="size-4" />
+                  </>
                 )}
               </button>
-            ))}
-          </div>
 
-          {/* CTA — always active (auto-selected first member on load) */}
-          <button
-            onClick={handleRequestExchange}
-            disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-4 text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-60"
-          >
-            {submitting ? txt.s2Sending : (
-              <>
-                {txt.s2Cta}
-                <ArrowRight className="size-4" />
-              </>
-            )}
-          </button>
+              {/* Back link */}
+              <button
+                onClick={() => setSheetMember(null)}
+                className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
+              >
+                ← {txt.sheetBack}
+              </button>
+            </div>
+          </div>
         </div>
       )}
-
-      {/* ── Stage 3: Confirmation ─────────────────────────────────────── */}
-      {/* Elev8 takes ownership — reduces status cost of having asked */}
-      {stage === 3 && (
-        <div className="p-8 flex flex-col items-center gap-3 text-center">
-          <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-            <CheckCircle2 className="size-6 text-primary" />
-          </div>
-          <h3 className="text-base font-semibold text-foreground">{txt.s3Heading}</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">{txt.s3Sub}</p>
-        </div>
-      )}
-
-    </div>
+    </>
   );
 }
