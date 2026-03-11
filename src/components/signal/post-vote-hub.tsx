@@ -188,54 +188,40 @@ export function PostVoteHub({
           {txt.teaser}
         </p>
 
-        {/* ── CTAs ── */}
+        {/* ── CTA ── */}
         <div
           className="flex flex-col gap-2.5"
           style={{ animation: "fadeInUp 0.5s ease-out 0.4s both" }}
         >
           {!loading && !cardCompleted ? (
-            <>
-              <Link
-                href={profileUrl}
-                className={cn(
-                  "flex flex-col items-center gap-0.5 rounded-2xl py-4 px-5",
-                  "bg-primary text-primary-foreground",
-                  "hover:bg-primary/90 active:scale-[0.98] transition-all"
-                )}
-              >
-                <span className="text-sm font-semibold flex items-center gap-1.5">
-                  {txt.buildCard}
-                  <ArrowRight className="size-4" />
-                </span>
-                <span className="text-[11px] opacity-75">{txt.buildCardSub}</span>
-              </Link>
-              <Link
-                href={archiveUrl}
-                className="text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
-              >
-                {txt.explorePast} →
-              </Link>
-            </>
+            <Link
+              href={profileUrl}
+              className={cn(
+                "flex flex-col items-center gap-0.5 rounded-2xl py-4 px-5",
+                "bg-primary text-primary-foreground",
+                "hover:bg-primary/90 active:scale-[0.98] transition-all"
+              )}
+            >
+              <span className="text-sm font-semibold flex items-center gap-1.5">
+                {txt.buildCard}
+                <ArrowRight className="size-4" />
+              </span>
+              <span className="text-[11px] opacity-75">{txt.buildCardSub}</span>
+            </Link>
           ) : (
-            <>
-              <Link
-                href={archiveUrl}
-                className={cn(
-                  "flex items-center justify-center gap-2 rounded-2xl py-3.5 px-5",
-                  "bg-card border border-border/60 text-sm font-medium text-foreground",
-                  "hover:bg-muted/50 active:scale-[0.98] transition-all"
-                )}
-              >
+            <Link
+              href={archiveUrl}
+              className={cn(
+                "flex items-center justify-center gap-2 rounded-2xl py-4 px-5",
+                "bg-primary text-primary-foreground",
+                "hover:bg-primary/90 active:scale-[0.98] transition-all"
+              )}
+            >
+              <span className="text-sm font-semibold flex items-center gap-1.5">
                 {txt.explorePast}
                 <ArrowRight className="size-4" />
-              </Link>
-              <Link
-                href={profileUrl}
-                className="text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
-              >
-                {txt.editProfile} →
-              </Link>
-            </>
+              </span>
+            </Link>
           )}
         </div>
 

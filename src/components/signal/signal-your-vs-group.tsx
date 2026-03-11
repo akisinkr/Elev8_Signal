@@ -16,6 +16,8 @@ interface SignalYourVsGroupProps {
   lang?: Lang;
 }
 
+const MIN_VOTES_FOR_PERCENTAGES = 10;
+
 export function SignalYourVsGroup({
   memberAnswer,
   topAnswer,
@@ -25,6 +27,7 @@ export function SignalYourVsGroup({
   lang = "en",
 }: SignalYourVsGroupProps) {
   const isMatch = memberAnswer?.key === topAnswer.key;
+  const showPercentages = totalVotes >= MIN_VOTES_FOR_PERCENTAGES;
 
   function getNarrative() {
     if (!memberAnswer) return null;
@@ -55,7 +58,7 @@ export function SignalYourVsGroup({
               <p className="mt-1 text-sm text-foreground">
                 {memberAnswer.label}
               </p>
-              {memberPercentage !== undefined && (
+              {showPercentages && memberPercentage !== undefined && (
                 <p className="mt-1 text-xs text-muted-foreground">
                   {memberPercentage}% {tr("ofVotes", lang)}
                 </p>
@@ -73,7 +76,7 @@ export function SignalYourVsGroup({
           <p className="text-2xl font-bold text-primary">{topAnswer.key}</p>
           <p className="mt-1 text-sm text-foreground">{topAnswer.label}</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {topPercentage !== undefined ? `${topPercentage}% · ` : ""}
+            {showPercentages && topPercentage !== undefined ? `${topPercentage}% · ` : ""}
             {totalVotes} {tr("votes", lang)}
           </p>
         </div>

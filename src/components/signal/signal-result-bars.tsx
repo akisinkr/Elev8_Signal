@@ -19,6 +19,8 @@ interface SignalResultBarsProps {
   lang?: Lang;
 }
 
+const MIN_VOTES_FOR_PERCENTAGES = 10;
+
 export function SignalResultBars({
   distribution,
   totalVotes,
@@ -26,6 +28,7 @@ export function SignalResultBars({
   lang = "en",
 }: SignalResultBarsProps) {
   const maxPercentage = Math.max(...distribution.map((d) => d.percentage));
+  const showPercentages = totalVotes >= MIN_VOTES_FOR_PERCENTAGES;
   const [animated, setAnimated] = React.useState(false);
 
   React.useEffect(() => {
@@ -44,6 +47,14 @@ export function SignalResultBars({
         </span>
         {totalVotes} {totalVotes === 1 ? tr("leaderWeighedIn", lang) : tr("leadersWeighedIn", lang)}
       </div>
+
+      {!showPercentages && (
+        <p className="text-xs text-muted-foreground italic">
+          {lang === "kr"
+            ? `응답자가 ${MIN_VOTES_FOR_PERCENTAGES}명 이상이 되면 비율이 표시됩니다.`
+            : `Percentages will appear once ${MIN_VOTES_FOR_PERCENTAGES}+ leaders have responded.`}
+        </p>
+      )}
 
       <div className="space-y-2">
         {distribution.map((item, index) => {
@@ -70,17 +81,19 @@ export function SignalResultBars({
                     </span>
                   )}
                 </div>
-                <span
-                  className={cn(
-                    "text-muted-foreground transition-opacity duration-500",
-                    animated ? "opacity-100" : "opacity-0"
-                  )}
-                  style={{
-                    transitionDelay: `${index * 120 + 400}ms`,
-                  }}
-                >
-                  {item.percentage}% ({item.count})
-                </span>
+                {showPercentages && (
+                  <span
+                    className={cn(
+                      "text-muted-foreground transition-opacity duration-500",
+                      animated ? "opacity-100" : "opacity-0"
+                    )}
+                    style={{
+                      transitionDelay: `${index * 120 + 400}ms`,
+                    }}
+                  >
+                    {item.percentage}% ({item.count})
+                  </span>
+                )}
               </div>
               <div className="h-3 w-full overflow-hidden rounded-full bg-muted">
                 <div
