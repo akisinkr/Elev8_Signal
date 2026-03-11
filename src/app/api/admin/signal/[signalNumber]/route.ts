@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { logAdminAction, AUDIT } from "@/lib/audit-log";
 
 const updateSignalSchema = z.object({
   question: z.string().min(1).optional(),
@@ -118,6 +119,25 @@ export async function PATCH(
       where: { signalNumber: num },
       data: updateData,
     });
+
+    // Log status transitions
+    if (data.status && data.status !== existing.status) {
+      const actionMap: Record<string, string> = {
+        LIVE:      AUDIT.SIGNAL_PUBLISHED,
+        CLOSED:    AUDIT.SIGNAL_CLOSED,
+        PUBLISHED: AUDIT.SIGNAL_RESULTS_SENT,
+      };
+      const action = actionMap[data.status];
+      if (action) {
+        await logAdminAction({
+          admin,
+          action,
+          targetId: String(num),
+          targetLabel: `Signal #${num}`,
+          detail: { from: existing.status, to: data.status },
+        });
+      }
+    }
 
     return NextResponse.json(updated);
   } catch (error) {

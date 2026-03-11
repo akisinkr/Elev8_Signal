@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { sendEmail } from "@/lib/sendgrid";
 import { generateApprovalToken } from "@/lib/approval-token";
+import { logAdminAction, AUDIT } from "@/lib/audit-log";
 
 const updateSchema = z.object({
   status: z.enum(["APPROVED", "REJECTED"]),
@@ -93,6 +94,14 @@ export async function PATCH(
         `,
       });
     }
+
+    await logAdminAction({
+      admin,
+      action: data.status === "APPROVED" ? AUDIT.ACCESS_REQUEST_APPROVED : AUDIT.ACCESS_REQUEST_REJECTED,
+      targetId: updated.id,
+      targetLabel: `${updated.name} (${updated.email})`,
+      detail: { note: data.note ?? null },
+    });
 
     return NextResponse.json(updated);
   } catch (error) {

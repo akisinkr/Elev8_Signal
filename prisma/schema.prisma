@@ -276,6 +276,23 @@ model AccessRequest {
   @@index([email])
 }
 
+// ─── Admin Audit Log ─────────────────────────────────────────────
+
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  adminEmail  String
+  action      String   // e.g. "ACCESS_REQUEST_APPROVED", "SIGNAL_PUBLISHED"
+  targetId    String?  // e.g. accessRequest.id or signal signalNumber
+  targetLabel String?  // human-readable: "John Kim (john@co.com)" or "Signal #5"
+  detail      String?  // JSON string with extra context
+  createdAt   DateTime @default(now())
+
+  @@index([adminId])
+  @@index([createdAt])
+  @@index([action])
+}
+
 // ─── AI-Generated Signal Suggestions (from member challenges) ───
 
 model AiSignalSuggestion {

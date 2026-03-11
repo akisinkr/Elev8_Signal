@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, LogOut, ShieldPlus, UserPlus, Handshake, Users } from "lucide-react";
+import { BarChart3, LogOut, ShieldPlus, UserPlus, Handshake, Users, ScrollText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/admin/members", label: "Members", icon: Users },
   { href: "/admin/access-requests", label: "Access Requests", icon: UserPlus },
   { href: "/admin/signup", label: "Add Admin", icon: ShieldPlus },
+  { href: "/admin/audit-log", label: "Audit Log", icon: ScrollText },
 ];
 
 export function AdminSidebar() {
