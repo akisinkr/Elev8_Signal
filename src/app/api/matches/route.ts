@@ -10,7 +10,7 @@ export async function GET() {
       where: {
         OR: [{ member1Id: member.id }, { member2Id: member.id }],
       },
-      include: { member1: true, member2: true },
+      include: { member1: true, member2: true, matchScore: true },
       orderBy: { createdAt: "desc" },
     });
 

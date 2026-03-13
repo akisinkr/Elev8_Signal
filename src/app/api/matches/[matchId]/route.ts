@@ -20,7 +20,7 @@ export async function GET(
         id: matchId,
         OR: [{ member1Id: member.id }, { member2Id: member.id }],
       },
-      include: { member1: true, member2: true, messages: true, feedback: true },
+      include: { member1: true, member2: true, messages: true, feedback: true, matchScore: true, exchangeFeedback: true },
     });
 
     if (!match) {
@@ -58,6 +58,7 @@ export async function PATCH(
       where: { id: matchId },
       data: {
         ...(status && { status }),
+        ...(status === "ACCEPTED" && { acceptedAt: new Date() }),
         ...(status === "ACTIVE" && { matchedAt: new Date() }),
         ...(status === "COMPLETED" && { completedAt: new Date() }),
       },

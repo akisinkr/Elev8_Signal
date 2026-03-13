@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Send, Check, Clock } from "lucide-react";
+import { Send, Check, Clock, Scan, Loader2 } from "lucide-react";
 
 interface MemberRow {
   id: string;
@@ -27,6 +27,8 @@ interface MemberRow {
   dreamConnection: string | null;
   cardCompletedAt: string | null;
   createdAt: string;
+  linkedinUrl: string | null;
+  xrayStatus: string | null;
 }
 
 interface MembersTableProps {
@@ -35,6 +37,25 @@ interface MembersTableProps {
 
 export function MembersTable({ members }: MembersTableProps) {
   const [sending, setSending] = useState(false);
+  const [xrayRunning, setXrayRunning] = useState<Set<string>>(new Set());
+
+  const handleTriggerXray = async (memberId: string) => {
+    setXrayRunning((prev) => new Set(prev).add(memberId));
+    try {
+      const res = await fetch(`/api/admin/xray/${memberId}`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      toast.success("Xray analysis started");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to trigger Xray");
+    } finally {
+      setXrayRunning((prev) => {
+        const next = new Set(prev);
+        next.delete(memberId);
+        return next;
+      });
+    }
+  };
 
   const handleSendCardInvites = async () => {
     if (
@@ -98,6 +119,7 @@ export function MembersTable({ members }: MembersTableProps) {
               <TableHead>Company</TableHead>
               <TableHead>Superpowers</TableHead>
               <TableHead>Card</TableHead>
+              <TableHead>Xray</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -166,6 +188,37 @@ export function MembersTable({ members }: MembersTableProps) {
                       <Clock className="size-3.5" />
                       <span className="text-xs">Pending</span>
                     </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {member.xrayStatus === "COMPLETED" ? (
+                    <div className="flex items-center gap-1.5 text-emerald-400">
+                      <Check className="size-3.5" />
+                      <span className="text-xs font-medium">Done</span>
+                    </div>
+                  ) : member.xrayStatus === "PROCESSING" || xrayRunning.has(member.id) ? (
+                    <div className="flex items-center gap-1.5 text-amber-400">
+                      <Loader2 className="size-3.5 animate-spin" />
+                      <span className="text-xs">Running</span>
+                    </div>
+                  ) : member.xrayStatus === "FAILED" ? (
+                    <button
+                      onClick={() => handleTriggerXray(member.id)}
+                      className="flex items-center gap-1.5 text-red-400 hover:text-red-300 transition-colors"
+                    >
+                      <Scan className="size-3.5" />
+                      <span className="text-xs">Retry</span>
+                    </button>
+                  ) : member.linkedinUrl ? (
+                    <button
+                      onClick={() => handleTriggerXray(member.id)}
+                      className="flex items-center gap-1.5 text-muted-foreground hover:text-blue-400 transition-colors"
+                    >
+                      <Scan className="size-3.5" />
+                      <span className="text-xs">Run</span>
+                    </button>
+                  ) : (
+                    <span className="text-xs text-muted-foreground/50">No LinkedIn</span>
                   )}
                 </TableCell>
               </TableRow>

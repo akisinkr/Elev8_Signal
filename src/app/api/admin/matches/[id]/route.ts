@@ -24,6 +24,8 @@ export async function PUT(
 
     const data: Record<string, unknown> = { status };
     if (curatorNote !== undefined) data.curatorNote = curatorNote;
+    if (status === "PRESENTED") data.presentedAt = new Date();
+    if (status === "ACCEPTED") data.acceptedAt = new Date();
     if (status === "ACCEPTED" || status === "ACTIVE") data.matchedAt = new Date();
     if (status === "COMPLETED") data.completedAt = new Date();
 

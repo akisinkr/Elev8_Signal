@@ -74,6 +74,35 @@ enum AccessRequestStatus {
   REJECTED
 }
 
+enum MatchTier {
+  PLATINUM
+  GOLD
+  SILVER
+  CURIOUS
+  SKIP
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  BUSY
+  AWAY
+}
+
+enum XrayStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum FeedbackQuestionKey {
+  THE_GIFT
+  THE_SPARK
+  THE_FORWARD
+  THE_COFFEE
+  THE_BRIDGE
+}
+
 // ─── Models ──────────────────────────────────────────────
 
 model Member {
@@ -91,6 +120,7 @@ model Member {
   company          String?
   jobTitle         String?
   linkedinUrl      String?
+  phone            String?
   // ── 5-Dimension Superpower ──
   spDomain         String?         // Tech domain (e.g. "AI & Machine Learning")
   spAction         String?         // Specific action (e.g. "Scaling Teams")
@@ -138,34 +168,45 @@ model Member {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
-  matchesAsMember1 Match[]      @relation("MatchMember1")
-  matchesAsMember2 Match[]      @relation("MatchMember2")
-  messages         Message[]
-  feedback         Feedback[]
-  signalVotes      SignalVote[]
-  suggestions      SignalSuggestion[]
+  matchesAsMember1    Match[]              @relation("MatchMember1")
+  matchesAsMember2    Match[]              @relation("MatchMember2")
+  messages            Message[]
+  feedback            Feedback[]
+  signalVotes         SignalVote[]
+  suggestions         SignalSuggestion[]
+  xrayProfiles        XrayProfile[]
+  confidenceScore     ConfidenceScore?
+  availability        MemberAvailability?
+  exchangeFeedback    ExchangeFeedback[]
 
   @@index([clerkId])
 }
 
 model Match {
-  id          String      @id @default(cuid())
-  member1Id   String
-  member2Id   String
-  status      MatchStatus @default(PROPOSED)
-  curatorNote String?
-  matchedAt   DateTime?
-  completedAt DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id               String      @id @default(cuid())
+  member1Id        String
+  member2Id        String
+  status           MatchStatus @default(PROPOSED)
+  curatorNote      String?
+  matchReason      String?
+  matchReasonKr    String?
+  matchedAt        DateTime?
+  presentedAt      DateTime?
+  acceptedAt       DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
-  member1  Member     @relation("MatchMember1", fields: [member1Id], references: [id])
-  member2  Member     @relation("MatchMember2", fields: [member2Id], references: [id])
-  messages Message[]
-  feedback Feedback[]
+  member1          Member             @relation("MatchMember1", fields: [member1Id], references: [id])
+  member2          Member             @relation("MatchMember2", fields: [member2Id], references: [id])
+  messages         Message[]
+  feedback         Feedback[]
+  matchScore       MatchScore?
+  exchangeFeedback ExchangeFeedback[]
 
   @@index([member1Id])
   @@index([member2Id])
+  @@index([status])
 }
 
 model Message {
@@ -291,6 +332,108 @@ model AdminAuditLog {
   @@index([adminId])
   @@index([createdAt])
   @@index([action])
+}
+
+// ─── Superpower Engine: Xray & Scoring ──────────────────
+
+model XrayProfile {
+  id          String     @id @default(cuid())
+  memberId    String
+  linkedinUrl String
+  status      XrayStatus @default(PENDING)
+  rawData     Json?
+  summary     String?
+  summaryKr   String?
+  analyzedAt  DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  member       Member        @relation(fields: [memberId], references: [id])
+  bucketScores BucketScore[]
+
+  @@index([memberId])
+}
+
+model BucketScore {
+  id            String   @id @default(cuid())
+  xrayProfileId String
+  bucket        String   // "career_trajectory" | "domain_expertise" | "leadership" | "innovation" | "network" | "growth_potential"
+  score         Int      // 0-100
+  evidence      String[]
+  highlights    String[]
+  createdAt     DateTime @default(now())
+
+  xrayProfile XrayProfile @relation(fields: [xrayProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([xrayProfileId, bucket])
+  @@index([xrayProfileId])
+}
+
+model ConfidenceScore {
+  id            String   @id @default(cuid())
+  memberId      String   @unique
+  selfDeclared  Float    @default(0)
+  xrayVerified  Float    @default(0)
+  peerValidated Float    @default(0)
+  composite     Float    @default(0)
+  updatedAt     DateTime @updatedAt
+
+  member Member @relation(fields: [memberId], references: [id])
+}
+
+model MatchScore {
+  id               String    @id @default(cuid())
+  matchId          String    @unique
+  relevanceScore   Float
+  reciprocityScore Float
+  contextScore     Float
+  totalScore       Float
+  tier             MatchTier
+  reasoning        String?
+  reasoningKr      String?
+  createdAt        DateTime  @default(now())
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+}
+
+model ExchangeFeedback {
+  id          String             @id @default(cuid())
+  matchId     String
+  memberId    String
+  questionKey FeedbackQuestionKey
+  response    String
+  createdAt   DateTime           @default(now())
+
+  match  Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@unique([matchId, memberId, questionKey])
+  @@index([matchId])
+}
+
+model MemberAvailability {
+  id             String             @id @default(cuid())
+  memberId       String             @unique
+  status         AvailabilityStatus @default(AVAILABLE)
+  timezone       String             @default("Asia/Seoul")
+  availableSlots Json?
+  nextAvailable  DateTime?
+  updatedAt      DateTime           @updatedAt
+
+  member Member @relation(fields: [memberId], references: [id])
+}
+
+// ─── Waitlist ────────────────────────────────────────────
+
+model Waitlist {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  company     String?
+  role        String?
+  email       String   @unique
+  phone       String?
+  createdAt   DateTime? @default(now())
+  linkedinUrl String?
 }
 
 // ─── AI-Generated Signal Suggestions (from member challenges) ───

@@ -74,6 +74,7 @@ interface MemberData {
 
 interface MemberCardFormProps {
   member: MemberData;
+  onboarding?: boolean;
 }
 
 interface SuperpowerProfile {
@@ -243,7 +244,7 @@ const ACTION_TO_TITLE: Record<string, string> = {
 
 // ─── Component ───────────────────────────────────────────
 
-export function MemberCardForm({ member }: MemberCardFormProps) {
+export function MemberCardForm({ member, onboarding = false }: MemberCardFormProps) {
   const hasCard = !!member.cardCompletedAt;
 
   const getInitialStep = (): Step => {
@@ -518,6 +519,18 @@ export function MemberCardForm({ member }: MemberCardFormProps) {
       if (savedData.elev8Titles) setSavedTitles(savedData.elev8Titles);
       if (savedData.totalMembers) setTotalMembers(savedData.totalMembers);
       if (savedData.domainPeerCount !== undefined) setDomainPeerCount(savedData.domainPeerCount);
+
+      // If onboarding, mark completion and redirect to dashboard
+      if (onboarding) {
+        await fetch("/api/members/me/onboarding", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ step: 7, data: { onboardingState: "COMPLETED" } }),
+        });
+        window.location.href = "/dashboard";
+        return;
+      }
+
       setStep("done");
       loadMatches();
     } catch (err) {

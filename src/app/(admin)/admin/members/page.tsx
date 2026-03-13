@@ -22,6 +22,12 @@ export default async function AdminMembersPage() {
       dreamConnection: true,
       cardCompletedAt: true,
       createdAt: true,
+      linkedinUrl: true,
+      xrayProfiles: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { status: true },
+      },
     },
   });
 
@@ -39,6 +45,7 @@ export default async function AdminMembersPage() {
           ...m,
           cardCompletedAt: m.cardCompletedAt?.toISOString() ?? null,
           createdAt: m.createdAt.toISOString(),
+          xrayStatus: m.xrayProfiles[0]?.status ?? null,
         }))}
       />
     </div>

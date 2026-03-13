@@ -1,6 +1,7 @@
 const WEBHOOKS = {
   signalVotes: process.env.SLACK_WEBHOOK_SIGNAL_VOTES,
   youtubeQuestions: process.env.SLACK_WEBHOOK_YOUTUBE_QUESTIONS,
+  newMembers: process.env.SLACK_WEBHOOK_NEW_MEMBERS,
 } as const;
 
 type SlackChannel = keyof typeof WEBHOOKS;

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireMember } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { sendSlackNotification } from "@/lib/slack";
+import { runXrayAnalysis } from "@/lib/xray";
 import { z } from "zod";
 
 // Explicit whitelist — only fields safe to set during onboarding.
@@ -54,6 +56,44 @@ export async function PATCH(req: Request) {
         ...data,
       },
     });
+
+    // When onboarding is completed, create initial confidence score
+    if (data.onboardingState === "COMPLETED") {
+      const fields = [
+        updated.company, updated.jobTitle, updated.linkedinUrl,
+        updated.spDomain, updated.spAction, updated.spScale, updated.spStage, updated.spGeo,
+        updated.challengeType1, updated.challengeSpec1,
+      ];
+      const filledCount = fields.filter(Boolean).length;
+      const completeness = Math.round((filledCount / fields.length) * 100);
+      const selfDeclared = completeness * 0.3; // max 30 points
+
+      await prisma.confidenceScore.upsert({
+        where: { memberId: member.id },
+        create: {
+          memberId: member.id,
+          selfDeclared,
+          composite: selfDeclared,
+        },
+        update: {
+          selfDeclared,
+          composite: selfDeclared,
+        },
+      });
+
+      const name = [updated.firstName, updated.lastName].filter(Boolean).join(" ") || "Unknown";
+      sendSlackNotification(
+        "newMembers",
+        `🆕 *New Member Onboarded*\n• *Name:* ${name}\n• *Company:* ${updated.company || "—"}\n• *Title:* ${updated.jobTitle || "—"}\n• *Superpower:* ${updated.spDomain || "—"} / ${updated.spAction || "—"}\n• *LinkedIn:* ${updated.linkedinUrl || "—"}`
+      );
+
+      // Auto-trigger Xray analysis in background (fire-and-forget)
+      if (updated.linkedinUrl) {
+        runXrayAnalysis(member.id, updated.linkedinUrl).catch((err) =>
+          console.error("Background Xray failed:", err)
+        );
+      }
+    }
 
     return NextResponse.json(updated);
   } catch (error) {

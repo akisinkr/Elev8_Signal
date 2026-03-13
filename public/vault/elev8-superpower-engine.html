@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elev8 Superpower Engine — System Overview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { interpolate-size: allow-keywords; }
+
+    html.theme-dark {
+      --bg: #0A0A0A; --surface: #141414; --surface-hover: #1C1C1C;
+      --border: rgba(255,255,255,0.06);
+      --text: #EDEDED; --text-secondary: #888;
+      --accent: #c9a227; --accent-secondary: #8b5cf6;
+      --accent-dim: rgba(201,162,39,0.08);
+      --accent-border: rgba(201,162,39,0.2);
+      --positive: #10b981; --negative: #f43f5e; --warning: #f59e0b;
+      --phase1: #3b82f6; --phase2: #c9a227; --phase3: #10b981; --phase4: #f43f5e;
+    }
+    html.theme-light {
+      --bg: #FAFAF9; --surface: #FFFFFF; --surface-hover: #F5F5F4;
+      --border: rgba(0,0,0,0.08);
+      --text: #0f172a; --text-secondary: #64748b;
+      --accent: #a8861e; --accent-secondary: #7c3aed;
+      --accent-dim: rgba(168,134,30,0.06);
+      --accent-border: rgba(168,134,30,0.2);
+      --positive: #059669; --negative: #e11d48; --warning: #d97706;
+      --phase1: #2563eb; --phase2: #a8861e; --phase3: #059669; --phase4: #e11d48;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.6; -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.01em; font-feature-settings: 'cv11', 'ss01';
+      transition: background 0.3s, color 0.3s;
+      scrollbar-gutter: stable;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: -1;
+      background: radial-gradient(ellipse 80% 50% at 50% 20%, rgba(201,162,39,0.04), transparent);
+    }
+    h1,h2,h3,h4,h5,h6 { color: var(--text); letter-spacing: -0.03em; line-height: 1.15; text-wrap: balance; }
+    h1 { font-weight: 700; font-size: clamp(2.5rem, 5vw, 3.5rem); }
+    h2 { font-weight: 600; font-size: clamp(2rem, 4vw, 2.5rem); }
+    h3 { font-weight: 600; font-size: 1.5rem; }
+    p, li, td, th, span, label { color: var(--text); font-weight: 400; }
+    .text-secondary { color: var(--text-secondary); }
+    a { color: var(--accent); text-decoration: none; }
+
+    .container { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+
+    /* ===== HERO ===== */
+    .hero { text-align: center; padding: 56px 24px 20px; }
+    .hero-label { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    .hero h1 { margin-bottom: 10px; }
+    .hero-sub { font-size: 1rem; color: var(--text-secondary); max-width: 540px; margin: 0 auto; line-height: 1.7; }
+
+    /* ===== TWO PROGRAMS ===== */
+    .programs-section { max-width: 880px; margin: 0 auto; padding: 24px 24px 0; }
+    .programs-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-secondary); text-align: center; margin-bottom: 14px; opacity: 0.5;
+    }
+    .programs-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .program-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; transition: box-shadow 0.2s, border-color 0.2s; position: relative;
+    }
+    .program-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    .program-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 1;
+    }
+    .program-signal::before { background: var(--accent-secondary); }
+    .program-superpower::before { background: var(--accent); }
+    .program-card summary {
+      padding: 0; background: none; border: none; border-radius: 12px;
+      display: flex; align-items: center; gap: 16px;
+      cursor: pointer; padding: 16px 20px;
+    }
+    .program-card summary:hover { background: var(--surface-hover); box-shadow: none; }
+    .program-card summary .chevron { display: none; }
+    .program-illust {
+      width: 56px; height: 56px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 12px;
+    }
+    .program-signal .program-illust { background: rgba(139,92,246,0.08); }
+    .program-superpower .program-illust { background: var(--accent-dim); }
+    .program-illust svg { width: 32px; height: 32px; }
+    .program-title-row { text-align: left; flex: 1; }
+    .program-title-row h3 { font-size: 1rem; margin: 0 0 2px; }
+    .program-title-row .program-hint {
+      font-size: 12px; color: var(--text-secondary); opacity: 0.6; margin: 0;
+    }
+    .program-expand-icon {
+      flex-shrink: 0; opacity: 0.3; transition: transform 0.3s, opacity 0.2s;
+    }
+    .program-card[open] .program-expand-icon { transform: rotate(90deg); opacity: 0.6; }
+    .program-card .detail-body {
+      border-top: 1px solid var(--border); border-radius: 0;
+      background: var(--surface); padding: 16px 20px;
+    }
+    .program-card .detail-body p { font-size: 13px; }
+    .program-card[open] summary { border-radius: 12px 12px 0 0; }
+    .program-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .program-tags span {
+      font-size: 11px; padding: 3px 8px; border-radius: 100px; font-weight: 500;
+      background: var(--accent-dim); color: var(--text-secondary); border: 1px solid var(--border);
+    }
+    .programs-connector {
+      text-align: center; padding: 20px 0 0; font-size: 12px; color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      opacity: 0.6;
+    }
+    .programs-connector svg { opacity: 0.4; }
+    @media (max-width: 600px) {
+      .programs-row { grid-template-columns: 1fr; }
+    }
+
+    /* ===== ENGINE SECTION HEADER ===== */
+    .engine-header {
+      max-width: 880px; margin: 0 auto; padding: 28px 24px 0;
+      text-align: center;
+    }
+    .engine-header-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 6px;
+    }
+    .engine-header h2 {
+      font-size: 1.25rem; font-weight: 700; margin-bottom: 4px;
+    }
+    .engine-header-sub {
+      font-size: 12px; color: var(--text-secondary); opacity: 0.6;
+    }
+
+    /* ===== HORIZONTAL PHASE NAV ===== */
+    .phase-nav {
+      display: flex; align-items: stretch; gap: 0;
+      max-width: 880px; margin: 12px auto 0; padding: 0 24px;
+      position: relative;
+    }
+    .phase-nav::after {
+      content: ''; position: absolute; bottom: 0; left: 24px; right: 24px;
+      height: 1px; background: var(--border);
+    }
+    .phase-tab {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 12px 8px 12px; cursor: pointer; position: relative;
+      background: none; border: none; color: var(--text-secondary);
+      font-family: inherit; transition: color 0.2s;
+    }
+    .phase-tab:hover { color: var(--text); }
+    .phase-tab.active { color: var(--text); }
+    .phase-tab::after {
+      content: ''; position: absolute; bottom: 0; left: 12px; right: 12px;
+      height: 2px; border-radius: 2px; background: transparent;
+      transition: background 0.2s; z-index: 1;
+    }
+    .phase-tab.active::after { background: var(--tab-color, var(--accent)); }
+    .phase-tab-num {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+      opacity: 0.5;
+    }
+    .phase-tab.active .phase-tab-num { opacity: 1; }
+    .phase-tab-title { font-size: 14px; font-weight: 600; }
+    .phase-tab-sub { font-size: 10px; opacity: 0.4; text-align: center; line-height: 1.3; }
+    .phase-tab.active .phase-tab-sub { opacity: 0.6; }
+
+    /* Arrows between tabs */
+    .phase-arrow {
+      display: flex; align-items: center; color: var(--text-secondary); opacity: 0.15;
+      flex-shrink: 0; padding: 0 1px;
+    }
+
+    /* Flywheel hint */
+    .flywheel-hint {
+      text-align: center; padding: 8px 0 16px;
+      font-size: 11px; color: var(--accent); font-weight: 500;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      opacity: 0.5;
+    }
+
+    /* ===== PHASE CONTENT PANELS ===== */
+    .phase-panel { display: none; padding-top: 12px; }
+    .phase-panel.active { display: block; }
+
+    /* ===== EXPANDABLE DETAILS ===== */
+    details { overflow: hidden; border-radius: 8px; margin-bottom: 8px; }
+    details summary {
+      cursor: pointer; list-style: none; padding: 14px 18px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      display: flex; align-items: center; gap: 12px;
+      transition: background 0.15s, box-shadow 0.2s;
+      font-weight: 500; font-size: 15px;
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary:hover { background: var(--surface-hover); box-shadow: 0 0 0 1px var(--border), 0 4px 12px rgba(0,0,0,0.06); }
+    details summary .chevron {
+      margin-left: auto; transition: transform 0.3s ease; flex-shrink: 0; opacity: 0.4;
+    }
+    details[open] summary .chevron { transform: rotate(90deg); }
+    details[open] summary { border-radius: 8px 8px 0 0; border-bottom-color: transparent; }
+    ::details-content {
+      transition: block-size 0.3s ease, opacity 0.3s ease;
+      block-size: 0; opacity: 0; overflow: hidden;
+    }
+    details[open]::details-content { block-size: auto; opacity: 1; }
+    .detail-body {
+      padding: 18px; background: var(--surface);
+      border: 1px solid var(--border); border-top: none;
+      border-radius: 0 0 8px 8px;
+    }
+    .detail-body p { margin-bottom: 12px; font-size: 14px; line-height: 1.7; color: var(--text-secondary); }
+    .detail-body p:last-child { margin-bottom: 0; }
+    .detail-body strong { color: var(--text); font-weight: 600; }
+
+    /* Nested details */
+    .detail-body details { margin-top: 12px; }
+    .detail-body details summary {
+      font-size: 13px; padding: 10px 14px;
+      background: var(--bg); border-color: var(--border);
+    }
+    .detail-body details .detail-body { background: var(--bg); }
+    .detail-body details .detail-body p { font-size: 13px; }
+
+    /* ===== ICON BADGE ===== */
+    .icon-badge {
+      width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 14px;
+    }
+    .badge-blue { background: rgba(59,130,246,0.12); color: var(--phase1); }
+    .badge-gold { background: var(--accent-dim); color: var(--accent); }
+    .badge-green { background: rgba(16,185,129,0.12); color: var(--phase3); }
+    .badge-purple { background: rgba(139,92,246,0.12); color: var(--accent-secondary); }
+    .badge-red { background: rgba(244,63,94,0.12); color: var(--negative); }
+    .badge-gray { background: rgba(136,136,136,0.12); color: var(--text-secondary); }
+
+    /* ===== MINI TABLE ===== */
+    .mini-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+    .mini-table th { text-align: left; padding: 8px 10px; font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+    .mini-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    .mini-table td:first-child { color: var(--text); font-weight: 500; white-space: nowrap; }
+    .mini-table tr:last-child td { border-bottom: none; }
+
+    /* ===== TAG PILLS ===== */
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+    .tag { font-size: 12px; padding: 4px 10px; border-radius: 100px; background: var(--accent-dim); color: var(--accent); font-weight: 500; border: 1px solid var(--accent-border); }
+
+    /* ===== CALLOUT ===== */
+    .callout { padding: 14px 18px; border-radius: 8px; font-size: 14px; line-height: 1.6; margin: 16px 0; }
+    .callout-gold { background: var(--accent-dim); border: 1px solid var(--accent-border); }
+    .callout-blue { background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.15); }
+    .callout-red { background: rgba(244,63,94,0.06); border: 1px solid rgba(244,63,94,0.15); }
+
+    /* ===== WEIGHT BAR ===== */
+    .weight-bars { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+    .weight-bar { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .weight-bar-label { width: 140px; font-weight: 500; flex-shrink: 0; }
+    .weight-bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .weight-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+    .weight-bar-value { width: 36px; text-align: right; font-weight: 600; font-size: 13px; flex-shrink: 0; }
+
+    /* ===== TIER BADGES ===== */
+    .tier-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; }
+    .tier-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ===== SECTION SPACER ===== */
+    section.topic { padding: 0 0 8px; }
+
+    /* ===== FOOTER ===== */
+    .footer { text-align: center; padding: 48px 24px; color: var(--text-secondary); font-size: 13px; }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .animate { animation: fadeInUp 0.6s ease-out both; }
+    .animate.delay-1 { animation-delay: 0.1s; }
+    .animate.delay-2 { animation-delay: 0.2s; }
+    .animate.delay-3 { animation-delay: 0.3s; }
+    .animate.delay-4 { animation-delay: 0.4s; }
+    .animate.delay-5 { animation-delay: 0.5s; }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+
+    /* ===== PRINT ===== */
+    @media print {
+      body { background: white !important; color: black !important; }
+      .viz-menu { display: none !important; }
+      .reveal { opacity: 1 !important; transform: none !important; }
+      .phase-panel { display: block !important; }
+      details { break-inside: avoid; }
+      * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+    @page { margin: 0.75in; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .hero { padding: 48px 16px 24px; }
+      .container { padding: 0 16px; }
+      .phase-nav { padding: 0 16px; flex-wrap: wrap; gap: 0; }
+      .phase-arrow { display: none; }
+      .phase-tab { padding: 12px 8px 10px; }
+      .phase-tab-sub { display: none; }
+      .phase-tab-title { font-size: 13px; }
+    }
+    @media (max-width: 375px) {
+      body { overflow-x: hidden; }
+      details summary { padding: 12px 14px; font-size: 14px; }
+      .detail-body { padding: 14px; }
+    }
+
+    /* ===== FOCUS ===== */
+    *:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+    /* ===== MENU ===== */
+    .viz-menu { position: fixed; top: 16px; right: 16px; z-index: 9999; }
+    .viz-menu-toggle { width: 44px; height: 44px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(12px); transition: all 0.2s; }
+    .viz-menu-toggle:hover { background: var(--surface-hover); }
+    .viz-menu-dropdown { position: absolute; top: 52px; right: 0; min-width: 200px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 8px; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.2s; backdrop-filter: blur(16px); }
+    .viz-menu-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .viz-menu-dropdown button { width: 100%; padding: 10px 14px; border: none; border-radius: 8px; background: transparent; color: var(--text); font-size: 14px; font-family: inherit; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 10px; transition: background 0.15s; }
+    .viz-menu-dropdown button:hover { background: var(--surface-hover); }
+
+    .chevron-svg { width: 16px; height: 16px; }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link sr-only" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:10000;padding:8px 16px;background:var(--accent);color:white;text-decoration:none;border-radius:4px;" onfocus="this.style.cssText='position:fixed;left:16px;top:16px;z-index:10000;padding:8px 16px;background:var(--accent);color:white;text-decoration:none;border-radius:4px;'" onblur="this.style.cssText='position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;'">Skip to content</a>
+
+  <!-- MENU -->
+  <div class="viz-menu">
+    <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="Menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/></svg>
+    </button>
+    <div class="viz-menu-dropdown" id="vizMenuDropdown">
+      <button onclick="cycleTheme()"><span id="themeIcon">&#9790;</span><span id="themeLabel">Dark</span></button>
+      <button onclick="downloadImage()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>Download PNG</span></button>
+      <button onclick="window.print()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg><span>Print / PDF</span></button>
+    </div>
+  </div>
+
+  <main id="main-content" role="main">
+
+    <!-- HERO -->
+    <section class="hero" aria-label="Title">
+      <div class="hero-label animate">Elev8 Platform</div>
+      <h1 class="animate delay-1">Superpower Engine</h1>
+      <p class="hero-sub animate delay-2">AI turns every conversation into intelligence. Intelligence turns into better connections. A self-improving flywheel that gets smarter with every match.</p>
+    </section>
+
+    <!-- ===== TWO SIGNATURE PROGRAMS ===== -->
+    <section class="programs-section animate delay-3" aria-label="Signature programs">
+      <div class="programs-label">Two Signature Programs</div>
+      <div class="programs-row">
+        <details class="program-card program-signal">
+          <summary>
+            <div class="program-illust">
+              <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="18" width="5" height="10" rx="1.5" fill="var(--accent-secondary)" opacity="0.3"/>
+                <rect x="11" y="12" width="5" height="16" rx="1.5" fill="var(--accent-secondary)" opacity="0.5"/>
+                <rect x="18" y="6" width="5" height="22" rx="1.5" fill="var(--accent-secondary)" opacity="0.7"/>
+                <rect x="25" y="14" width="5" height="14" rx="1.5" fill="var(--accent-secondary)" opacity="0.4"/>
+                <circle cx="6.5" cy="6" r="2.5" fill="none" stroke="var(--accent-secondary)" stroke-width="1.2" opacity="0.4"/>
+                <circle cx="27.5" cy="4" r="1.5" fill="var(--accent-secondary)" opacity="0.3"/>
+              </svg>
+            </div>
+            <div class="program-title-row">
+              <h3>Elev8 Signal</h3>
+              <div class="program-hint">Community intelligence</div>
+            </div>
+            <svg class="program-expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </summary>
+          <div class="detail-body">
+            <p>Community intelligence through curated questions. Members vote on real challenges, discover shared pain points, and surface what the community actually cares about.</p>
+            <p>Anonymous quotes let members speak freely. AI uses these signals to personalize every member's experience.</p>
+            <div class="program-tags">
+              <span>Community voting</span>
+              <span>Anonymous quotes</span>
+              <span>AI-curated questions</span>
+              <span>Trend detection</span>
+            </div>
+          </div>
+        </details>
+        <details class="program-card program-superpower">
+          <summary>
+            <div class="program-illust">
+              <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="8" cy="10" r="4" fill="none" stroke="var(--accent)" stroke-width="1.2" opacity="0.5"/>
+                <path d="M2 20c0-3.3 2.7-6 6-6s6 2.7 6 6" fill="none" stroke="var(--accent)" stroke-width="1.2" opacity="0.3"/>
+                <circle cx="24" cy="10" r="4" fill="none" stroke="var(--accent)" stroke-width="1.2" opacity="0.5"/>
+                <path d="M18 20c0-3.3 2.7-6 6-6s6 2.7 6 6" fill="none" stroke="var(--accent)" stroke-width="1.2" opacity="0.3"/>
+                <path d="M12 14 C14 11 18 11 20 14" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="2 2" opacity="0.5"/>
+                <circle cx="16" cy="24" r="3" fill="var(--accent)" opacity="0.1" stroke="var(--accent)" stroke-width="1" opacity="0.3"/>
+                <text x="16" y="26" text-anchor="middle" font-family="Inter" font-size="5" font-weight="700" fill="var(--accent)" opacity="0.5">AI</text>
+              </svg>
+            </div>
+            <div class="program-title-row">
+              <h3>Elev8 Superpower</h3>
+              <div class="program-hint">AI-powered 1:1 matching</div>
+            </div>
+            <svg class="program-expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </summary>
+          <div class="detail-body">
+            <p>AI-powered 1:1 matching that pairs members based on complementary superpowers and challenges. Not networking — targeted conversations where both sides give and receive real value.</p>
+            <p>Every chat makes the next match smarter through the feedback flywheel.</p>
+            <div class="program-tags">
+              <span>AI profiling</span>
+              <span>Smart matching</span>
+              <span>1:1 Superpower Chats</span>
+              <span>Peer feedback loop</span>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- ===== ENGINE SECTION ===== -->
+    <div class="engine-header animate delay-4">
+      <div class="engine-header-label">How It Works</div>
+      <h2>The Superpower Engine</h2>
+      <div class="engine-header-sub">The AI system that powers both programs</div>
+    </div>
+
+    <!-- ===== HORIZONTAL PHASE NAV ===== -->
+    <nav class="phase-nav animate delay-4" aria-label="System phases">
+      <button class="phase-tab" onclick="switchPhase(0)" style="--tab-color: var(--phase1)">
+        <span class="phase-tab-num" style="color:var(--phase1)">Phase 1</span>
+        <span class="phase-tab-title">Profile</span>
+        <span class="phase-tab-sub">AI identifies who you really are</span>
+      </button>
+      <div class="phase-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+      <button class="phase-tab" onclick="switchPhase(1)" style="--tab-color: var(--phase2)">
+        <span class="phase-tab-num" style="color:var(--phase2)">Phase 2</span>
+        <span class="phase-tab-title">Match</span>
+        <span class="phase-tab-sub">Algorithm pairs complementary members</span>
+      </button>
+      <div class="phase-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+      <button class="phase-tab" onclick="switchPhase(2)" style="--tab-color: var(--phase3)">
+        <span class="phase-tab-num" style="color:var(--phase3)">Phase 3</span>
+        <span class="phase-tab-title">Learn</span>
+        <span class="phase-tab-sub">Every chat makes the next one better</span>
+      </button>
+      <div class="phase-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+      <button class="phase-tab" onclick="switchPhase(3)" style="--tab-color: var(--phase4)">
+        <span class="phase-tab-num" style="color:var(--phase4)">Strategic</span>
+        <span class="phase-tab-title">Why</span>
+        <span class="phase-tab-sub">The real motivation</span>
+      </button>
+    </nav>
+    <div class="flywheel-hint animate delay-5">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      Every conversation feeds back into better profiles — the flywheel
+    </div>
+
+    <!-- ===== PHASE CONTENT ===== -->
+    <div class="container">
+
+      <!-- ==================== PHASE 1: PROFILE ==================== -->
+      <div class="phase-panel" id="phase-0">
+
+        <section class="topic" aria-label="Elev8 Card">
+          <details>
+            <summary>
+              <span class="icon-badge badge-blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/></svg></span>
+              Elev8 Card — What Members Fill Out
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>Members complete a 4-step onboarding card. This is the <strong>only direct input</strong> we ask — everything else is AI-powered.</p>
+              <details>
+                <summary><span class="icon-badge badge-gray">1</span> About You — basics + domain <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>Title, company, LinkedIn, photo. Then pick <strong>up to 2 domains</strong>: AI & ML, Data & Analytics, Cloud & Infrastructure, Cybersecurity, Product & Growth, Engineering Leadership, FinTech, Robotics, etc.</p>
+                  <p><em>"What do people come to you for?"</em></p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gray">2</span> Expertise — specific actions <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>Pick <strong>up to 3 actions</strong>: Scaling Teams, Building from Zero, Architecture, Migrating, Org Design, Hiring, Compliance, M&A, Strategy, etc.</p>
+                  <p>This generates their <strong>Elev8 Title</strong> automatically (Architect, Advisor, Navigator, Catalyst, Connector).</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gray">3</span> Context — scale, stage, geography <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p><strong>Team scale:</strong> Solo → Enterprise (1000+). <strong>Company stage:</strong> Pre-seed → Public/Conglomerate. <strong>Geography:</strong> US, Korea, US↔Korea, Singapore, Japan, Global, etc.</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gray">4</span> Challenges + Dream Connection <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>Pick a <strong>challenge category</strong>: Building something new, Leading through change, Navigating the org, Plotting next move, Finding the right person.</p>
+                  <p>Then a <strong>specific problem</strong> within that category. Optionally describe a dream connection — AI refines it into a matchable statement.</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gold">AI</span> AI generates their full profile <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>After completing the card, Claude creates:</p>
+                  <p><strong>3-layer superpower profile:</strong> Title (5-8 words) + "I can help you with" (3 bullets) + Proof line (concrete credential).</p>
+                  <p><strong>Challenge descriptions</strong> framed as explorations ("Exploring...", "Building...") — private, never shown publicly.</p>
+                  <p><strong>Korean versions</strong> generated independently (not translated).</p>
+                  <p><strong>3 match suggestions</strong> using semantic matching against other members.</p>
+                </div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Xray">
+          <details>
+            <summary>
+              <span class="icon-badge badge-gold"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+              Xray — AI Intelligence Layer (Silent)
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>Runs silently the moment a LinkedIn URL is submitted. Members never see this — it's for the <strong>admin/community team only</strong>.</p>
+              <details>
+                <summary><span class="icon-badge badge-blue">1</span> LinkedIn Data Pull <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body"><p>Enrich Layer API extracts career history, skills, endorsements, education, connections — everything publicly available on their LinkedIn profile.</p></div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-blue">2</span> 8 Research Agents (parallel) <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <table class="mini-table">
+                    <tr><td>Organizational Climate</td><td>Company culture, growth stage, team dynamics</td></tr>
+                    <tr><td>Compensation & Value</td><td>Market positioning, career leverage</td></tr>
+                    <tr><td>Strategic Direction</td><td>Company strategy, pivots, opportunities</td></tr>
+                    <tr><td>Competitive Landscape</td><td>Career alternatives, market position</td></tr>
+                    <tr><td>Skill Demand</td><td>Which skills are rising/falling in value</td></tr>
+                    <tr><td>Reputation & Visibility</td><td>Thought leadership, public presence</td></tr>
+                    <tr><td>Regulatory & Macro</td><td>Policy changes, economic factors</td></tr>
+                    <tr><td>Network Intelligence</td><td>Connection quality, community positioning</td></tr>
+                  </table>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gold">3</span> 6-Bucket Analysis <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>All data is mapped into <strong>6 profiling dimensions</strong>:</p>
+                  <table class="mini-table">
+                    <tr><td>Technical Depth</td><td>What they can build, architect, evaluate</td></tr>
+                    <tr><td>Strategic & Operational Execution</td><td>How they plan, decide, deliver results</td></tr>
+                    <tr><td>Leadership & Influence</td><td>How they move people and shape orgs</td></tr>
+                    <tr><td>Domain & Market Intelligence</td><td>Industries and markets they understand deeply</td></tr>
+                    <tr><td>Cross-Cultural & International</td><td>Where and how they operate globally</td></tr>
+                    <tr><td>Interpersonal & Coaching</td><td>How they show up as a peer in 1:1 conversations</td></tr>
+                  </table>
+                  <p>Each bucket produces <strong>Superpowers</strong> (Signature / Deployed / Emerging) and <strong>Challenges</strong> (Critical / Growing / Latent).</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gold">4</span> Signal Keywords <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body"><p>8-12 personalized topics generated per member, used to create relevant Signal questions. Example: <em>"Hiring AI engineers in Korea"</em>, <em>"Director to VP transition"</em>, <em>"Scaling AI infrastructure"</em>.</p></div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Three layers">
+          <details>
+            <summary>
+              <span class="icon-badge badge-purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg></span>
+              3 Profile Layers — Why This Is Powerful
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>Every member has <strong>3 layers</strong> of profile data. When they align = high confidence. When they diverge = the admin investigates.</p>
+              <table class="mini-table">
+                <thead><tr><th>Layer</th><th>Source</th><th>What It Shows</th></tr></thead>
+                <tr><td>Self-View</td><td>Elev8 Card</td><td>What the member thinks their superpower is</td></tr>
+                <tr><td>Outside-In</td><td>Xray (LinkedIn + 8 agents)</td><td>What their career and market data actually show</td></tr>
+                <tr><td>Peer-Validated</td><td>Post-chat feedback</td><td>What other members experienced in conversation</td></tr>
+              </table>
+              <div class="callout callout-gold"><strong>Example:</strong> Esther says her superpower is AI infrastructure. Xray confirms it — but also detects low public visibility (474 followers), which she didn't flag. After 2 chats, peers say "her infra knowledge is incredible, but she also gave amazing team-building advice" — a new superpower Xray missed.</div>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Confidence">
+          <details>
+            <summary>
+              <span class="icon-badge badge-green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+              Confidence Scoring — How Sure Are We?
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>Every bucket gets <strong>two numbers</strong>: a Score (what we believe) and a Confidence (how sure we are). Both matter.</p>
+              <details>
+                <summary><span class="icon-badge badge-gray">%</span> How confidence builds <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <table class="mini-table">
+                    <thead><tr><th>Source</th><th>Contribution</th></tr></thead>
+                    <tr><td>LinkedIn</td><td>+15-25% per relevant bucket</td></tr>
+                    <tr><td>8 AI Research Agents</td><td>+5-15% per relevant bucket</td></tr>
+                    <tr><td>Member's own words</td><td>+3-8% (low weight on self-assessment)</td></tr>
+                    <tr><td>Single peer feedback</td><td>+10-20% (highest for Leadership & Interpersonal)</td></tr>
+                    <tr><td>Additional peers</td><td>+5-10% each (diminishing returns)</td></tr>
+                  </table>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-red">!</span> Contradictions <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>If a peer says someone is NOT strong at something: the <strong>score goes down</strong> but <strong>confidence goes UP</strong> (we now know more). Admin gets a contradiction alert to review.</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gray"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> Time decay <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>Confidence degrades without fresh data. Peer feedback half-life: <strong>365 days</strong>. LinkedIn facts: <strong>365 days</strong>. AI research: <strong>180 days</strong>. A stale profile gets flagged for admin to refresh.</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-green"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Matching thresholds <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <table class="mini-table">
+                    <thead><tr><th>Confidence</th><th>Label</th><th>Policy</th></tr></thead>
+                    <tr><td>0-30%</td><td>Insufficient</td><td>Never match on this bucket</td></tr>
+                    <tr><td>30-50%</td><td>Preliminary</td><td>Admin must manually approve</td></tr>
+                    <tr><td>50-70%</td><td>Moderate</td><td>Auto-match, flagged as lower confidence</td></tr>
+                    <tr><td>70-85%</td><td>Strong</td><td>Full auto-match</td></tr>
+                    <tr><td>85%+</td><td>Very Strong</td><td>Highest priority in ranking</td></tr>
+                  </table>
+                </div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+      </div>
+
+      <!-- ==================== PHASE 2: MATCH ==================== -->
+      <div class="phase-panel" id="phase-1">
+
+        <section class="topic" aria-label="Matching algorithm">
+          <details>
+            <summary>
+              <span class="icon-badge badge-gold"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>
+              3-Factor Matching Algorithm
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>Before scoring, members must pass an <strong>Availability Gate</strong>: last chat 6+ weeks ago, no pending match, not paused.</p>
+              <p style="margin-bottom:16px">Then scored on 3 factors:</p>
+              <div class="weight-bars">
+                <div class="weight-bar">
+                  <span class="weight-bar-label">Relevance</span>
+                  <div class="weight-bar-track"><div class="weight-bar-fill" style="width:45%;background:var(--phase1)"></div></div>
+                  <span class="weight-bar-value" style="color:var(--phase1)">45%</span>
+                </div>
+                <div class="weight-bar">
+                  <span class="weight-bar-label">Reciprocity</span>
+                  <div class="weight-bar-track"><div class="weight-bar-fill" style="width:30%;background:var(--accent)"></div></div>
+                  <span class="weight-bar-value" style="color:var(--accent)">30%</span>
+                </div>
+                <div class="weight-bar">
+                  <span class="weight-bar-label">Context Proximity</span>
+                  <div class="weight-bar-track"><div class="weight-bar-fill" style="width:25%;background:var(--phase3)"></div></div>
+                  <span class="weight-bar-value" style="color:var(--phase3)">25%</span>
+                </div>
+              </div>
+              <details>
+                <summary><span class="icon-badge badge-blue">R</span> Relevance (45%) <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body"><p>Does A's superpower address B's challenge? The core question. Weighted highest because without relevance, nothing else matters.</p></div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gold">R</span> Reciprocity (30%) <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>Can <strong>both</strong> members give AND receive? One-sided matches churn — if members only get 4 chats per year and one feels one-sided, that's 25% of their experience wasted.</p>
+                  <p><strong>Cold start:</strong> Before any chats happen, reciprocity is estimated from career breadth, seniority symmetry, challenge-superpower overlap, and onboarding answers. As feedback accumulates, estimated reciprocity is replaced by real data.</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-green">C</span> Context Proximity (25%) <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body"><p>Same career stage? Actionable advice? Compatible geography/timezone? Weighted lower intentionally — too high and it blocks great cross-industry matches.</p></div>
+              </details>
+              <div class="callout callout-blue" style="margin-top:16px"><strong>Evolution:</strong> Launch = 45/30/25. After 50+ chats with real feedback, shift to 40/35/25 as reciprocity measurement improves. Year 2+, add Timing as a 4th factor when engagement increases.</div>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Match tiers">
+          <details>
+            <summary>
+              <span class="icon-badge badge-gold"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+              Match Tiers
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <div class="tier-row"><span class="tier-dot" style="background:#a855f7"></span> <strong>Platinum</strong> <span class="text-secondary" style="margin-left:auto">92-100</span></div>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 8px 18px">Rare. Curator prioritizes immediately.</p>
+              <div class="tier-row"><span class="tier-dot" style="background:var(--accent)"></span> <strong>Gold</strong> <span class="text-secondary" style="margin-left:auto">80-91</span></div>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 8px 18px">Standard high-confidence match. Curator reviews and presents.</p>
+              <div class="tier-row"><span class="tier-dot" style="background:#94a3b8"></span> <strong>Silver</strong> <span class="text-secondary" style="margin-left:auto">68-79</span></div>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 8px 18px">Good match, curator judgment needed.</p>
+              <div class="tier-row"><span class="tier-dot" style="background:var(--phase1)"></span> <strong>Curious</strong> <span class="text-secondary" style="margin-left:auto">55-67</span></div>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 8px 18px">Serendipity pool. Curator browses manually, never auto-suggested.</p>
+              <div class="tier-row"><span class="tier-dot" style="background:var(--text-secondary);opacity:0.3"></span> <strong>Skip</strong> <span class="text-secondary" style="margin-left:auto">&lt;55</span></div>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 0 18px">Hidden unless curator explicitly searches.</p>
+              <div class="callout callout-gold" style="margin-top:16px"><strong>Year 1:</strong> All matches are curator-reviewed. No auto-matching. Every chat is precious when members engage quarterly.</div>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Curator role">
+          <details>
+            <summary>
+              <span class="icon-badge badge-purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
+              The Curator — Human in the Loop
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>The algorithm proposes, the curator disposes. For every match, the curator sees:</p>
+              <p><strong>Match narrative:</strong> Plain-language explanation — <em>"Sujin's AI scaling experience directly addresses Marcus's infrastructure challenge. Marcus's distributed team management addresses Sujin's expansion challenge."</em></p>
+              <p><strong>Score breakdown:</strong> Visual bars for each factor.</p>
+              <p><strong>Value exchange:</strong> What A gives B, and what B gives A.</p>
+              <p><strong>Context flags:</strong> Timezone, activity, match history, capacity.</p>
+              <details>
+                <summary><span class="icon-badge badge-gray"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span> Curator tools <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p><strong>Approve</strong> — present match to both members. <strong>Decline</strong> — skip this match. <strong>Defer</strong> — revisit later. <strong>Boost</strong> — manually upgrade tier. <strong>Suppress</strong> — downgrade. <strong>Block pair</strong> — permanently prevent matching. <strong>Notes</strong> — add context visible only to team.</p>
+                </div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+      </div>
+
+      <!-- ==================== PHASE 3: LEARN ==================== -->
+      <div class="phase-panel" id="phase-2">
+
+        <section class="topic" aria-label="Superpower Chat">
+          <details>
+            <summary>
+              <span class="icon-badge badge-green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
+              Superpower Chat — The Conversation
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>Curator presents the match to both members with a framed narrative — they see a <strong>story about why this connection makes sense</strong>, never scores.</p>
+              <p>Expected cadence: <strong>1 chat every 2-3 months</strong> in Year 1. Quality over quantity.</p>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Feedback loop">
+          <details>
+            <summary>
+              <span class="icon-badge badge-green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></span>
+              Post-Chat Feedback — 5 Questions
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>24 hours after each chat, both members receive 5 structured questions:</p>
+              <details>
+                <summary><span class="icon-badge badge-gold">1</span> The Gift — "What's the most valuable thing they shared?" <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body"><p>Feeds <strong>Superpower Validation</strong>. Confirms or discovers what the member is actually great at, as observed by a peer.</p></div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gold">2</span> The Spark — "Any unexpected connection or insight?" <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body"><p>Feeds <strong>Hidden Insight Detection</strong>. Discovers superpowers and connections that Xray and the member themselves didn't identify.</p></div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gold">3</span> The Forward — "What will you do differently?" <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body"><p>Feeds <strong>Challenge Validation</strong> + <strong>Reciprocity measurement</strong>. If someone got actionable advice, the match worked and the giver's superpower is confirmed.</p></div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gold">4</span> The Coffee — "Continue the conversation?" <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body"><p>Yes / Maybe / Not now. Feeds <strong>Match Quality Calibration</strong>. Tracks which scoring factors predict member satisfaction.</p></div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gold">5</span> The Bridge — "Who else should they meet?" <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body"><p>Opens new match suggestions from peer insight. Members often know connections the algorithm can't see.</p></div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Confidence evolution">
+          <details>
+            <summary>
+              <span class="icon-badge badge-green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span>
+              Profile Evolution — How Profiles Get Smarter
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <table class="mini-table">
+                <thead><tr><th>Stage</th><th>Trigger</th><th>Accuracy</th></tr></thead>
+                <tr><td>Initial</td><td>LinkedIn + AI agents</td><td>~60%</td></tr>
+                <tr><td>Enriched</td><td>Member answers Elev8 Card</td><td>~65%</td></tr>
+                <tr><td>1st Chat</td><td>Peer feedback received</td><td>~70%</td></tr>
+                <tr><td>3rd Chat</td><td>Patterns emerging</td><td>~80%</td></tr>
+                <tr><td>5th Chat</td><td>Peer-verified across dimensions</td><td>~90%</td></tr>
+              </table>
+              <p>States include: <strong>Confirmed</strong> (peers agree), <strong>Contradicted</strong> (peers disagree → flagged for admin), <strong>Discovered</strong> (peers reveal something new).</p>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Signal">
+          <details>
+            <summary>
+              <span class="icon-badge badge-purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 10l7-7 7 7"/><path d="M9 21V3"/><path d="M22 14l-7 7-7-7"/></svg></span>
+              Elev8 Signal — Surfacing What Matters
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>Signal asks the community one curated question at a time. Members vote, see how the group thinks, and discover they're not alone in their challenges. Anonymous quotes let them speak freely.</p>
+              <details>
+                <summary><span class="icon-badge badge-purple">1</span> How Signal works <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p><strong>1.</strong> Admin publishes a Signal question (e.g., "What's your biggest challenge scaling your team right now?")</p>
+                  <p><strong>2.</strong> Members vote on predefined options + leave anonymous quotes</p>
+                  <p><strong>3.</strong> Results published as an Insight with data visualization</p>
+                  <p><strong>4.</strong> AI generates personalized Signal questions from member Xray profiles — so questions are always relevant to the community's actual challenges.</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-purple">2</span> How Signal feeds Superpower <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>Signal votes reveal what members <strong>actually care about</strong> — not just what they put on their card. A member who votes passionately about "hiring AI engineers" is signaling a live challenge, even if they didn't list it explicitly.</p>
+                  <p>This data feeds back into Xray, making profiles more accurate and matches more timely.</p>
+                </div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Flywheel">
+          <details>
+            <summary>
+              <span class="icon-badge badge-gold"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></span>
+              The Flywheel — Why This Gets Better Over Time
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p><strong>Better Profiles → Better Matches → Better Conversations → Richer Feedback → Better Profiles</strong></p>
+              <p>Every conversation makes the next one better because:</p>
+              <p>1. Peer feedback validates or corrects Xray's estimates</p>
+              <p>2. Confidence scores increase, so the algorithm trusts itself more</p>
+              <p>3. New superpowers are discovered that LinkedIn could never show</p>
+              <p>4. The curator learns what works from match quality data</p>
+              <div class="callout callout-gold"><strong>The data moat:</strong> No other community platform has AI-driven member intelligence at this depth. Every conversation makes Elev8 harder to replicate. Members stay because every match feels like "you know me better than I know myself."</div>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Evolution">
+          <details>
+            <summary>
+              <span class="icon-badge badge-gold"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>
+              Growth Roadmap
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <details>
+                <summary><span class="icon-badge badge-blue">Y1</span> Year 1 — Foundation <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>3-factor scoring (45/30/25). Availability gate. All matches curator-reviewed. 1 chat per 2-3 months. Learn what makes a great match.</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gold">Y2</span> Year 2 — Optimization <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>Add Timing as 4th factor. Match diversity enforcement. Gold matches can auto-proceed. Shift to 35/30/25/10 weighting.</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-green">Y3</span> Year 3 — Intelligence <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>Predictive match quality. Member-facing match narratives. Algorithm self-calibrates weights based on satisfaction data.</p>
+                </div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+      </div>
+
+      <!-- ==================== PHASE 4: STRATEGIC ==================== -->
+      <div class="phase-panel" id="phase-3">
+
+        <div class="callout callout-red" style="margin-bottom:16px"><strong>This section is strictly confidential.</strong> Elev8 must always operate as a genuine, independent community. The strategic layer is invisible to members.</div>
+
+        <section class="topic" aria-label="Strategic purpose">
+          <details>
+            <summary>
+              <span class="icon-badge badge-red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+              Why Elev8 Exists — The Hidden Mission
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>Top-tier talent doesn't respond to recruiter outreach. The best engineers, product leaders, and executives at companies like Google, Naver, Grab, and Stripe <strong>ignore cold messages</strong>. Traditional recruiting is broken at the senior level.</p>
+              <p>Elev8 was created to solve this: <strong>build a genuine community where top talent wants to be</strong> — and through authentic relationships, create a path for Coupang to identify, connect with, and ultimately attract the best people in APAC tech.</p>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Membership design">
+          <details>
+            <summary>
+              <span class="icon-badge badge-red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
+              The 80/20 Membership Design
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>The membership ratio is intentional:</p>
+              <table class="mini-table">
+                <tr><td style="width:80px"><strong>80%</strong></td><td>Top-tier talent from leading tech companies across APAC — the people Coupang wants to know</td></tr>
+                <tr><td><strong>20%</strong></td><td>Coupang leaders — joining as genuine members, engaging authentically in all Elev8 programs</td></tr>
+              </table>
+              <details>
+                <summary><span class="icon-badge badge-gray"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span> Why this works <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p><strong>Coupang members don't recruit.</strong> They don't pitch. They don't sell. They participate as peers — sharing their challenges, offering their superpowers, building real relationships. This is what makes it work.</p>
+                  <p>When a VP of Engineering at Naver has 3 great Superpower Chats with a Coupang Director — and those conversations genuinely helped them — they now have a real relationship with someone inside Coupang. That relationship is worth more than 100 recruiter messages.</p>
+                  <p>The talent attraction happens <strong>organically through trust</strong>, not through pitching.</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gray"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span> What Elev8 never does <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>Elev8 <strong>never</strong> publicly promotes Coupang as a potential employer. Elev8 <strong>never</strong> uses member data for direct recruiting outreach. Coupang members <strong>never</strong> use Superpower Chats as recruiting conversations. The community must be genuine — or the entire model collapses.</p>
+                </div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Talent intelligence">
+          <details>
+            <summary>
+              <span class="icon-badge badge-red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+              How the Superpower Engine Enables This
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>The Superpower Engine creates the <strong>deepest talent intelligence layer any company has ever built</strong> — because it's powered by real relationships, not scraped data.</p>
+              <details>
+                <summary><span class="icon-badge badge-gold">1</span> Know who they really are <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>Xray + peer feedback reveals what no resume or LinkedIn profile shows:</p>
+                  <p><strong>Real superpowers</strong> — not self-reported skills, but what peers actually experienced.</p>
+                  <p><strong>Real challenges</strong> — what they're struggling with. A VP frustrated with their company's pace might be open to new opportunities.</p>
+                  <p><strong>Real motivations</strong> — what excites them, what they want next. The Elev8 Card and Signal votes reveal this naturally.</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gold">2</span> Build real relationships first <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p>The matching algorithm naturally connects Coupang members (20%) with top-tier external talent (80%) when there's genuine complementarity.</p>
+                  <p>After 2-3 authentic Superpower Chats, they have a <strong>real peer relationship</strong> — not a recruiter-candidate dynamic. When the external member eventually considers a move, Coupang is top of mind — not because they were pitched, but because they were helped.</p>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gold">3</span> Detect openness signals <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <table class="mini-table">
+                    <tr><td>Challenge signals</td><td>"Navigating the org" or "Plotting next move" selected in Elev8 Card</td></tr>
+                    <tr><td>Frustration signals</td><td>Signal votes indicating dissatisfaction with pace, culture, or direction</td></tr>
+                    <tr><td>Transition signals</td><td>Xray detects role change, company instability, or industry shift</td></tr>
+                    <tr><td>Aspiration signals</td><td>Dream Connection describes a role/environment that matches what Coupang offers</td></tr>
+                    <tr><td>Relationship warmth</td><td>Rated Coupang member 5/5, said "Yes" to coffee, asked for more introductions</td></tr>
+                  </table>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gold">4</span> The long game <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <p><strong>Year 1:</strong> 200 members. Coupang leaders build 40-60 genuine peer relationships with top external talent.</p>
+                  <p><strong>Year 2:</strong> 500 members. The brand attracts talent passively. First organic hires happen.</p>
+                  <p><strong>Year 3:</strong> 1,000+ members. Elev8 is the default network for senior tech leaders in APAC. The talent pipeline is self-sustaining.</p>
+                </div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Competitive advantage">
+          <details>
+            <summary>
+              <span class="icon-badge badge-red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+              Why This Beats Traditional Recruiting
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <table class="mini-table">
+                <thead><tr><th>Traditional Recruiting</th><th>Elev8 Model</th></tr></thead>
+                <tr><td>Cold outreach — 5% response rate</td><td>Warm relationship — they already know and trust Coupang peers</td></tr>
+                <tr><td>Resume + interview = surface data</td><td>Xray + peer feedback = deep intelligence on real capabilities</td></tr>
+                <tr><td>Candidates sell themselves</td><td>Peers validate each other — you know what they're really like</td></tr>
+                <tr><td>Transactional — ends when role is filled</td><td>Ongoing — relationship continues regardless of hiring outcome</td></tr>
+                <tr><td>Expensive per hire ($30-50K+ for senior)</td><td>Community investment serves multiple purposes (brand, intel, hiring)</td></tr>
+                <tr><td>Candidates are passive or active seekers</td><td>Members are engaged professionals — you reach them before they're "looking"</td></tr>
+              </table>
+              <div class="callout callout-gold"><strong>The moat:</strong> Even if a competitor tried to copy this, they'd need years of genuine community engagement to build the trust and data depth that Elev8 creates. The flywheel compounds over time. It cannot be shortcut.</div>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Elev8 talent funnel results">
+          <details>
+            <summary>
+              <span class="icon-badge badge-red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span>
+              Proof: Elev8 Talent Funnel — Real Numbers
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>Just like Developer Relations builds trust with developers, Elev8 builds trust with future leaders at Coupang — <strong>before they even consider a job</strong>.</p>
+              <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin:16px 0;">
+                <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;">
+                  <div style="font-size:28px; font-weight:800; color:var(--accent);">38%</div>
+                  <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Response Rate</div>
+                  <div style="font-size:11px; color:var(--text-secondary); opacity:0.6;">No-response → responded</div>
+                </div>
+                <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;">
+                  <div style="font-size:28px; font-weight:800; color:var(--accent);">100%</div>
+                  <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Attendance Rate</div>
+                  <div style="font-size:11px; color:var(--text-secondary); opacity:0.6;">Replied → attended</div>
+                </div>
+                <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;">
+                  <div style="font-size:28px; font-weight:800; color:var(--accent);">100%</div>
+                  <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Engagement Rate</div>
+                  <div style="font-size:11px; color:var(--text-secondary); opacity:0.6;">1:1 meeting with Andrew</div>
+                </div>
+                <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;">
+                  <div style="font-size:28px; font-weight:800; color:var(--accent);">64%</div>
+                  <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Conversion Rate</div>
+                  <div style="font-size:11px; color:var(--text-secondary); opacity:0.6;">1:1 → Recruiter / HM</div>
+                </div>
+              </div>
+              <div class="callout callout-gold"><strong>The funnel:</strong> 13 previously unresponsive senior candidates → 5 responded (38%) → 5 attended events (100%) → 5 met Andrew 1:1 (100%) → 3.2 connected to Recruiter/HM (64%). This is what relationship-first recruiting looks like.</div>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="Events and partnerships">
+          <details>
+            <summary>
+              <span class="icon-badge badge-red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>
+              Elev8 Events & Partnerships — Building Credibility
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>Building Coupang's seat among global tech leaders through exclusive executive gatherings.</p>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 20px;">
+                <span class="tag">Notion</span><span class="tag">NVIDIA</span><span class="tag">Canva</span><span class="tag">Snowflake</span><span class="tag">Uber</span><span class="tag">Anthropic</span><span class="tag">Slack</span><span class="tag">Salesforce</span><span class="tag">AMCHAM</span><span class="tag">AngelHack</span><span class="tag">CJ OliveNetworks</span><span class="tag">GS EPS</span><span class="tag">Devchat</span><span class="tag">Bay Area K Group</span>
+              </div>
+              <details>
+                <summary><span class="icon-badge badge-gray"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span> US Executive Events <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/recruiting-images/page14_img1.jpeg" alt="Mountain View dinner" style="width:100%; height:140px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:11px; color:var(--accent); font-weight:600;">April 7, 2025</div><div style="font-size:13px; font-weight:600;">Private Dinner — Korean Tech Leaders</div><div style="font-size:12px; color:var(--text-secondary);">Mountain View, CA</div></div></div>
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/recruiting-images/page15_img1.jpeg" alt="Seattle dinner" style="width:100%; height:140px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:11px; color:var(--accent); font-weight:600;">April 9, 2025</div><div style="font-size:13px; font-weight:600;">Private Dinner — Korean Tech Leaders</div><div style="font-size:12px; color:var(--text-secondary);">Seattle, WA</div></div></div>
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/recruiting-images/page16_img1.jpeg" alt="AI Data Revolution Night" style="width:100%; height:140px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:11px; color:var(--accent); font-weight:600;">April 11, 2025</div><div style="font-size:13px; font-weight:600;">AI & Data Revolution Night</div><div style="font-size:12px; color:var(--text-secondary);">Seattle, WA</div></div></div>
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/recruiting-images/page17_img1.jpeg" alt="Cybersecurity Leaders Dinner" style="width:100%; height:140px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:11px; color:var(--accent); font-weight:600;">June 17, 2025</div><div style="font-size:13px; font-weight:600;">Cybersecurity Leaders Dinner</div><div style="font-size:12px; color:var(--text-secondary);">San Francisco, CA</div></div></div>
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/recruiting-images/page18_img1.jpeg" alt="TPM Backend Engineers Dinner" style="width:100%; height:140px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:11px; color:var(--accent); font-weight:600;">June 17, 2025</div><div style="font-size:13px; font-weight:600;">Korean TPM & Backend Engineers</div><div style="font-size:12px; color:var(--text-secondary);">Seattle, WA</div></div></div>
+                  </div>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gray"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span> Seoul Partnership Events <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/event-photos/slide6_img4.jpg" alt="NVIDIA x Elev8 Roundtable" style="width:100%; height:140px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:11px; color:var(--accent); font-weight:600;">2025</div><div style="font-size:13px; font-weight:600;">NVIDIA x Elev8 Executive Roundtable</div><div style="font-size:12px; color:var(--text-secondary);">Seoul, Korea</div></div></div>
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/event-photos/slide3_img1.jpg" alt="Snowflake x Elev8" style="width:100%; height:140px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:11px; color:var(--accent); font-weight:600;">September 8, 2025</div><div style="font-size:13px; font-weight:600;">Snowflake x Elev8 Tech Leader's Lounge</div><div style="font-size:12px; color:var(--text-secondary);">Seoul, Korea</div></div></div>
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/event-photos/slide4_img2.jpg" alt="Notion x Elev8 Roundtable" style="width:100%; height:140px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:11px; color:var(--accent); font-weight:600;">2025</div><div style="font-size:13px; font-weight:600;">Notion x Elev8 Executive Roundtable</div><div style="font-size:12px; color:var(--text-secondary);">Seoul, Korea</div></div></div>
+                  </div>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gray"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span> HackSeoul 2025 <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/event-photos/hackseoul_3.jpeg" alt="HackSeoul 2025" style="width:100%; height:140px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:13px; font-weight:600;">HackSeoul 2025</div><div style="font-size:12px; color:var(--text-secondary);">Coupang Tower Y730, Seoul</div></div></div>
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/event-photos/hackseoul_1.jpg" alt="HackSeoul participants" style="width:100%; height:140px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:13px; font-weight:600;">November 8-9, 2025</div><div style="font-size:12px; color:var(--text-secondary);">Participants & Teams</div></div></div>
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/event-photos/hackseoul_2.jpg" alt="HackSeoul sessions" style="width:100%; height:140px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:13px; font-weight:600;">Hacking Sessions</div><div style="font-size:12px; color:var(--text-secondary);">24-hour hackathon</div></div></div>
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/event-photos/hackseoul_mentors_1.jpg" alt="HackSeoul mentors" style="width:100%; height:140px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:13px; font-weight:600;">Mentors & Judges</div><div style="font-size:12px; color:var(--text-secondary);">Industry leaders</div></div></div>
+                  </div>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gray"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span> Uber APAC Alumni Reunion <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border); max-width:400px;"><img src="/Users/akak/Desktop/Elev8-VS/event-photos/uber_reunion_thumb.jpg" alt="Uber APAC Alumni Reunion 2025" style="width:100%; height:180px; object-fit:cover; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:11px; color:var(--accent); font-weight:600;">October 16, 2025</div><div style="font-size:13px; font-weight:600;">Uber APAC Alumni Reunion 2025</div><div style="font-size:12px; color:var(--text-secondary);">Sponsored by Hyre & Elev8</div></div></div>
+                </div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+        <section class="topic" aria-label="LinkedIn response rate impact">
+          <details>
+            <summary>
+              <span class="icon-badge badge-red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+              The Elev8 Effect on LinkedIn Response Rates
+              <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </summary>
+            <div class="detail-body">
+              <p>Elev8 events consistently drive some of the <strong>highest LinkedIn recruiter response rates of the year</strong>.</p>
+              <div class="callout callout-blue" style="margin:12px 0 16px;"><strong>Key Finding:</strong> HackSeoul event weeks rank among the top response rate peaks in both 2024 and 2025. This is a repeatable effect.</div>
+              <details>
+                <summary><span class="icon-badge badge-gray"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span> Annual LinkedIn Recruiter Data <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+                    <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px;">
+                      <div style="font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-secondary); margin-bottom:4px;">2024 Full Year (Feb-Dec)</div>
+                      <div style="font-size:13px; color:var(--text-secondary);">151,730 sent &middot; <strong style="color:var(--text);">26.5% responded</strong> &middot; 23.3% accepted</div>
+                    </div>
+                    <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px;">
+                      <div style="font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-secondary); margin-bottom:4px;">2025 Full Year (Jan-Jan)</div>
+                      <div style="font-size:13px; color:var(--text-secondary);">227,551 sent &middot; <strong style="color:var(--text);">26.3% responded</strong> &middot; 23.5% accepted</div>
+                    </div>
+                  </div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/event-photos/linkedin-annual-2024.png" alt="LinkedIn 2024 full year response rate" style="width:100%; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:12px; font-weight:600; color:var(--accent);">Full Year 2024</div><div style="font-size:12px; color:var(--text-secondary);">Notice the <strong style="color:var(--text);">November spike</strong> — HackSeoul 2024 week</div></div></div>
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/event-photos/linkedin-annual-2025.png" alt="LinkedIn 2025 full year response rate" style="width:100%; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:12px; font-weight:600; color:var(--accent);">Full Year 2025</div><div style="font-size:12px; color:var(--text-secondary);">HackSeoul effect <strong style="color:var(--text);">repeats</strong> — 28.2% → 29.4% YoY</div></div></div>
+                  </div>
+                </div>
+              </details>
+              <details>
+                <summary><span class="icon-badge badge-gray"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span> Weekly Response Rate Comparison <svg class="chevron chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></summary>
+                <div class="detail-body">
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/event-photos/linkedin-response-2024.png" alt="LinkedIn 2024 weekly response" style="width:100%; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:12px; font-weight:600; color:var(--accent);">2024 Weekly Response</div></div></div>
+                    <div style="border-radius:8px; overflow:hidden; border:1px solid var(--border);"><img src="/Users/akak/Desktop/Elev8-VS/event-photos/linkedin-response-2025.png" alt="LinkedIn 2025 weekly response" style="width:100%; display:block;" loading="lazy"><div style="padding:10px;"><div style="font-size:12px; font-weight:600; color:var(--accent);">2025 Weekly Response</div></div></div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+      </div>
+
+    </div><!-- /container -->
+
+    <footer class="footer">
+      <p>Elev8 Superpower Engine &mdash; Confidential</p>
+    </footer>
+
+  </main>
+
+  <script>
+    // === Menu ===
+    function toggleMenu() {
+      var dropdown = document.getElementById('vizMenuDropdown');
+      if (dropdown) dropdown.classList.toggle('open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.viz-menu')) {
+        var dropdown = document.getElementById('vizMenuDropdown');
+        if (dropdown) dropdown.classList.remove('open');
+      }
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        var dropdown = document.getElementById('vizMenuDropdown');
+        if (dropdown) dropdown.classList.remove('open');
+      }
+    });
+
+    // === Theme ===
+    var savedTheme = localStorage.getItem('viz-theme');
+    var currentTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    function applyTheme(t) {
+      document.documentElement.className = 'theme-' + t;
+      var icon = document.getElementById('themeIcon');
+      var label = document.getElementById('themeLabel');
+      if (icon) icon.textContent = t === 'dark' ? '\u263E' : '\u2600';
+      if (label) label.textContent = t === 'dark' ? 'Dark' : 'Light';
+      localStorage.setItem('viz-theme', t);
+      currentTheme = t;
+      if (typeof onThemeChange === 'function') onThemeChange();
+    }
+    function cycleTheme() { applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+    applyTheme(currentTheme);
+
+    // === Phase Tab Switching ===
+    var activePhase = -1;
+    function switchPhase(n) {
+      var tabs = document.querySelectorAll('.phase-tab');
+      var panels = document.querySelectorAll('.phase-panel');
+      // Toggle: clicking the active tab closes it
+      if (n === activePhase) {
+        tabs[n].classList.remove('active');
+        panels[n].classList.remove('active');
+        activePhase = -1;
+        return;
+      }
+      // Deactivate all
+      tabs.forEach(function(tab) { tab.classList.remove('active'); });
+      panels.forEach(function(panel) { panel.classList.remove('active'); });
+      // Activate selected
+      tabs[n].classList.add('active');
+      panels[n].classList.add('active');
+      activePhase = n;
+      // Scroll to content
+      var container = document.querySelector('.container');
+      if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // === Scroll Reveal ===
+    document.querySelectorAll('[data-reveal]').forEach(function(el) { el.classList.add('reveal'); });
+    var revealObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) { if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); } });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(function(el) { revealObserver.observe(el); });
+
+    // === Number Counter ===
+    function animateCounters() {
+      document.querySelectorAll('[data-count]').forEach(function(el) {
+        if (el.dataset.counted) return;
+        el.dataset.counted = '1';
+        var target = parseFloat(el.dataset.count), prefix = el.dataset.prefix || '', suffix = el.dataset.suffix || '';
+        var start = performance.now(), duration = 1200;
+        (function tick(now) {
+          var p = Math.min((now - start) / duration, 1), eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = prefix + Math.round(target * eased).toLocaleString() + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+        })(start);
+      });
+    }
+    var counterEl = document.querySelector('[data-count]');
+    if (counterEl) {
+      var cObs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) { if (e.isIntersecting) { animateCounters(); cObs.disconnect(); } });
+      }, { threshold: 0.3 });
+      cObs.observe(counterEl);
+    }
+
+    // === Download PNG ===
+    async function downloadImage() {
+      var menu = document.querySelector('.viz-menu');
+      menu.style.display = 'none';
+      try {
+        var url = await htmlToImage.toPng(document.body, { quality: 1, pixelRatio: 2, filter: function(n) { return !n.classList || !n.classList.contains('viz-menu'); } });
+        var a = document.createElement('a'); a.href = url;
+        a.download = document.title.replace(/\s+/g, '-').toLowerCase() + '.png'; a.click();
+      } catch(e) { console.error('Download failed:', e); }
+      menu.style.display = '';
+    }
+
+    function onThemeChange() {}
+  </script>
+</body>
+</html>

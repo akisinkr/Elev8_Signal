@@ -3,13 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, LogOut, ShieldPlus, UserPlus, Handshake, Users, ScrollText } from "lucide-react";
+import { BarChart3, LogOut, ShieldPlus, UserPlus, Handshake, Users, ScrollText, Sparkles, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/admin/signal", label: "Signal", icon: BarChart3 },
+  { href: "/admin/matches", label: "Match Curator", icon: Sparkles },
   { href: "/admin/intros", label: "Intros", icon: Handshake },
   { href: "/admin/members", label: "Members", icon: Users },
+  { href: "/admin/analytics", label: "Analytics", icon: TrendingUp },
   { href: "/admin/access-requests", label: "Access Requests", icon: UserPlus },
   { href: "/admin/signup", label: "Add Admin", icon: ShieldPlus },
   { href: "/admin/audit-log", label: "Audit Log", icon: ScrollText },
