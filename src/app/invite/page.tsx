@@ -32,8 +32,8 @@ const content = {
     headline: "리더가 모이는 곳",
     subline: "Where Leaders Connect",
     intro:
-      "안녕하세요, Elev8 대표 Andrew Kim입니다. 드디어 Elev8이 공식 런칭을 하게 되어 이렇게 연락드립니다.",
-    body: "그동안 실질적으로 멤버에게 도움이 되는 멤버 네트워킹 행사와 프로그램을 테스트했고, 요즘 나름 잘 나가는 핫한 글로벌 기업들과 파트너십도 맺으며 차근차근 준비했습니다.",
+      "안녕하세요, Elev8 대표 Andrew Kim입니다.\n한마디로 — 시니어 테크 리더들이 진짜 속 얘기를 나눌 수 있는 공간을 만들고 있습니다.",
+    body: "지난 1년간 Executive Roundtable, Private Dinner, 글로벌 기업 파트너십을 직접 기획하고 테스트해왔습니다. 이제 문을 엽니다.",
     sectionEvents: "지금까지의 여정",
     founding: "파운딩 멤버",
     foundingBody:
@@ -41,7 +41,6 @@ const content = {
     cta: "등록하기",
     ctaSub: "등록은 30초도 안 걸립니다",
     marqueeLabel: "8개 도메인의 시니어 리더들이 활동 중",
-    signOff: "감사합니다.",
     envelopeTitle: "AN INVITATION",
     envelopeDesc: "Elev8 파운딩 멤버로\n초대합니다",
     nvidia: {
@@ -54,6 +53,16 @@ const content = {
       title: "Notion x Elev8 Tech Executive Roundtable",
       desc: "AI 에이전트가 생산성, 의사결정, 조직 설계를 어떻게 변화시키고 있는지 탐구한 비공개 라운드테이블.",
     },
+    dinners: {
+      date: "2025년 4-6월",
+      title: "Private Executive Dinners",
+      desc: "미국 주요 도시에서 글로벌 조직의 한국인 시니어 기술 리더들이 모인 소규모 비공개 디너.",
+    },
+    hackseoul: {
+      date: "2025년 11월",
+      title: "HackSeoul 2025 Leadership",
+      desc: "AngelHack과 함께 시니어 리더들을 멘토링과 심사 역할로 참여시킨 전략적 파트너십.",
+    },
     moreLink: "AngelHack HackSeoul 2025",
   },
   en: {
@@ -61,8 +70,8 @@ const content = {
     headline: "Where Leaders Connect",
     subline: "리더가 모이는 곳",
     intro:
-      "Hi, I'm Andrew Kim, Founder & CEO of Elev8. We've officially launched, and I wanted to personally reach out to you.",
-    body: "Over the past year, we've been building and testing real programs for senior tech leaders — executive roundtables, private dinners, and partnerships with top global companies. We're now ready to open the doors.",
+      "Hi, I'm Andrew Kim, Founder & CEO of Elev8.\nIn short — we're building the space where senior tech leaders can have real conversations.",
+    body: "Over the past year, we've hosted executive roundtables, private dinners, and forged partnerships with leading global companies. Now, we're opening the doors.",
     sectionEvents: "Our Journey So Far",
     founding: "Founding Member",
     foundingBody:
@@ -70,7 +79,6 @@ const content = {
     cta: "Register Now",
     ctaSub: "Takes only 30 seconds",
     marqueeLabel: "Tech leaders across 8 domains, from",
-    signOff: "Thank you.",
     envelopeTitle: "AN INVITATION",
     envelopeDesc: "You are invited to join\nElev8 as a Founding Member",
     nvidia: {
@@ -82,6 +90,16 @@ const content = {
       date: "October 2025",
       title: "Notion x Elev8 Tech Executive Roundtable",
       desc: "A closed-door roundtable exploring how AI agents are reshaping productivity, decision-making, and organizational design.",
+    },
+    dinners: {
+      date: "Apr–Jun 2025",
+      title: "Private Executive Dinners",
+      desc: "Intimate, closed-door dinners in major U.S. cities, bringing together Korean senior tech leaders from global organizations.",
+    },
+    hackseoul: {
+      date: "November 2025",
+      title: "HackSeoul 2025 Leadership",
+      desc: "A strategic partnership with AngelHack, bringing senior leaders into direct mentorship and judging roles.",
     },
     moreLink: "AngelHack HackSeoul 2025",
   },
@@ -509,7 +527,7 @@ export default function InvitePage() {
           {/* Personal Message */}
           <section className="space-y-5 fade-up fade-up-2">
             <p
-              className="text-[15px] sm:text-[16px] leading-[1.8]"
+              className="text-[15px] sm:text-[16px] leading-[1.8] whitespace-pre-line"
               style={{ color: "#C0BAB0" }}
             >
               {t.intro}
@@ -533,145 +551,107 @@ export default function InvitePage() {
             />
           </div>
 
-          {/* Events Section Header */}
-          <div className="text-center fade-up fade-up-3">
-            <p
-              className="text-[10px] tracking-[0.3em] uppercase font-medium"
-              style={{ color: "#C8A84E" }}
-            >
-              {t.sectionEvents}
-            </p>
-          </div>
-
-          {/* NVIDIA — Image + Video combined */}
-          <section className="space-y-4 fade-up fade-up-3">
-            <div className="gold-border-shimmer rounded-2xl overflow-hidden" style={{ backgroundColor: "rgba(200,168,78,0.02)" }}>
-              {/* Image card */}
-              <div className="overflow-hidden">
-                <Image
-                  src="/invite/nvidia-roundtable.png"
-                  alt={t.nvidia.title}
-                  width={472}
-                  height={333}
-                  className="w-full h-auto"
-                />
-              </div>
-              {/* Info */}
-              <div className="px-5 py-4">
-                <p
-                  className="text-[10px] tracking-widest uppercase mb-1"
-                  style={{ color: "#C8A84E" }}
-                >
-                  {t.nvidia.date}
-                </p>
-                <p
-                  className="text-[16px] font-semibold mb-2"
-                  style={{ color: "#E8E4DD" }}
-                >
-                  {t.nvidia.title}
-                </p>
-                <p
-                  className="text-[13px] leading-relaxed"
-                  style={{ color: "#7A7670" }}
-                >
-                  {t.nvidia.desc}
-                </p>
-              </div>
-              {/* Video */}
-              <div className="px-4 pb-4">
-                <div
-                  className="overflow-hidden rounded-xl"
-                  style={{ aspectRatio: "16/9" }}
-                >
-                  <iframe
-                    src="https://player.vimeo.com/video/1170480959?h=2d60ab04f6"
-                    className="w-full h-full"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowFullScreen
-                    loading="lazy"
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Notion — Image + Video combined */}
-          <section className="space-y-4 fade-up fade-up-4">
-            <div className="gold-border-shimmer rounded-2xl overflow-hidden" style={{ backgroundColor: "rgba(200,168,78,0.02)" }}>
-              {/* Image card */}
-              <div className="overflow-hidden">
-                <Image
-                  src="/invite/notion-roundtable.png"
-                  alt={t.notion.title}
-                  width={472}
-                  height={333}
-                  className="w-full h-auto"
-                />
-              </div>
-              {/* Info */}
-              <div className="px-5 py-4">
-                <p
-                  className="text-[10px] tracking-widest uppercase mb-1"
-                  style={{ color: "#C8A84E" }}
-                >
-                  {t.notion.date}
-                </p>
-                <p
-                  className="text-[16px] font-semibold mb-2"
-                  style={{ color: "#E8E4DD" }}
-                >
-                  {t.notion.title}
-                </p>
-                <p
-                  className="text-[13px] leading-relaxed"
-                  style={{ color: "#7A7670" }}
-                >
-                  {t.notion.desc}
-                </p>
-              </div>
-              {/* Video */}
-              <div className="px-4 pb-4">
-                <div
-                  className="overflow-hidden rounded-xl"
-                  style={{ aspectRatio: "16/9" }}
-                >
-                  <iframe
-                    src="https://player.vimeo.com/video/1170481169?h=0e9f5f82ca"
-                    className="w-full h-full"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowFullScreen
-                    loading="lazy"
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* More Link — HackSeoul only */}
-          <section className="fade-up fade-up-4">
-            <a
-              href="https://www.linkedin.com/posts/angelhack_hackseoul-2025-was-unreal-heres-a-quick-activity-7396426943350497280-WtEI/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center justify-between rounded-xl border px-5 py-4 transition-all hover:scale-[1.01]"
-              style={{
-                borderColor: "rgba(200,168,78,0.12)",
-                backgroundColor: "rgba(200,168,78,0.03)",
-              }}
-            >
-              <span
-                className="text-[13px] font-medium"
-                style={{ color: "#B0AAA0" }}
-              >
-                {t.moreLink}
-              </span>
-              <span
-                className="transition-transform group-hover:translate-x-1"
+          {/* Events Section — Timeline */}
+          <section className="space-y-10 fade-up fade-up-3">
+            <div className="text-center">
+              <p
+                className="text-[10px] tracking-[0.3em] uppercase font-medium"
                 style={{ color: "#C8A84E" }}
               >
-                &rarr;
-              </span>
-            </a>
+                {t.sectionEvents}
+              </p>
+            </div>
+
+            {/* Timeline line */}
+            <div className="relative space-y-8" style={{ paddingLeft: 20 }}>
+              {/* Vertical gold line */}
+              <div
+                className="absolute left-[7px] top-2 bottom-2"
+                style={{
+                  width: 1,
+                  background: "linear-gradient(to bottom, rgba(200,168,78,0.3), rgba(200,168,78,0.08))",
+                }}
+              />
+
+              {/* NVIDIA — with video */}
+              <div className="relative">
+                <div className="absolute left-[-16px] top-1 w-[11px] h-[11px] rounded-full border-2" style={{ borderColor: "#C8A84E", backgroundColor: "#0A0A0A" }} />
+                <div className="gold-border-shimmer rounded-2xl overflow-hidden" style={{ backgroundColor: "rgba(200,168,78,0.02)" }}>
+                  <div className="overflow-hidden">
+                    <Image src="/invite/nvidia-roundtable.png" alt={t.nvidia.title} width={472} height={333} className="w-full h-auto" />
+                  </div>
+                  <div className="px-5 py-4">
+                    <p className="text-[10px] tracking-widest uppercase mb-1" style={{ color: "#C8A84E" }}>{t.nvidia.date}</p>
+                    <p className="text-[15px] font-semibold mb-1.5" style={{ color: "#E8E4DD" }}>{t.nvidia.title}</p>
+                    <p className="text-[12px] leading-relaxed" style={{ color: "#7A7670" }}>{t.nvidia.desc}</p>
+                  </div>
+                  <div className="px-4 pb-4">
+                    <div className="overflow-hidden rounded-xl" style={{ aspectRatio: "16/9" }}>
+                      <iframe src="https://player.vimeo.com/video/1170480959?h=2d60ab04f6" className="w-full h-full" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen loading="lazy" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notion — with video */}
+              <div className="relative">
+                <div className="absolute left-[-16px] top-1 w-[11px] h-[11px] rounded-full border-2" style={{ borderColor: "#C8A84E", backgroundColor: "#0A0A0A" }} />
+                <div className="gold-border-shimmer rounded-2xl overflow-hidden" style={{ backgroundColor: "rgba(200,168,78,0.02)" }}>
+                  <div className="overflow-hidden">
+                    <Image src="/invite/notion-roundtable.png" alt={t.notion.title} width={472} height={333} className="w-full h-auto" />
+                  </div>
+                  <div className="px-5 py-4">
+                    <p className="text-[10px] tracking-widest uppercase mb-1" style={{ color: "#C8A84E" }}>{t.notion.date}</p>
+                    <p className="text-[15px] font-semibold mb-1.5" style={{ color: "#E8E4DD" }}>{t.notion.title}</p>
+                    <p className="text-[12px] leading-relaxed" style={{ color: "#7A7670" }}>{t.notion.desc}</p>
+                  </div>
+                  <div className="px-4 pb-4">
+                    <div className="overflow-hidden rounded-xl" style={{ aspectRatio: "16/9" }}>
+                      <iframe src="https://player.vimeo.com/video/1170481169?h=0e9f5f82ca" className="w-full h-full" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen loading="lazy" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* HackSeoul */}
+              <div className="relative">
+                <div className="absolute left-[-16px] top-1 w-[11px] h-[11px] rounded-full border-2" style={{ borderColor: "#C8A84E", backgroundColor: "#0A0A0A" }} />
+                <a
+                  href="https://www.linkedin.com/posts/angelhack_hackseoul-2025-was-unreal-heres-a-quick-activity-7396426943350497280-WtEI/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block gold-border-shimmer rounded-2xl overflow-hidden group transition-all hover:scale-[1.01]"
+                  style={{ backgroundColor: "rgba(200,168,78,0.02)" }}
+                >
+                  <div className="overflow-hidden">
+                    <Image src="/invite/hackseoul.png" alt={t.hackseoul.title} width={472} height={314} className="w-full h-auto" />
+                  </div>
+                  <div className="px-5 py-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] tracking-widest uppercase mb-1" style={{ color: "#C8A84E" }}>{t.hackseoul.date}</p>
+                      <p className="text-[15px] font-semibold mb-1.5" style={{ color: "#E8E4DD" }}>{t.hackseoul.title}</p>
+                      <p className="text-[12px] leading-relaxed" style={{ color: "#7A7670" }}>{t.hackseoul.desc}</p>
+                    </div>
+                    <span className="shrink-0 ml-3 transition-transform group-hover:translate-x-1" style={{ color: "#C8A84E", fontSize: 18 }}>&rarr;</span>
+                  </div>
+                </a>
+              </div>
+
+              {/* Executive Dinners */}
+              <div className="relative">
+                <div className="absolute left-[-16px] top-1 w-[11px] h-[11px] rounded-full border-2" style={{ borderColor: "#C8A84E", backgroundColor: "#0A0A0A" }} />
+                <div className="gold-border-shimmer rounded-2xl overflow-hidden" style={{ backgroundColor: "rgba(200,168,78,0.02)" }}>
+                  <div className="overflow-hidden">
+                    <Image src="/invite/executive-dinners.png" alt={t.dinners.title} width={472} height={333} className="w-full h-auto" />
+                  </div>
+                  <div className="px-5 py-4">
+                    <p className="text-[10px] tracking-widest uppercase mb-1" style={{ color: "#C8A84E" }}>{t.dinners.date}</p>
+                    <p className="text-[15px] font-semibold mb-1.5" style={{ color: "#E8E4DD" }}>{t.dinners.title}</p>
+                    <p className="text-[12px] leading-relaxed" style={{ color: "#7A7670" }}>{t.dinners.desc}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
 
           {/* Section Divider */}
@@ -797,42 +777,15 @@ export default function InvitePage() {
             </div>
           </section>
 
-          {/* Signature */}
-          <section className="space-y-4 text-center pb-4">
-            <p
-              className="text-[14px] leading-relaxed"
-              style={{ color: "#8A847A" }}
-            >
-              {t.signOff}
+          {/* Footer tagline */}
+          <section className="text-center pb-4 space-y-1">
+            <p className="text-[12px] font-medium" style={{ color: "#7A7670" }}>
+              <strong style={{ color: "#B0AAA0" }}>Elev8</strong>{" "}
+              <span style={{ color: "#4A4640" }}>&mdash;</span> Where Leaders Connect
             </p>
-            <div className="space-y-1">
-              <p
-                className="text-[15px] font-semibold"
-                style={{ color: "#E8E4DD" }}
-              >
-                Andrew Kim
-              </p>
-              <p className="text-[12px]" style={{ color: "#7A7670" }}>
-                Founder &amp; CEO
-              </p>
-              <p className="text-[12px]" style={{ color: "#7A7670" }}>
-                <strong style={{ color: "#B0AAA0" }}>Elev8</strong>{" "}
-                <span style={{ color: "#4A4640" }}>&mdash;</span> Where Leaders
-                Connect
-              </p>
-              <p className="text-[11px] mt-1" style={{ color: "#4A4640" }}>
-                Seoul &middot; Singapore &middot; San Francisco &middot; Seattle
-              </p>
-              <a
-                href="https://www.linkedin.com/in/andrewkim"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block text-[11px] mt-1 transition-colors hover:underline"
-                style={{ color: "#C8A84E" }}
-              >
-                LinkedIn
-              </a>
-            </div>
+            <p className="text-[11px]" style={{ color: "#4A4640" }}>
+              Seoul &middot; Singapore &middot; San Francisco &middot; Seattle
+            </p>
           </section>
         </div>
       </main>
