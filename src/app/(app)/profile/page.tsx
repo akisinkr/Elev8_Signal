@@ -148,6 +148,9 @@ export default async function ProfilePage({
           challengeSpec1: member.challengeSpec1,
           challengeType2: member.challengeType2,
           challengeSpec2: member.challengeSpec2,
+          knownForDetail: member.knownForDetail,
+          adviceSeeking: member.adviceSeeking,
+          passionTopic: member.passionTopic,
           // Elev8 Titles
           elev8Titles: member.elev8Titles,
           // Living credential fields

@@ -58,11 +58,15 @@ interface MemberData {
   spGeo: string | null;
   spDomainCustom: string | null;
   spActionCustom: string | null;
-  // typed challenges
+  // typed challenges (deprecated)
   challengeType1: string | null;
   challengeSpec1: string | null;
   challengeType2: string | null;
   challengeSpec2: string | null;
+  // conversational questions (Q1-Q3)
+  knownForDetail: string | null;
+  adviceSeeking: string | null;
+  passionTopic: string | null;
   // Elev8 Titles
   elev8Titles: string[];
   // Living credential fields
@@ -291,11 +295,16 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
     return Array.from(titles);
   }, [savedTitles, spActions]);
 
-  // Typed challenges
+  // Typed challenges (deprecated — kept for existing data)
   const [challengeType1, setChallengeType1] = useState(member.challengeType1 || "");
   const [challengeSpec1, setChallengeSpec1] = useState(member.challengeSpec1 || "");
   const [challengeType2, setChallengeType2] = useState(member.challengeType2 || "");
   const [challengeSpec2, setChallengeSpec2] = useState(member.challengeSpec2 || "");
+
+  // Conversational questions (Q1-Q3)
+  const [knownForDetail, setKnownForDetail] = useState(member.knownForDetail || "");
+  const [adviceSeeking, setAdviceSeeking] = useState(member.adviceSeeking || "");
+  const [passionTopic, setPassionTopic] = useState(member.passionTopic || "");
 
   // Legacy keyword state
   const [selectedSPKeywords, setSelectedSPKeywords] = useState<string[]>(
@@ -407,17 +416,15 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
     setGenerating(true);
     setUnveilPhase("skeleton");
     try {
-      const ch1 = challengeSpec1 ? `${CHALLENGE_TYPES.find(t => t.id === challengeType1)?.en || ""}: ${challengeSpec1}` : "";
-      const ch2 = challengeSpec2 ? `${CHALLENGE_TYPES.find(t => t.id === challengeType2)?.en || ""}: ${challengeSpec2}` : "";
-      const challengeHint = [ch1, ch2].filter(Boolean).join("; ");
-
       const suggestPromise = fetch("/api/members/me/card/suggest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           spDomain: domainName, spAction: actionNames.join(", "),
           spScale: scaleNames.join(", "), spStage: stageNames.join(", "),
-          spGeo: geoNames.join(", "), challengeHint, jobTitle, company,
+          spGeo: geoNames.join(", "),
+          knownForDetail, adviceSeeking, passionTopic,
+          jobTitle, company,
         }),
       });
 
@@ -494,6 +501,9 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
           spStage: spStages.join(","), spGeo: spGeos.join(","),
           spDomainCustom: spDomain === "other" ? spDomainCustom : undefined,
           spActionCustom: spActions.includes("custom") ? spActionCustom : undefined,
+          knownForDetail: knownForDetail || undefined,
+          adviceSeeking: adviceSeeking || undefined,
+          passionTopic: passionTopic || undefined,
           challengeType1: challengeType1 || undefined, challengeSpec1: challengeSpec1 || undefined,
           challengeType2: challengeType2 || undefined, challengeSpec2: challengeSpec2 || undefined,
           superpowers: selectedSPKeywords,
@@ -1194,49 +1204,10 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
   }
 
   // ════════════════════════════════════════════════════════
-  // STEP 4: CHALLENGES — "What are you navigating?"
+  // STEP 4: CONNECT — 3 conversational questions
   // ════════════════════════════════════════════════════════
   if (step === "challenges") {
-    const renderChallengeBlock = (idx: number, type: string, setType: (v: string) => void, spec: string, setSpec: (v: string) => void, customText: string, setCustomText: (v: string) => void) => (
-      <div className="space-y-3">
-        <p className="text-[10px] tracking-[0.15em] text-amber-400/55 uppercase font-semibold">
-          {idx === 1 ? (lang === "kr" ? "첫 번째 주제" : "Topic 1") : (lang === "kr" ? "두 번째 주제 (선택)" : "Topic 2 (optional)")}
-        </p>
-        <div className="flex flex-wrap gap-1.5">
-          {CHALLENGE_TYPES.map((t) => (
-            <button key={t.id} onClick={() => { setType(t.id); setSpec(""); setCustomText(""); }}
-              className={`text-[11px] px-3 py-1.5 rounded-full border transition-all ${
-                type === t.id ? "bg-amber-400/10 border-amber-400/25 text-amber-300/80" : "bg-white/[0.02] border-white/[0.06] text-white/40 hover:border-white/[0.12]"
-              }`}>{t.icon} {lang === "kr" ? t.kr : t.en}</button>
-          ))}
-        </div>
-        {type && CHALLENGE_OPTIONS[type] && (
-          <div className="space-y-1.5 pl-1">
-            {CHALLENGE_OPTIONS[type].map((opt) => (
-              <button key={opt.en} onClick={() => { if (opt.en !== spec) { setSpec(opt.en); setCustomText(""); } }}
-                className={`block w-full text-left px-3.5 py-2.5 rounded-lg border text-[12px] transition-all ${
-                  spec === opt.en ? "bg-amber-400/[0.06] border-amber-400/20 text-white/70" : "bg-white/[0.02] border-white/[0.05] text-white/45 hover:border-white/[0.1]"
-                }`}>{lang === "kr" ? opt.kr : opt.en}</button>
-            ))}
-            {spec === "Other" && (
-              <Input value={customText} onChange={(e) => setCustomText(e.target.value)}
-                placeholder={lang === "kr" ? "간단히 적어주세요" : "Describe your specific challenge"}
-                className="mt-2 h-9 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25" autoFocus />
-            )}
-            {spec && spec !== "Other" && (
-              <div className="mt-3 space-y-1.5">
-                <p className="text-[11px] text-white/50 font-medium">{lang === "kr" ? "구체적으로 어떤 부분이 궁금한가요?" : "What would you want to discuss?"}</p>
-                <Textarea value={customText} onChange={(e) => setCustomText(e.target.value)}
-                  placeholder={lang === "kr" ? "예: 팀 20→50명 키우면서 문화 유지하는 법이 궁금해요" : "e.g. I'd love to talk to someone who scaled eng from 20 to 50 at Series B while keeping the culture intact"}
-                  className="min-h-14 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25 leading-relaxed" maxLength={300} />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-
-    const resolvedSpec1 = challengeSpec1 === "Other" ? customChallengeText1 : challengeSpec1;
+    const canProceed = knownForDetail.trim().length > 0 || adviceSeeking.trim().length > 0;
 
     return (
       <div className="space-y-6">
@@ -1244,41 +1215,86 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
 
         <div>
           <h3 className="text-sm font-medium text-white/80 mb-1">
-            {lang === "kr" ? "요즘 어떤 고민을 하고 계세요?" : "If you could sit down with someone who's been there — what would you talk about?"}
+            {lang === "kr" ? "당신에 대해 조금 더 알려주세요" : "Tell us a bit more about you"}
           </h3>
-          <p className="text-[11px] text-white/30 mb-4">
-            {lang === "kr" ? "비슷한 경험을 가진 멤버를 연결해 드릴게요" : "We'll use this to connect you with the right peer"}
+          <p className="text-[11px] text-white/30 mb-5">
+            {lang === "kr" ? "맞는 사람과 연결해 드리기 위해 필요해요 · 1-2문장이면 충분해요" : "This helps us connect you with the right people · A sentence or two is perfect"}
           </p>
 
-          <div className="mb-6">
-            {renderChallengeBlock(1, challengeType1, setChallengeType1, challengeSpec1, setChallengeSpec1, customChallengeText1, setCustomChallengeText1)}
+          {/* Q1: Superpower Detector */}
+          <div className="space-y-2 mb-5">
+            <label className="block text-[13px] font-medium text-white/75">
+              {lang === "kr" ? "회사에서 어떤 사람으로 알려져 있나요?" : "What's the one thing you're known for at work?"}
+            </label>
+            <p className="text-[10px] text-white/30">
+              {lang === "kr" ? "동료나 클라이언트가 당신을 어떻게 소개할지 떠올려 보세요" : "Think about what colleagues or clients would say if someone asked about you"}
+            </p>
+            <Textarea
+              value={knownForDetail}
+              onChange={(e) => setKnownForDetail(e.target.value)}
+              placeholder={lang === "kr"
+                ? "예: 고전하던 영업팀을 맡아서 18개월 만에 매출을 3배로 키웠어요"
+                : "e.g., I turned around a struggling sales team and tripled revenue in 18 months"}
+              className="min-h-[60px] bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/20 leading-relaxed"
+            />
           </div>
-          {resolvedSpec1 && renderChallengeBlock(2, challengeType2, setChallengeType2, challengeSpec2, setChallengeSpec2, customChallengeText2, setCustomChallengeText2)}
+
+          {/* Q2: Challenge Detector */}
+          <div className="space-y-2 mb-5">
+            <label className="block text-[13px] font-medium text-white/75">
+              {lang === "kr" ? "지금 누구에게든 조언을 구할 수 있다면, 뭘 물어보고 싶으세요?" : "If you could get advice from anyone in the world right now, what would you ask them?"}
+            </label>
+            <p className="text-[10px] text-white/30">
+              {lang === "kr" ? "맞는 사람을 연결해 드릴게요" : "This helps us connect you with the right people"}
+            </p>
+            <Textarea
+              value={adviceSeeking}
+              onChange={(e) => setAdviceSeeking(e.target.value)}
+              placeholder={lang === "kr"
+                ? "예: 비기술 창업자인데 개발팀을 어떻게 꾸려야 할지 모르겠어요"
+                : "e.g., How to build an engineering team when I'm a non-technical founder"}
+              className="min-h-[60px] bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/20 leading-relaxed"
+            />
+          </div>
+
+          {/* Q3: Contribution Signal */}
+          <div className="space-y-2 mb-5">
+            <label className="block text-[13px] font-medium text-white/75">
+              {lang === "kr" ? "몇 시간이고 이야기할 수 있는 주제가 있나요?" : "What's a topic you could talk about for hours?"}
+            </label>
+            <p className="text-[10px] text-white/30">
+              {lang === "kr" ? "업무 외 관심사도 괜찮아요" : "Doesn't have to be work-related — passion projects count too"}
+            </p>
+            <Textarea
+              value={passionTopic}
+              onChange={(e) => setPassionTopic(e.target.value)}
+              placeholder={lang === "kr"
+                ? "예: 동남아 스타트업 스케일링, 또는 리모트 팀 문화 만들기"
+                : "e.g., Scaling startups in Southeast Asia, or building remote-first culture"}
+              className="min-h-[60px] bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/20 leading-relaxed"
+            />
+          </div>
 
           {/* Dream connection — optional */}
-          {resolvedSpec1 && (
-            <>
-              <div className="h-[1px] bg-white/[0.04] my-6" />
-              <button type="button" onClick={() => setShowDreamConnect(!showDreamConnect)} className="flex items-center justify-between w-full text-left group">
-                <div>
-                  <h4 className="text-sm font-medium text-white/70 group-hover:text-white/80 transition-colors">
-                    {lang === "kr" ? "만나보고 싶은 분이 있으세요?" : "Anyone specific you'd like to meet?"}
-                  </h4>
-                  <p className="text-[10px] text-white/30 mt-0.5">{lang === "kr" ? "안 적으셔도 돼요" : "Optional"}</p>
-                </div>
-                {showDreamConnect ? <ChevronUp className="size-4 text-white/30" /> : <ChevronDown className="size-4 text-white/30" />}
-              </button>
-              {showDreamConnect && (
-                <Textarea value={dreamConnection} onChange={(e) => { setDreamConnection(e.target.value); setDreamRefined(""); setDreamRefinedKr(""); }}
-                  placeholder={lang === "kr" ? "예: 100명 넘는 팀을 이끌어 본 분" : "e.g. Someone who's scaled cross-functional teams past 100"}
-                  className="mt-3 min-h-14 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/25 leading-relaxed" maxLength={280} />
-              )}
-            </>
+          <div className="h-[1px] bg-white/[0.04] my-4" />
+          <button type="button" onClick={() => setShowDreamConnect(!showDreamConnect)} className="flex items-center justify-between w-full text-left group">
+            <div>
+              <h4 className="text-[13px] font-medium text-white/60 group-hover:text-white/75 transition-colors">
+                {lang === "kr" ? "만나보고 싶은 분이 있으세요?" : "Anyone specific you'd love to connect with?"}
+              </h4>
+              <p className="text-[10px] text-white/25 mt-0.5">{lang === "kr" ? "안 적으셔도 돼요" : "Optional"}</p>
+            </div>
+            {showDreamConnect ? <ChevronUp className="size-4 text-white/30" /> : <ChevronDown className="size-4 text-white/30" />}
+          </button>
+          {showDreamConnect && (
+            <Textarea value={dreamConnection} onChange={(e) => { setDreamConnection(e.target.value); setDreamRefined(""); setDreamRefinedKr(""); }}
+              placeholder={lang === "kr" ? "예: 100명 넘는 팀을 이끌어 본 분" : "e.g. Someone who's scaled cross-functional teams past 100"}
+              className="mt-3 min-h-14 bg-white/[0.03] border-white/[0.07] text-sm placeholder:text-white/20 leading-relaxed" maxLength={280} />
           )}
         </div>
         <NavButtons
           onNext={() => { setStep("generate"); generateWithAI(); }}
-          canNext={!!resolvedSpec1}
+          canNext={canProceed}
           nextLabel={lang === "kr" ? "프로필 완성하기" : "Build My Profile"}
           onBack={() => setStep("context")} />
       </div>

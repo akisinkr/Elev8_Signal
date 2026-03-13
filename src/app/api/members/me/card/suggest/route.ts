@@ -18,7 +18,9 @@ export async function POST(req: Request) {
     const spScale = (body.spScale || "").trim();
     const spStage = (body.spStage || "").trim();
     const spGeo = (body.spGeo || "").trim();
-    const challengeHint = (body.challengeHint || "").trim();
+    const knownForDetail = (body.knownForDetail || "").trim();
+    const adviceSeeking = (body.adviceSeeking || "").trim();
+    const passionTopic = (body.passionTopic || "").trim();
     const title = body.jobTitle || member.jobTitle || "";
     const company = body.company || member.company || "";
 
@@ -88,6 +90,7 @@ If you can't infer numbers, use company context ("at [Company]'s scale").
 Frame as PROACTIVE EXPLORATION, not weakness. Private — shown only to matched peers.
 Start with "Exploring...", "Building...", "Figuring out...", "Evaluating..."
 Write 1-2 sentences that make a peer think "I can help" or "me too."
+Derive challenges from their "advice seeking" answer — what they'd ask the world's best mentor reveals their real challenge. If no advice answer, infer from their role + dimensions.
 
 ## STRICT RULES
 1. Be specific to THIS person's title + company + 5 dimensions
@@ -129,9 +132,12 @@ Company: ${company || "Not provided"}
 4. Stage: ${spStage || "Not provided"}
 5. Geography: ${spGeo || "Not provided"}
 
-Currently exploring (private challenges): "${challengeHint || "No hint given"}"
+MEMBER'S OWN WORDS:
+- Known for at work: "${knownForDetail || "Not provided"}"
+- If they could get advice from anyone: "${adviceSeeking || "Not provided"}"
+- Topic they could talk about for hours: "${passionTopic || "Not provided"}"
 
-Generate the 3-layer Superpower profile using all 5 dimensions. Make the title combine these dimensions into something specific and bragable. Generate exploration-framed descriptions for each challenge. Both English and Korean.`,
+Generate the 3-layer Superpower profile using all 5 dimensions AND the member's own words. The "known for" answer should reinforce and sharpen the superpower title. The "advice seeking" answer should directly inform the challenges. The "passion topic" may reveal hidden depth to weave into the proof line or bullets. Both English and Korean.`,
         },
       ],
     });

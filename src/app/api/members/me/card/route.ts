@@ -12,7 +12,11 @@ const cardSchema = z.object({
   spGeo: z.string().max(500).optional(),
   spDomainCustom: z.string().max(200).optional(),
   spActionCustom: z.string().max(200).optional(),
-  // typed challenges
+  // conversational questions (Q1-Q3)
+  knownForDetail: z.string().max(1000).optional(),
+  adviceSeeking: z.string().max(1000).optional(),
+  passionTopic: z.string().max(1000).optional(),
+  // typed challenges (deprecated)
   challengeType1: z.string().max(100).optional(),
   challengeSpec1: z.string().max(500).optional(),
   challengeType2: z.string().max(100).optional(),
@@ -118,7 +122,11 @@ export async function PUT(req: Request) {
         spGeo: data.spGeo || member.spGeo,
         spDomainCustom: data.spDomainCustom || null,
         spActionCustom: data.spActionCustom || null,
-        // typed challenges
+        // conversational questions (Q1-Q3)
+        knownForDetail: data.knownForDetail || member.knownForDetail || null,
+        adviceSeeking: data.adviceSeeking || member.adviceSeeking || null,
+        passionTopic: data.passionTopic || member.passionTopic || null,
+        // typed challenges (deprecated)
         challengeType1: data.challengeType1 || null,
         challengeSpec1: data.challengeSpec1 || null,
         challengeType2: data.challengeType2 || null,

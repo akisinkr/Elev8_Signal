@@ -134,7 +134,12 @@ model Member {
   superpowers      String[]
   superpowerDetails String[]
 
-  // ── Typed Challenge System ──
+  // ── Conversational Questions (Q1-Q3) ──
+  knownForDetail   String?         // Q1: "What's the one thing you're known for at work?"
+  adviceSeeking    String?         // Q2: "If you could get advice from anyone..."
+  passionTopic     String?         // Q3: "What's a topic you could talk about for hours?"
+
+  // ── Typed Challenge System (deprecated — kept for existing member data) ──
   challengeType1   String?         // e.g. "technical", "leadership", "org", "career", "intro"
   challengeSpec1   String?         // Specific challenge selected
   challengeType2   String?

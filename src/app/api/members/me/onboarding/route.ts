@@ -24,6 +24,9 @@ const allowedDataSchema = z.object({
   challenges: z.array(z.string().max(200)).max(10).optional(),
   challengeDetails: z.array(z.string().max(500)).max(10).optional(),
   dreamConnection: z.string().max(1000).optional(),
+  knownForDetail: z.string().max(1000).optional(),
+  adviceSeeking: z.string().max(1000).optional(),
+  passionTopic: z.string().max(1000).optional(),
   spDomain: z.string().max(100).optional(),
   spAction: z.string().max(100).optional(),
   spScale: z.string().max(100).optional(),
@@ -62,7 +65,7 @@ export async function PATCH(req: Request) {
       const fields = [
         updated.company, updated.jobTitle, updated.linkedinUrl,
         updated.spDomain, updated.spAction, updated.spScale, updated.spStage, updated.spGeo,
-        updated.challengeType1, updated.challengeSpec1,
+        updated.knownForDetail, updated.adviceSeeking, updated.passionTopic,
       ];
       const filledCount = fields.filter(Boolean).length;
       const completeness = Math.round((filledCount / fields.length) * 100);

@@ -42,6 +42,8 @@ const content = {
     ctaSub: "등록은 30초도 안 걸립니다",
     marqueeLabel: "8개 도메인의 시니어 리더들이 활동 중",
     signOff: "감사합니다.",
+    envelopeTitle: "AN INVITATION",
+    envelopeDesc: "Elev8 파운딩 멤버로\n초대합니다",
     nvidia: {
       date: "2025년 11월",
       title: "NVIDIA x Elev8 Executive Roundtable",
@@ -69,6 +71,8 @@ const content = {
     ctaSub: "Takes only 30 seconds",
     marqueeLabel: "Tech leaders across 8 domains, from",
     signOff: "Thank you.",
+    envelopeTitle: "AN INVITATION",
+    envelopeDesc: "You are invited to join\nElev8 as a Founding Member",
     nvidia: {
       date: "November 2025",
       title: "NVIDIA x Elev8 Executive Roundtable",
@@ -140,23 +144,36 @@ export default function InvitePage() {
           0% { background-position: -200% center; }
           100% { background-position: 200% center; }
         }
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
-        }
-        @keyframes glow-ring {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 0.6; transform: scale(1.02); }
-        }
         @keyframes particle-drift {
           0% { transform: translateY(0) translateX(0); opacity: 0; }
-          20% { opacity: 1; }
-          80% { opacity: 1; }
-          100% { transform: translateY(-60px) translateX(20px); opacity: 0; }
+          20% { opacity: 0.6; }
+          80% { opacity: 0.6; }
+          100% { transform: translateY(-80px) translateX(15px); opacity: 0; }
         }
         @keyframes line-reveal {
           from { width: 0; }
           to { width: 60%; }
+        }
+        /* Envelope opening animation */
+        @keyframes flap-open {
+          0% { transform: rotateX(0deg); }
+          100% { transform: rotateX(180deg); }
+        }
+        @keyframes letter-rise {
+          0% { transform: translateY(0); opacity: 0.5; }
+          100% { transform: translateY(-60px); opacity: 1; }
+        }
+        @keyframes envelope-glow {
+          0%, 100% { filter: drop-shadow(0 0 20px rgba(200,168,78,0.1)); }
+          50% { filter: drop-shadow(0 0 40px rgba(200,168,78,0.25)); }
+        }
+        @keyframes sparkle {
+          0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+          50% { opacity: 1; transform: scale(1) rotate(180deg); }
+        }
+        @keyframes float-gentle {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
         }
         .fade-up { animation: fadeUp 0.8s ease-out both; }
         .fade-up-1 { animation-delay: 0.15s; }
@@ -190,6 +207,168 @@ export default function InvitePage() {
           -webkit-mask-composite: xor;
           pointer-events: none;
         }
+        /* Envelope styles */
+        .envelope-wrapper {
+          perspective: 800px;
+          animation: float-gentle 5s ease-in-out infinite;
+        }
+        .envelope {
+          position: relative;
+          width: 280px;
+          height: 200px;
+          margin: 0 auto;
+          animation: envelope-glow 4s ease-in-out infinite;
+        }
+        @media (min-width: 640px) {
+          .envelope { width: 320px; height: 220px; }
+        }
+        .envelope-body {
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+          height: 65%;
+          background: linear-gradient(135deg, #1a1608 0%, #2a2210 50%, #1a1608 100%);
+          border-radius: 0 0 12px 12px;
+          border: 1px solid rgba(200,168,78,0.2);
+          border-top: none;
+          z-index: 3;
+        }
+        .envelope-back {
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+          height: 65%;
+          background: linear-gradient(180deg, #1e1a0e 0%, #151108 100%);
+          border-radius: 0 0 12px 12px;
+          z-index: 0;
+        }
+        /* The letter that rises out */
+        .envelope-letter {
+          position: absolute;
+          left: 8%;
+          right: 8%;
+          bottom: 15%;
+          height: 75%;
+          background: linear-gradient(180deg, #1a1608 0%, #12100a 100%);
+          border: 1px solid rgba(200,168,78,0.15);
+          border-radius: 8px 8px 4px 4px;
+          z-index: 2;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 16px;
+          animation: letter-rise 1.2s ease-out 0.8s both;
+        }
+        /* Flap (top triangle) */
+        .envelope-flap {
+          position: absolute;
+          top: 35%;
+          left: 0;
+          width: 100%;
+          height: 40%;
+          z-index: 4;
+          transform-origin: top center;
+          animation: flap-open 1s ease-in-out 0.3s both;
+        }
+        .envelope-flap-inner {
+          width: 0;
+          height: 0;
+          border-left: 140px solid transparent;
+          border-right: 140px solid transparent;
+          border-top: 80px solid #1e1a0e;
+          position: relative;
+        }
+        @media (min-width: 640px) {
+          .envelope-flap-inner {
+            border-left: 160px solid transparent;
+            border-right: 160px solid transparent;
+            border-top: 90px solid #1e1a0e;
+          }
+        }
+        .envelope-flap-inner::after {
+          content: '';
+          position: absolute;
+          top: -80px;
+          left: -140px;
+          right: -140px;
+          bottom: 0;
+          border-left: 140px solid transparent;
+          border-right: 140px solid transparent;
+          border-top: 80px solid rgba(200,168,78,0.08);
+        }
+        @media (min-width: 640px) {
+          .envelope-flap-inner::after {
+            top: -90px;
+            left: -160px;
+            right: -160px;
+            border-left: 160px solid transparent;
+            border-right: 160px solid transparent;
+            border-top: 90px solid rgba(200,168,78,0.08);
+          }
+        }
+        /* Front triangular flaps (decorative V shape) */
+        .envelope-front-left {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 0;
+          height: 0;
+          border-bottom: 130px solid #1e1a0e;
+          border-right: 140px solid transparent;
+          border-radius: 0 0 0 12px;
+          z-index: 3;
+        }
+        .envelope-front-right {
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          width: 0;
+          height: 0;
+          border-bottom: 130px solid #1e1a0e;
+          border-left: 140px solid transparent;
+          border-radius: 0 0 12px 0;
+          z-index: 3;
+        }
+        @media (min-width: 640px) {
+          .envelope-front-left {
+            border-bottom-width: 143px;
+            border-right-width: 160px;
+          }
+          .envelope-front-right {
+            border-bottom-width: 143px;
+            border-left-width: 160px;
+          }
+        }
+        /* Gold wax seal */
+        .envelope-seal {
+          position: absolute;
+          bottom: 42%;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: radial-gradient(circle at 40% 35%, #E8D5A0 0%, #C8A84E 40%, #8A7030 100%);
+          border: 2px solid rgba(200,168,78,0.4);
+          z-index: 5;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          font-weight: 700;
+          color: #0A0A0A;
+          letter-spacing: 0.05em;
+          box-shadow: 0 2px 12px rgba(200,168,78,0.3);
+        }
+        /* Sparkle particles around envelope */
+        .sparkle {
+          position: absolute;
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: radial-gradient(circle, #E8D5A0, #C8A84E);
+        }
       `}</style>
 
       {/* Header */}
@@ -218,51 +397,87 @@ export default function InvitePage() {
       <main className="relative z-10 flex flex-1 flex-col items-center px-6 pt-4 pb-8">
         <div className="max-w-xl w-full space-y-20">
 
-          {/* Hero — Envelope with premium effects */}
-          <section className="text-center space-y-8 fade-up fade-up-1">
-            {/* Floating envelope with glow ring */}
-            <div className="relative mx-auto max-w-[280px] sm:max-w-[320px]">
-              {/* Outer glow ring */}
-              <div
-                className="absolute -inset-6 rounded-2xl"
-                style={{
-                  background: "radial-gradient(ellipse at center, rgba(200,168,78,0.08) 0%, transparent 70%)",
-                  animation: "glow-ring 4s ease-in-out infinite",
-                }}
-              />
-              {/* Floating particles */}
-              {[...Array(5)].map((_, i) => (
+          {/* Hero — Animated Envelope */}
+          <section className="text-center space-y-10 fade-up fade-up-1">
+            {/* Envelope */}
+            <div className="relative pt-16 pb-4">
+              {/* Sparkle particles */}
+              {[
+                { top: "5%", left: "15%", delay: "0s", dur: "2.5s" },
+                { top: "10%", right: "18%", delay: "0.8s", dur: "3s" },
+                { top: "30%", left: "8%", delay: "1.5s", dur: "2.8s" },
+                { top: "25%", right: "10%", delay: "0.3s", dur: "3.2s" },
+                { top: "60%", left: "12%", delay: "2s", dur: "2.6s" },
+                { top: "55%", right: "14%", delay: "1.2s", dur: "2.9s" },
+              ].map((s, i) => (
                 <div
                   key={i}
-                  className="absolute rounded-full"
+                  className="sparkle absolute"
                   style={{
-                    width: 3,
-                    height: 3,
-                    backgroundColor: "rgba(200,168,78,0.4)",
-                    left: `${20 + i * 15}%`,
-                    bottom: "10%",
-                    animation: `particle-drift ${3 + i * 0.5}s ease-in-out infinite`,
-                    animationDelay: `${i * 0.6}s`,
+                    ...s,
+                    animation: `sparkle ${s.dur} ease-in-out ${s.delay} infinite`,
                   }}
                 />
               ))}
-              <div style={{ animation: "float 6s ease-in-out infinite" }}>
-                <Image
-                  src="/invite/invitation-hero.png"
-                  alt="Elev8 Invitation"
-                  width={320}
-                  height={503}
-                  className="relative w-full h-auto rounded-xl"
-                  priority
+
+              {/* Floating particles rising from envelope */}
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={`p-${i}`}
+                  className="absolute rounded-full"
                   style={{
-                    filter: "drop-shadow(0 0 40px rgba(200,168,78,0.12))",
+                    width: 2,
+                    height: 2,
+                    backgroundColor: "rgba(200,168,78,0.35)",
+                    left: `${30 + i * 8}%`,
+                    top: "45%",
+                    animation: `particle-drift ${3.5 + i * 0.4}s ease-in-out infinite`,
+                    animationDelay: `${1.5 + i * 0.5}s`,
                   }}
                 />
+              ))}
+
+              <div className="envelope-wrapper">
+                <div className="envelope">
+                  {/* Back of envelope */}
+                  <div className="envelope-back" />
+
+                  {/* Letter rising out */}
+                  <div className="envelope-letter">
+                    <p
+                      className="text-[9px] tracking-[0.3em] uppercase font-medium mb-2"
+                      style={{ color: "#C8A84E" }}
+                    >
+                      {t.envelopeTitle}
+                    </p>
+                    <p
+                      className="text-[12px] sm:text-[13px] leading-[1.6] font-medium text-center whitespace-pre-line"
+                      style={{ color: "#D0CAC0" }}
+                    >
+                      {t.envelopeDesc}
+                    </p>
+                  </div>
+
+                  {/* Front body */}
+                  <div className="envelope-body" />
+
+                  {/* Front V flaps */}
+                  <div className="envelope-front-left" />
+                  <div className="envelope-front-right" />
+
+                  {/* Flap (opens) */}
+                  <div className="envelope-flap">
+                    <div className="envelope-flap-inner" />
+                  </div>
+
+                  {/* Gold wax seal */}
+                  <div className="envelope-seal">E8</div>
+                </div>
               </div>
             </div>
 
             {/* Headline with shimmer */}
-            <div className="space-y-4 pt-4">
+            <div className="space-y-4">
               <p
                 className="text-[10px] tracking-[0.3em] uppercase font-medium"
                 style={{ color: "#C8A84E" }}

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Elev8 Founding Member Invitation",
     description:
       "You're invited to join Elev8 — Where Leaders Connect. Limited to 100 founding members.",
-    images: ["/invite/invitation-hero.png"],
+    images: ["/invite/nvidia-roundtable.png"],
     type: "website",
   },
 };
