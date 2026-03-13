@@ -34,6 +34,9 @@ export default async function Home() {
   const { userId } = await auth();
   if (userId) redirect("/signal");
 
+  // Non-authenticated visitors → invite page (landing page WIP)
+  redirect("/invite");
+
   // Double the list for seamless infinite scroll
   const marqueeItems = [...MEMBER_COMPANIES, ...MEMBER_COMPANIES];
 
