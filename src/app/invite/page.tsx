@@ -30,10 +30,9 @@ const content = {
   kr: {
     badge: "파운딩 멤버 초대",
     headline: "리더가 모이는 곳",
-    subline: "Where Leaders Connect",
     intro:
       "안녕하세요, Elev8 대표 Andrew Kim입니다.\n시니어 테크 리더들이 진짜로 연결하고, 나누고, 성장하는 공간을 만들고 있습니다.",
-    body: "허울 없이. 패널 토론 없이. 오직 진짜 대화, Executive Roundtable, Private Dinner, NVIDIA·Notion 같은 글로벌 기업 파트너십. 1년간 직접 테스트해왔습니다. 이제 문을 엽니다.",
+    body: "허울 없이. 패널 토론 없이. 오직 진짜 대화, Executive Roundtable, Private Dinner, 그리고 NVIDIA·Notion·Snowflake 등 글로벌 기업 시니어 임원진과의 파트너십. 1년간 직접 테스트해왔습니다. 이제 문을 엽니다.",
     sectionEvents: "지금까지의 여정",
     founding: "파운딩 멤버",
     foundingBody:
@@ -68,10 +67,9 @@ const content = {
   en: {
     badge: "Founding Member Invitation",
     headline: "Where Leaders Connect",
-    subline: "리더가 모이는 곳",
     intro:
       "Hi, I'm Andrew Kim, Founder & CEO of Elev8.\nWe're building the place where senior tech leaders connect, share, and grow — for real.",
-    body: "No fluff. No panels. Just real conversations, executive roundtables, private dinners, and partnerships with companies like NVIDIA and Notion. We've spent a year testing it. Now, we're opening the doors.",
+    body: "No fluff. No panels. Just real conversations, executive roundtables, private dinners, and partnerships with top global company senior executives from NVIDIA, Notion, Snowflake, and more. We've spent a year testing it. Now, we're opening the doors.",
     sectionEvents: "Our Journey So Far",
     founding: "Founding Member",
     foundingBody:
@@ -511,12 +509,6 @@ export default function InvitePage() {
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.1] shimmer-text">
                 {t.headline}
               </h1>
-              <p
-                className="text-[13px] tracking-widest uppercase"
-                style={{ color: "#5A5650" }}
-              >
-                {t.subline}
-              </p>
               {/* Decorative line */}
               <div className="flex justify-center pt-2">
                 <div
@@ -591,15 +583,10 @@ export default function InvitePage() {
                     <p className="text-[15px] font-semibold mb-1.5" style={{ color: "#E8E4DD" }}>{t.nvidia.title}</p>
                     <p className="text-[12px] leading-relaxed" style={{ color: "#7A7670" }}>{t.nvidia.desc}</p>
                   </div>
-                  <div className="px-4 pb-4">
-                    <div className="overflow-hidden rounded-xl" style={{ aspectRatio: "16/9" }}>
-                      <iframe src="https://player.vimeo.com/video/1170480959?h=2d60ab04f6" className="w-full h-full" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen loading="lazy" />
-                    </div>
-                  </div>
                 </div>
               </div>
 
-              {/* Notion — with video */}
+              {/* Notion */}
               <div className="relative">
                 <div className="absolute left-[-16px] top-1 w-[11px] h-[11px] rounded-full border-2" style={{ borderColor: "#C8A84E", backgroundColor: "#0A0A0A" }} />
                 <div className="gold-border-shimmer rounded-2xl overflow-hidden" style={{ backgroundColor: "rgba(200,168,78,0.02)" }}>
@@ -610,11 +597,6 @@ export default function InvitePage() {
                     <p className="text-[10px] tracking-widest uppercase mb-1" style={{ color: "#C8A84E" }}>{t.notion.date}</p>
                     <p className="text-[15px] font-semibold mb-1.5" style={{ color: "#E8E4DD" }}>{t.notion.title}</p>
                     <p className="text-[12px] leading-relaxed" style={{ color: "#7A7670" }}>{t.notion.desc}</p>
-                  </div>
-                  <div className="px-4 pb-4">
-                    <div className="overflow-hidden rounded-xl" style={{ aspectRatio: "16/9" }}>
-                      <iframe src="https://player.vimeo.com/video/1170481169?h=0e9f5f82ca" className="w-full h-full" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen loading="lazy" />
-                    </div>
                   </div>
                 </div>
               </div>
