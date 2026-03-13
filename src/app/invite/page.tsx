@@ -107,6 +107,8 @@ const GOOGLE_FORM_URL = "https://forms.gle/e9RHprk4bXXE5JL6A";
 
 export default function InvitePage() {
   const [lang, setLang] = useState<"kr" | "en">("en");
+  const [showNvidiaVideo, setShowNvidiaVideo] = useState(false);
+  const [showNotionVideo, setShowNotionVideo] = useState(false);
   const t = content[lang];
   const marqueeItems = [...MEMBER_COMPANIES, ...MEMBER_COMPANIES];
 
@@ -583,6 +585,28 @@ export default function InvitePage() {
                     <p className="text-[15px] font-semibold mb-1.5" style={{ color: "#E8E4DD" }}>{t.nvidia.title}</p>
                     <p className="text-[12px] leading-relaxed" style={{ color: "#7A7670" }}>{t.nvidia.desc}</p>
                   </div>
+                  {showNvidiaVideo ? (
+                    <div className="px-4 pb-4">
+                      <div className="overflow-hidden rounded-xl" style={{ aspectRatio: "16/9" }}>
+                        <iframe src="https://player.vimeo.com/video/1170480959?h=2d60ab04f6&autoplay=1" className="w-full h-full" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="px-4 pb-4">
+                      <button
+                        onClick={() => setShowNvidiaVideo(true)}
+                        className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-[13px] font-semibold tracking-wide transition-all hover:scale-[1.01] active:scale-[0.99]"
+                        style={{
+                          backgroundColor: "rgba(200,168,78,0.1)",
+                          border: "1px solid rgba(200,168,78,0.25)",
+                          color: "#C8A84E",
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21" /></svg>
+                        Watch Now
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -598,6 +622,28 @@ export default function InvitePage() {
                     <p className="text-[15px] font-semibold mb-1.5" style={{ color: "#E8E4DD" }}>{t.notion.title}</p>
                     <p className="text-[12px] leading-relaxed" style={{ color: "#7A7670" }}>{t.notion.desc}</p>
                   </div>
+                  {showNotionVideo ? (
+                    <div className="px-4 pb-4">
+                      <div className="overflow-hidden rounded-xl" style={{ aspectRatio: "16/9" }}>
+                        <iframe src="https://player.vimeo.com/video/1170481169?h=0e9f5f82ca&autoplay=1" className="w-full h-full" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="px-4 pb-4">
+                      <button
+                        onClick={() => setShowNotionVideo(true)}
+                        className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-[13px] font-semibold tracking-wide transition-all hover:scale-[1.01] active:scale-[0.99]"
+                        style={{
+                          backgroundColor: "rgba(200,168,78,0.1)",
+                          border: "1px solid rgba(200,168,78,0.25)",
+                          color: "#C8A84E",
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21" /></svg>
+                        Watch Now
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
