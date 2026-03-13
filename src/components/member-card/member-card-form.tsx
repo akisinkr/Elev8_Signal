@@ -277,8 +277,7 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
   const [spDomainCustom, setSpDomainCustom] = useState(member.spDomainCustom || "");
   const [spActionCustom, setSpActionCustom] = useState(member.spActionCustom || "");
   const [spGeoCustom, setSpGeoCustom] = useState("");
-  const [customChallengeText1, setCustomChallengeText1] = useState("");
-  const [customChallengeText2, setCustomChallengeText2] = useState("");
+  // customChallengeText1/2 removed — replaced by Q1-Q3 conversational questions
   const [savedTitles, setSavedTitles] = useState<string[]>(member.elev8Titles ?? []);
 
   const toggleMulti = (id: string, list: string[], setList: (v: string[]) => void, max = 3) => {
@@ -508,13 +507,13 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
           challengeType2: challengeType2 || undefined, challengeSpec2: challengeSpec2 || undefined,
           superpowers: selectedSPKeywords,
           superpowerDetails: spProfiles.map((p) => JSON.stringify(p)),
-          challenges: [challengeSpec1, challengeSpec2].filter(Boolean),
+          challenges: refinedChallenges,
           challengeDetails: refinedChallenges,
           dreamConnection, dreamConnectionRefined: dreamRefined || undefined,
           preferredLang: lang,
           superpowersKr: selectedSPKeywords.map((_, i) => spProfilesKr[i]?.title || ""),
           superpowerDetailsKr: spProfilesKr.map((p) => JSON.stringify(p)),
-          challengesKr: [challengeSpec1, challengeSpec2].filter(Boolean).map((_, i) => refinedChallengesKr[i] || ""),
+          challengesKr: refinedChallengesKr,
           challengeDetailsKr: refinedChallengesKr,
           dreamConnectionKr: dreamRefinedKr || undefined,
           dreamConnectionRefinedKr: dreamRefinedKr || undefined,
@@ -669,7 +668,6 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
     const primaryProfile = profiles[0];
     const domainBadges = profiles.slice(1);
     const spExpanded = expandedItem === "sp-primary";
-    const chLabels = [challengeSpec1, challengeSpec2].filter(Boolean) as string[];
 
     // Parse superpower history
     const history = (member.superpowerHistory || []).map(h => {

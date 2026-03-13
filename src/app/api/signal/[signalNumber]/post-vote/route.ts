@@ -44,7 +44,7 @@ export async function POST(
     });
 
     // Find superpower matches — up to 3 members whose expertise could help
-    const matchedMembers = await findSuperpowerMatches(member.id, member.challengeType1, 3);
+    const matchedMembers = await findSuperpowerMatches(member.id, member.challengeType1 || member.adviceSeeking, 3);
 
     // Build response
     const voteCount = signal.votes.length;

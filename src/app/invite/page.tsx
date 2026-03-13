@@ -32,8 +32,8 @@ const content = {
     headline: "리더가 모이는 곳",
     subline: "Where Leaders Connect",
     intro:
-      "안녕하세요, Elev8 대표 Andrew Kim입니다.\n한마디로 — 시니어 테크 리더들이 진짜 속 얘기를 나눌 수 있는 공간을 만들고 있습니다.",
-    body: "지난 1년간 Executive Roundtable, Private Dinner, 글로벌 기업 파트너십을 직접 기획하고 테스트해왔습니다. 이제 문을 엽니다.",
+      "안녕하세요, Elev8 대표 Andrew Kim입니다.\n시니어 테크 리더들이 진짜로 연결하고, 나누고, 성장하는 공간을 만들고 있습니다.",
+    body: "허울 없이. 패널 토론 없이. 오직 진짜 대화, Executive Roundtable, Private Dinner, NVIDIA·Notion 같은 글로벌 기업 파트너십. 1년간 직접 테스트해왔습니다. 이제 문을 엽니다.",
     sectionEvents: "지금까지의 여정",
     founding: "파운딩 멤버",
     foundingBody:
@@ -70,8 +70,8 @@ const content = {
     headline: "Where Leaders Connect",
     subline: "리더가 모이는 곳",
     intro:
-      "Hi, I'm Andrew Kim, Founder & CEO of Elev8.\nIn short — we're building the space where senior tech leaders can have real conversations.",
-    body: "Over the past year, we've hosted executive roundtables, private dinners, and forged partnerships with leading global companies. Now, we're opening the doors.",
+      "Hi, I'm Andrew Kim, Founder & CEO of Elev8.\nWe're building the place where senior tech leaders connect, share, and grow — for real.",
+    body: "No fluff. No panels. Just real conversations, executive roundtables, private dinners, and partnerships with companies like NVIDIA and Notion. We've spent a year testing it. Now, we're opening the doors.",
     sectionEvents: "Our Journey So Far",
     founding: "Founding Member",
     foundingBody:
@@ -108,7 +108,7 @@ const content = {
 const GOOGLE_FORM_URL = "https://forms.gle/e9RHprk4bXXE5JL6A";
 
 export default function InvitePage() {
-  const [lang, setLang] = useState<"kr" | "en">("kr");
+  const [lang, setLang] = useState<"kr" | "en">("en");
   const t = content[lang];
   const marqueeItems = [...MEMBER_COMPANIES, ...MEMBER_COMPANIES];
 
@@ -455,7 +455,13 @@ export default function InvitePage() {
                 />
               ))}
 
-              <div className="envelope-wrapper">
+              <a
+                href={GOOGLE_FORM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="envelope-wrapper block cursor-pointer"
+                style={{ textDecoration: "none" }}
+              >
                 <div className="envelope">
                   {/* Back of envelope */}
                   <div className="envelope-back" />
@@ -491,7 +497,7 @@ export default function InvitePage() {
                   {/* Gold wax seal */}
                   <div className="envelope-seal">E8</div>
                 </div>
-              </div>
+              </a>
             </div>
 
             {/* Headline with shimmer */}
