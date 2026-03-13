@@ -11,7 +11,6 @@ const MEMBER_COMPANIES = [
   { name: "Snowflake", logo: "/logos/snowflake.png" },
   { name: "AWS", logo: "/logos/aws.png" },
   { name: "LG", logo: "/logos/lg.png" },
-  { name: "Coupang", logo: "/logos/coupang.png" },
   { name: "Hyundai", logo: "/logos/hyundai.png" },
   { name: "Microsoft", logo: "/logos/microsoft.png" },
   { name: "현대카드", logo: "/logos/hyundaicard.png" },
@@ -41,33 +40,19 @@ const content = {
       "딱 100명만 모시고 있습니다. 소수의 파운딩 멤버를 초대하여 Elev8을 함께 만들어갈 진정한 동료를 찾고 있습니다.",
     cta: "등록하기",
     ctaSub: "등록은 30초도 안 걸립니다",
-    videoSection: "직접 확인해보세요",
-    moreLinks: "더 알아보기",
     marqueeLabel: "8개 도메인의 시니어 리더들이 활동 중",
     signOff: "감사합니다.",
-    events: {
-      newsletter: { date: "2026", title: "Executive Newsletter Issue #1" },
-      hackseoul: {
-        date: "2025년 11월",
-        title: "hackseoul 2025 Leadership Contribution",
-      },
-      nvidia: {
-        date: "2025년 11월",
-        title: "NVIDIA x Elev8 Executive Roundtable",
-      },
-      notion: {
-        date: "2025년 10월",
-        title: "Notion x Elev8 Tech Executive Roundtable",
-      },
-      dinners: {
-        date: "2025년 4-6월",
-        title: "Private Executive Dinners",
-      },
-      aiData: {
-        date: "2025년 4월",
-        title: "AI & Data Revolution Night",
-      },
+    nvidia: {
+      date: "2025년 11월",
+      title: "NVIDIA x Elev8 Executive Roundtable",
+      desc: "시니어 AI 및 엔지니어링 리더들이 AI 인프라, 개발자 지원, 엔지니어링 속도 유지에 대해 논의했습니다.",
     },
+    notion: {
+      date: "2025년 10월",
+      title: "Notion x Elev8 Tech Executive Roundtable",
+      desc: "AI 에이전트가 생산성, 의사결정, 조직 설계를 어떻게 변화시키고 있는지 탐구한 비공개 라운드테이블.",
+    },
+    moreLink: "AngelHack HackSeoul 2025",
   },
   en: {
     badge: "Founding Member Invitation",
@@ -82,43 +67,21 @@ const content = {
       "We're inviting a small group of just 100 founding members to help shape Elev8 as true peers at the table.",
     cta: "Register Now",
     ctaSub: "Takes only 30 seconds",
-    videoSection: "See It In Action",
-    moreLinks: "Learn More",
     marqueeLabel: "Tech leaders across 8 domains, from",
     signOff: "Thank you.",
-    events: {
-      newsletter: { date: "2026", title: "Executive Newsletter Issue #1" },
-      hackseoul: {
-        date: "November 2025",
-        title: "hackseoul 2025 Leadership Contribution",
-      },
-      nvidia: {
-        date: "November 2025",
-        title: "NVIDIA x Elev8 Executive Roundtable",
-      },
-      notion: {
-        date: "October 2025",
-        title: "Notion x Elev8 Tech Executive Roundtable",
-      },
-      dinners: {
-        date: "Apr–Jun 2025",
-        title: "Private Executive Dinners",
-      },
-      aiData: {
-        date: "April 2025",
-        title: "AI & Data Revolution Night",
-      },
+    nvidia: {
+      date: "November 2025",
+      title: "NVIDIA x Elev8 Executive Roundtable",
+      desc: "Senior AI and engineering leaders gathered to discuss AI infrastructure, developer enablement, and sustaining engineering velocity.",
     },
+    notion: {
+      date: "October 2025",
+      title: "Notion x Elev8 Tech Executive Roundtable",
+      desc: "A closed-door roundtable exploring how AI agents are reshaping productivity, decision-making, and organizational design.",
+    },
+    moreLink: "AngelHack HackSeoul 2025",
   },
 };
-
-const EVENT_IMAGES = [
-  { key: "nvidia" as const, src: "/invite/nvidia-roundtable.png", w: 472, h: 333 },
-  { key: "notion" as const, src: "/invite/notion-roundtable.png", w: 472, h: 333 },
-  { key: "hackseoul" as const, src: "/invite/hackseoul.png", w: 472, h: 314 },
-  { key: "dinners" as const, src: "/invite/executive-dinners.png", w: 472, h: 333 },
-  { key: "aiData" as const, src: "/invite/ai-data-night.png", w: 472, h: 333 },
-];
 
 const GOOGLE_FORM_URL = "https://forms.gle/e9RHprk4bXXE5JL6A";
 
@@ -132,12 +95,21 @@ export default function InvitePage() {
       className="relative flex min-h-screen flex-col overflow-hidden"
       style={{ backgroundColor: "#0A0A0A" }}
     >
-      {/* Ambient glow */}
+      {/* Ambient glow — top */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 60% 50% at 50% 30%, rgba(200,168,78,0.05) 0%, transparent 70%)",
+            "radial-gradient(ellipse 60% 40% at 50% 15%, rgba(200,168,78,0.07) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* Secondary glow — bottom */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 50% 30% at 50% 85%, rgba(200,168,78,0.04) 0%, transparent 70%)",
         }}
       />
 
@@ -157,31 +129,79 @@ export default function InvitePage() {
           100% { transform: translateX(-50%); }
         }
         @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(16px); }
+          from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes pulse-glow {
           0%, 100% { box-shadow: 0 0 20px rgba(200,168,78,0.08); }
-          50% { box-shadow: 0 0 40px rgba(200,168,78,0.15); }
+          50% { box-shadow: 0 0 50px rgba(200,168,78,0.18); }
         }
-        .fade-up { animation: fadeUp 0.7s ease-out both; }
-        .fade-up-1 { animation-delay: 0.1s; }
-        .fade-up-2 { animation-delay: 0.25s; }
-        .fade-up-3 { animation-delay: 0.4s; }
-        .fade-up-4 { animation-delay: 0.55s; }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        @keyframes glow-ring {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.02); }
+        }
+        @keyframes particle-drift {
+          0% { transform: translateY(0) translateX(0); opacity: 0; }
+          20% { opacity: 1; }
+          80% { opacity: 1; }
+          100% { transform: translateY(-60px) translateX(20px); opacity: 0; }
+        }
+        @keyframes line-reveal {
+          from { width: 0; }
+          to { width: 60%; }
+        }
+        .fade-up { animation: fadeUp 0.8s ease-out both; }
+        .fade-up-1 { animation-delay: 0.15s; }
+        .fade-up-2 { animation-delay: 0.35s; }
+        .fade-up-3 { animation-delay: 0.55s; }
+        .fade-up-4 { animation-delay: 0.75s; }
+        .fade-up-5 { animation-delay: 0.95s; }
+        .shimmer-text {
+          background: linear-gradient(90deg, #C8A84E 0%, #E8D5A0 25%, #C8A84E 50%, #E8D5A0 75%, #C8A84E 100%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: shimmer 4s linear infinite;
+        }
+        .gold-border-shimmer {
+          position: relative;
+        }
+        .gold-border-shimmer::before {
+          content: '';
+          position: absolute;
+          inset: -1px;
+          border-radius: 16px;
+          padding: 1px;
+          background: linear-gradient(135deg, rgba(200,168,78,0.3), rgba(200,168,78,0.05), rgba(200,168,78,0.3), rgba(200,168,78,0.05));
+          background-size: 300% 300%;
+          animation: shimmer 6s linear infinite;
+          mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          mask-composite: exclude;
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          pointer-events: none;
+        }
       `}</style>
 
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 sm:px-10 py-6">
         <span
-          className="text-[13px] font-semibold tracking-[0.3em] uppercase"
-          style={{ color: "#C8A84E", textShadow: "0 0 20px rgba(200,168,78,0.15)" }}
+          className="text-[13px] font-semibold tracking-[0.3em] uppercase shimmer-text"
         >
           ELEV8
         </span>
         <button
           onClick={() => setLang(lang === "kr" ? "en" : "kr")}
-          className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium tracking-wide transition-colors"
+          className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium tracking-wide transition-all hover:scale-105"
           style={{
             borderColor: "rgba(200,168,78,0.2)",
             color: "#C8A84E",
@@ -196,232 +216,313 @@ export default function InvitePage() {
 
       {/* Main Content */}
       <main className="relative z-10 flex flex-1 flex-col items-center px-6 pt-4 pb-8">
-        <div className="max-w-xl w-full space-y-16">
+        <div className="max-w-xl w-full space-y-20">
 
-          {/* Hero */}
-          <section className="text-center space-y-6 fade-up fade-up-1">
-            {/* Invitation hero image */}
-            <div className="mx-auto max-w-[280px] sm:max-w-[320px]">
-              <Image
-                src="/invite/invitation-hero.png"
-                alt="Elev8 Invitation"
-                width={320}
-                height={503}
-                className="w-full h-auto rounded-xl"
-                priority
+          {/* Hero — Envelope with premium effects */}
+          <section className="text-center space-y-8 fade-up fade-up-1">
+            {/* Floating envelope with glow ring */}
+            <div className="relative mx-auto max-w-[280px] sm:max-w-[320px]">
+              {/* Outer glow ring */}
+              <div
+                className="absolute -inset-6 rounded-2xl"
+                style={{
+                  background: "radial-gradient(ellipse at center, rgba(200,168,78,0.08) 0%, transparent 70%)",
+                  animation: "glow-ring 4s ease-in-out infinite",
+                }}
               />
+              {/* Floating particles */}
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full"
+                  style={{
+                    width: 3,
+                    height: 3,
+                    backgroundColor: "rgba(200,168,78,0.4)",
+                    left: `${20 + i * 15}%`,
+                    bottom: "10%",
+                    animation: `particle-drift ${3 + i * 0.5}s ease-in-out infinite`,
+                    animationDelay: `${i * 0.6}s`,
+                  }}
+                />
+              ))}
+              <div style={{ animation: "float 6s ease-in-out infinite" }}>
+                <Image
+                  src="/invite/invitation-hero.png"
+                  alt="Elev8 Invitation"
+                  width={320}
+                  height={503}
+                  className="relative w-full h-auto rounded-xl"
+                  priority
+                  style={{
+                    filter: "drop-shadow(0 0 40px rgba(200,168,78,0.12))",
+                  }}
+                />
+              </div>
             </div>
 
-            <div className="space-y-3 pt-2">
+            {/* Headline with shimmer */}
+            <div className="space-y-4 pt-4">
               <p
-                className="text-[10px] tracking-[0.25em] uppercase font-medium"
+                className="text-[10px] tracking-[0.3em] uppercase font-medium"
                 style={{ color: "#C8A84E" }}
               >
                 {t.badge}
               </p>
-              <h1
-                className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight leading-[1.15]"
-                style={{ color: "#E8E4DD" }}
-              >
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.1] shimmer-text">
                 {t.headline}
               </h1>
               <p
-                className="text-[13px] tracking-wide"
+                className="text-[13px] tracking-widest uppercase"
                 style={{ color: "#5A5650" }}
               >
                 {t.subline}
               </p>
+              {/* Decorative line */}
+              <div className="flex justify-center pt-2">
+                <div
+                  style={{
+                    height: 1,
+                    background: "linear-gradient(to right, transparent, rgba(200,168,78,0.3), transparent)",
+                    animation: "line-reveal 1.5s ease-out 0.5s both",
+                  }}
+                />
+              </div>
             </div>
           </section>
 
           {/* Personal Message */}
-          <section className="space-y-4 fade-up fade-up-2">
+          <section className="space-y-5 fade-up fade-up-2">
             <p
-              className="text-[14px] sm:text-[15px] leading-relaxed"
-              style={{ color: "#B0AAA0" }}
+              className="text-[15px] sm:text-[16px] leading-[1.8]"
+              style={{ color: "#C0BAB0" }}
             >
               {t.intro}
             </p>
             <p
-              className="text-[14px] sm:text-[15px] leading-relaxed"
+              className="text-[14px] sm:text-[15px] leading-[1.8]"
               style={{ color: "#8A847A" }}
             >
               {t.body}
             </p>
           </section>
 
-          {/* Events Section */}
-          <section className="space-y-8 fade-up fade-up-3">
-            <div className="text-center">
-              <p
-                className="text-[10px] tracking-[0.25em] uppercase font-medium"
-                style={{ color: "#C8A84E" }}
-              >
-                {t.sectionEvents}
-              </p>
-            </div>
+          {/* Section Divider */}
+          <div className="flex justify-center">
+            <div
+              style={{
+                width: "40%",
+                height: 1,
+                background: "linear-gradient(to right, transparent, rgba(200,168,78,0.2), transparent)",
+              }}
+            />
+          </div>
 
-            <div className="space-y-6">
-              {EVENT_IMAGES.map((img) => {
-                const ev = t.events[img.key];
-                return (
-                  <div key={img.key} className="space-y-3">
-                    <div
-                      className="overflow-hidden rounded-xl border"
-                      style={{ borderColor: "rgba(200,168,78,0.08)" }}
-                    >
-                      <Image
-                        src={img.src}
-                        alt={ev.title}
-                        width={img.w}
-                        height={img.h}
-                        className="w-full h-auto"
-                      />
-                    </div>
-                    <div className="px-1">
-                      <p
-                        className="text-[10px] tracking-wide uppercase"
-                        style={{ color: "#C8A84E" }}
-                      >
-                        {ev.date}
-                      </p>
-                      <p
-                        className="text-[14px] font-medium mt-0.5"
-                        style={{ color: "#E8E4DD" }}
-                      >
-                        {ev.title}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+          {/* Events Section Header */}
+          <div className="text-center fade-up fade-up-3">
+            <p
+              className="text-[10px] tracking-[0.3em] uppercase font-medium"
+              style={{ color: "#C8A84E" }}
+            >
+              {t.sectionEvents}
+            </p>
+          </div>
 
-          {/* Video Section */}
-          <section className="space-y-6">
-            <div className="text-center">
-              <p
-                className="text-[10px] tracking-[0.25em] uppercase font-medium"
-                style={{ color: "#C8A84E" }}
-              >
-                {t.videoSection}
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              {[
-                "https://player.vimeo.com/video/1170480959?h=2d60ab04f6",
-                "https://player.vimeo.com/video/1170481169?h=0e9f5f82ca",
-              ].map((src, i) => (
+          {/* NVIDIA — Image + Video combined */}
+          <section className="space-y-4 fade-up fade-up-3">
+            <div className="gold-border-shimmer rounded-2xl overflow-hidden" style={{ backgroundColor: "rgba(200,168,78,0.02)" }}>
+              {/* Image card */}
+              <div className="overflow-hidden">
+                <Image
+                  src="/invite/nvidia-roundtable.png"
+                  alt={t.nvidia.title}
+                  width={472}
+                  height={333}
+                  className="w-full h-auto"
+                />
+              </div>
+              {/* Info */}
+              <div className="px-5 py-4">
+                <p
+                  className="text-[10px] tracking-widest uppercase mb-1"
+                  style={{ color: "#C8A84E" }}
+                >
+                  {t.nvidia.date}
+                </p>
+                <p
+                  className="text-[16px] font-semibold mb-2"
+                  style={{ color: "#E8E4DD" }}
+                >
+                  {t.nvidia.title}
+                </p>
+                <p
+                  className="text-[13px] leading-relaxed"
+                  style={{ color: "#7A7670" }}
+                >
+                  {t.nvidia.desc}
+                </p>
+              </div>
+              {/* Video */}
+              <div className="px-4 pb-4">
                 <div
-                  key={i}
-                  className="overflow-hidden rounded-xl border"
-                  style={{
-                    borderColor: "rgba(200,168,78,0.08)",
-                    aspectRatio: "16/9",
-                  }}
+                  className="overflow-hidden rounded-xl"
+                  style={{ aspectRatio: "16/9" }}
                 >
                   <iframe
-                    src={src}
+                    src="https://player.vimeo.com/video/1170480959?h=2d60ab04f6"
                     className="w-full h-full"
                     allow="autoplay; fullscreen; picture-in-picture"
                     allowFullScreen
                     loading="lazy"
                   />
                 </div>
-              ))}
+              </div>
             </div>
           </section>
 
-          {/* Social Proof Links */}
-          <section className="space-y-4">
-            <div className="text-center">
-              <p
-                className="text-[10px] tracking-[0.25em] uppercase font-medium"
+          {/* Notion — Image + Video combined */}
+          <section className="space-y-4 fade-up fade-up-4">
+            <div className="gold-border-shimmer rounded-2xl overflow-hidden" style={{ backgroundColor: "rgba(200,168,78,0.02)" }}>
+              {/* Image card */}
+              <div className="overflow-hidden">
+                <Image
+                  src="/invite/notion-roundtable.png"
+                  alt={t.notion.title}
+                  width={472}
+                  height={333}
+                  className="w-full h-auto"
+                />
+              </div>
+              {/* Info */}
+              <div className="px-5 py-4">
+                <p
+                  className="text-[10px] tracking-widest uppercase mb-1"
+                  style={{ color: "#C8A84E" }}
+                >
+                  {t.notion.date}
+                </p>
+                <p
+                  className="text-[16px] font-semibold mb-2"
+                  style={{ color: "#E8E4DD" }}
+                >
+                  {t.notion.title}
+                </p>
+                <p
+                  className="text-[13px] leading-relaxed"
+                  style={{ color: "#7A7670" }}
+                >
+                  {t.notion.desc}
+                </p>
+              </div>
+              {/* Video */}
+              <div className="px-4 pb-4">
+                <div
+                  className="overflow-hidden rounded-xl"
+                  style={{ aspectRatio: "16/9" }}
+                >
+                  <iframe
+                    src="https://player.vimeo.com/video/1170481169?h=0e9f5f82ca"
+                    className="w-full h-full"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowFullScreen
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* More Link — HackSeoul only */}
+          <section className="fade-up fade-up-4">
+            <a
+              href="https://www.linkedin.com/posts/angelhack_hackseoul-2025-was-unreal-heres-a-quick-activity-7396426943350497280-WtEI/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-between rounded-xl border px-5 py-4 transition-all hover:scale-[1.01]"
+              style={{
+                borderColor: "rgba(200,168,78,0.12)",
+                backgroundColor: "rgba(200,168,78,0.03)",
+              }}
+            >
+              <span
+                className="text-[13px] font-medium"
+                style={{ color: "#B0AAA0" }}
+              >
+                {t.moreLink}
+              </span>
+              <span
+                className="transition-transform group-hover:translate-x-1"
                 style={{ color: "#C8A84E" }}
               >
-                {t.moreLinks}
-              </p>
-            </div>
-            <div className="space-y-3">
-              {[
-                {
-                  label: "AngelHack HackSeoul 2025",
-                  url: "https://www.linkedin.com/posts/angelhack_hackseoul-2025-was-unreal-heres-a-quick-activity-7396426943350497280-WtEI/",
-                },
-                {
-                  label: "AI & Data Revolution Night w/ Coupang",
-                  url: "https://www.changbal.org/post/ai-data-revolution-night-w-coupang-%ED%9B%84%EA%B8%B0",
-                },
-              ].map((link) => (
-                <a
-                  key={link.url}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between rounded-xl border px-4 py-3.5 transition-colors"
-                  style={{
-                    borderColor: "rgba(200,168,78,0.12)",
-                    backgroundColor: "rgba(200,168,78,0.03)",
-                  }}
-                >
-                  <span
-                    className="text-[13px] font-medium"
-                    style={{ color: "#B0AAA0" }}
-                  >
-                    {link.label}
-                  </span>
-                  <span style={{ color: "#C8A84E" }}>&rarr;</span>
-                </a>
-              ))}
-            </div>
+                &rarr;
+              </span>
+            </a>
           </section>
 
-          {/* Founding Member CTA */}
-          <section className="space-y-6 fade-up fade-up-4">
+          {/* Section Divider */}
+          <div className="flex justify-center">
             <div
-              className="rounded-2xl border px-6 py-8 text-center"
               style={{
-                borderColor: "rgba(200,168,78,0.15)",
+                width: "40%",
+                height: 1,
+                background: "linear-gradient(to right, transparent, rgba(200,168,78,0.2), transparent)",
+              }}
+            />
+          </div>
+
+          {/* Founding Member CTA — Premium card */}
+          <section className="fade-up fade-up-5">
+            <div
+              className="gold-border-shimmer rounded-2xl px-6 py-10 text-center relative overflow-hidden"
+              style={{
                 backgroundColor: "rgba(200,168,78,0.03)",
                 animation: "pulse-glow 4s ease-in-out infinite",
               }}
             >
-              <p
-                className="text-[10px] tracking-[0.25em] uppercase font-medium mb-3"
-                style={{ color: "#C8A84E" }}
-              >
-                {t.founding}
-              </p>
-              <p
-                className="text-[15px] sm:text-[16px] leading-relaxed max-w-sm mx-auto"
-                style={{ color: "#E8E4DD" }}
-              >
-                {t.foundingBody}
-              </p>
+              {/* Inner glow effect */}
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background: "radial-gradient(ellipse at center top, rgba(200,168,78,0.06) 0%, transparent 60%)",
+                }}
+              />
 
-              <div className="mt-6">
-                <a
-                  href={GOOGLE_FORM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2.5 rounded-xl px-8 py-3.5 text-[14px] font-semibold tracking-wide transition-all active:scale-[0.98]"
-                  style={{
-                    backgroundColor: "#C8A84E",
-                    color: "#0A0A0A",
-                    boxShadow:
-                      "0 0 30px rgba(200,168,78,0.15), 0 0 60px rgba(200,168,78,0.05)",
-                  }}
-                >
-                  {t.cta}
-                </a>
+              <div className="relative">
                 <p
-                  className="mt-3 text-[11px]"
-                  style={{ color: "#5A5650" }}
+                  className="text-[10px] tracking-[0.3em] uppercase font-medium mb-4"
+                  style={{ color: "#C8A84E" }}
                 >
-                  {t.ctaSub}
+                  {t.founding}
                 </p>
+                <p
+                  className="text-[16px] sm:text-[17px] leading-relaxed max-w-sm mx-auto font-medium"
+                  style={{ color: "#E8E4DD" }}
+                >
+                  {t.foundingBody}
+                </p>
+
+                <div className="mt-8">
+                  <a
+                    href={GOOGLE_FORM_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative inline-flex items-center gap-2.5 rounded-xl px-10 py-4 text-[15px] font-semibold tracking-wide transition-all active:scale-[0.98] hover:scale-[1.02]"
+                    style={{
+                      backgroundColor: "#C8A84E",
+                      color: "#0A0A0A",
+                      boxShadow:
+                        "0 0 30px rgba(200,168,78,0.2), 0 0 60px rgba(200,168,78,0.08), 0 4px 20px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    {t.cta}
+                  </a>
+                  <p
+                    className="mt-4 text-[11px]"
+                    style={{ color: "#5A5650" }}
+                  >
+                    {t.ctaSub}
+                  </p>
+                </div>
               </div>
             </div>
           </section>
@@ -511,7 +612,7 @@ export default function InvitePage() {
                 href="https://www.linkedin.com/in/andrewkim"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block text-[11px] mt-1"
+                className="inline-block text-[11px] mt-1 transition-colors hover:underline"
                 style={{ color: "#C8A84E" }}
               >
                 LinkedIn

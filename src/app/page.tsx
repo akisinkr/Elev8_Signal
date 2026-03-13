@@ -14,7 +14,6 @@ const MEMBER_COMPANIES = [
   { name: "Snowflake", logo: "/logos/snowflake.png" },
   { name: "AWS", logo: "/logos/aws.png" },
   { name: "LG", logo: "/logos/lg.png" },
-  { name: "Coupang", logo: "/logos/coupang.png" },
   { name: "Hyundai", logo: "/logos/hyundai.png" },
   { name: "Microsoft", logo: "/logos/microsoft.png" },
   { name: "현대카드", logo: "/logos/hyundaicard.png" },
