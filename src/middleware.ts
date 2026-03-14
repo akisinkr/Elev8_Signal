@@ -6,10 +6,9 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/auth(.*)",
-  // Admin pages & auth routes only (admin API routes use own session check)
-  "/admin/login",
-  "/api/admin/auth/login",
-  "/api/admin/auth/logout",
+  // Admin uses its own session cookie, not Clerk
+  "/admin(.*)",
+  "/api/admin(.*)",
   "/api/webhooks(.*)",
   "/signal(.*)",
   "/onboarding(.*)",
