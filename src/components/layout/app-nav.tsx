@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Menu, X, LogOut } from "lucide-react";
+import { useClerk } from "@clerk/nextjs";
 
 interface AppNavProps {
   member: {
@@ -24,8 +25,22 @@ const NAV_ITEMS = [
 export function AppNav({ member }: AppNavProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const avatarMenuRef = useRef<HTMLDivElement>(null);
+  const { signOut } = useClerk();
 
   const initials = `${member.firstName?.[0] || ""}${member.lastName?.[0] || ""}`.toUpperCase();
+
+  // Close avatar menu on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (avatarMenuRef.current && !avatarMenuRef.current.contains(e.target as Node)) {
+        setAvatarMenuOpen(false);
+      }
+    }
+    if (avatarMenuOpen) document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [avatarMenuOpen]);
 
   return (
     <nav className="border-b border-white/[0.06] bg-[#0a0a0f]/80 backdrop-blur-xl sticky top-0 z-50">
@@ -68,16 +83,35 @@ export function AppNav({ member }: AppNavProps) {
                 Admin
               </Link>
             )}
-            <div className="flex items-center gap-2">
-              {member.imageUrl ? (
-                <img
-                  src={member.imageUrl}
-                  alt={member.firstName}
-                  className="size-7 rounded-full object-cover border border-white/[0.08]"
-                />
-              ) : (
-                <div className="size-7 rounded-full bg-white/[0.08] border border-white/[0.06] flex items-center justify-center text-[10px] font-medium text-white/50">
-                  {initials}
+            <div className="relative" ref={avatarMenuRef}>
+              <button
+                onClick={() => setAvatarMenuOpen(!avatarMenuOpen)}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                {member.imageUrl ? (
+                  <img
+                    src={member.imageUrl}
+                    alt={member.firstName}
+                    className="size-7 rounded-full object-cover border border-white/[0.08]"
+                  />
+                ) : (
+                  <div className="size-7 rounded-full bg-white/[0.08] border border-white/[0.06] flex items-center justify-center text-[10px] font-medium text-white/50">
+                    {initials}
+                  </div>
+                )}
+              </button>
+              {avatarMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-44 rounded-lg border border-white/[0.08] bg-[#141419] shadow-xl py-1 z-50">
+                  <div className="px-3 py-2 border-b border-white/[0.06]">
+                    <p className="text-xs font-medium text-white/70 truncate">{member.firstName} {member.lastName}</p>
+                  </div>
+                  <button
+                    onClick={() => signOut({ redirectUrl: "/" })}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm text-white/50 hover:text-white/80 hover:bg-white/[0.04] transition-colors"
+                  >
+                    <LogOut className="size-3.5" />
+                    Sign out
+                  </button>
                 </div>
               )}
             </div>
@@ -121,6 +155,15 @@ export function AppNav({ member }: AppNavProps) {
               Admin Panel
             </Link>
           )}
+          <div className="border-t border-white/[0.06] mt-2 pt-2">
+            <button
+              onClick={() => signOut({ redirectUrl: "/" })}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-white/40 hover:text-white/70 w-full"
+            >
+              <LogOut className="size-4" />
+              Sign out
+            </button>
+          </div>
         </div>
       )}
     </nav>

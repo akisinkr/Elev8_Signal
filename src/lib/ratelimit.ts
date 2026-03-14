@@ -25,6 +25,12 @@ export const accessRequestRatelimit = makeRatelimiter(5, "1 h");
 // 20 email checks per IP per hour — prevents member email enumeration
 export const checkEmailRatelimit = makeRatelimiter(20, "1 h");
 
+// 5 OTP verify attempts per IP per 15 min — prevents brute-force on 6-digit codes
+export const otpVerifyRatelimit = makeRatelimiter(5, "15 m");
+
+// 5 admin login attempts per IP per 15 min — prevents brute-force on admin credentials
+export const adminLoginRatelimit = makeRatelimiter(5, "15 m");
+
 /**
  * Returns the requester's IP from Next.js request headers.
  * Falls back to "anonymous" if not available (e.g. local dev).

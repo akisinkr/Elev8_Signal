@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { recalculateConfidence } from "@/lib/confidence";
 import Anthropic from "@anthropic-ai/sdk";
 
 const BUCKETS = [
@@ -144,23 +145,8 @@ Return JSON only:
       },
     });
 
-    // Update confidence score (xray-verified layer)
-    const avgScore = result.buckets.reduce((sum, b) => sum + b.score, 0) / result.buckets.length;
-    const xrayVerified = (avgScore / 100) * 40; // max 40 points
-
-    const existingCS = await prisma.confidenceScore.findUnique({ where: { memberId } });
-    await prisma.confidenceScore.upsert({
-      where: { memberId },
-      create: {
-        memberId,
-        xrayVerified,
-        composite: xrayVerified,
-      },
-      update: {
-        xrayVerified,
-        composite: (existingCS?.selfDeclared ?? 0) + xrayVerified + (existingCS?.peerValidated ?? 0),
-      },
-    });
+    // Recalculate full confidence score (all 3 layers)
+    await recalculateConfidence(memberId);
 
   } catch (error) {
     console.error("Xray analysis error:", error);

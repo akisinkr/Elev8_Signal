@@ -6,10 +6,10 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/auth(.*)",
-  "/admin(.*)",
+  // Admin pages & auth routes only (admin API routes use own session check)
+  "/admin/login",
   "/api/admin/auth/login",
   "/api/admin/auth/logout",
-  "/api/admin(.*)",
   "/api/webhooks(.*)",
   "/signal(.*)",
   "/api/signal(.*)",
@@ -18,8 +18,6 @@ const isPublicRoute = createRouteMatcher([
   "/api/access-request",
   "/welcome",
   "/api/welcome(.*)",
-  "/profile(.*)",
-  "/api/members/me(.*)",
   "/invite",
   "/recruiting-innovation",
   "/vault(.*)",
@@ -36,7 +34,11 @@ export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
   if (!userId) {
     const signInUrl = new URL("/sign-in", req.url);
-    signInUrl.searchParams.set("redirect_url", req.url);
+    // Only allow same-origin redirects to prevent open redirect attacks
+    const redirectTarget = new URL(req.url);
+    if (redirectTarget.origin === new URL(req.url).origin) {
+      signInUrl.searchParams.set("redirect_url", redirectTarget.pathname + redirectTarget.search);
+    }
     return NextResponse.redirect(signInUrl);
   }
 });

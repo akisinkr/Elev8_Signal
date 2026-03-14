@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSignalByNumber, getMemberVote, castVote } from "@/lib/signal";
 import { sendSlackNotification } from "@/lib/slack";
-import { createMemberSession } from "@/lib/member-auth";
+import { getMemberSession } from "@/lib/member-auth";
 import { voteRatelimit, getIp } from "@/lib/ratelimit";
 import { z } from "zod";
 
@@ -31,7 +31,9 @@ export async function POST(
     const body = await req.json();
     const { answer, why, email } = voteSchema.parse(body);
 
-    const member = await prisma.member.findUnique({
+    // Try session-based auth first, fall back to email lookup for backward compat
+    const sessionMember = await getMemberSession();
+    const member = sessionMember || await prisma.member.findUnique({
       where: { email: email.toLowerCase() },
     });
     if (!member) {
@@ -62,9 +64,6 @@ export async function POST(
     }
 
     const vote = await castVote(signal.id, member.id, answer, why);
-
-    // Set a session cookie so the member stays authenticated for profile building etc.
-    await createMemberSession(member.id, member.email);
 
     // Slack notification (fire-and-forget — don't block the response)
     sendSlackNotification(

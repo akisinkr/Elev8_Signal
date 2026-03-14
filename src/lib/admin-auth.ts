@@ -4,9 +4,9 @@ import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.ADMIN_JWT_SECRET || process.env.CLERK_SECRET_KEY || "admin-secret-change-me"
-);
+const secret = process.env.ADMIN_JWT_SECRET || process.env.CLERK_SECRET_KEY;
+if (!secret) throw new Error("Missing JWT secret: set ADMIN_JWT_SECRET or CLERK_SECRET_KEY");
+const JWT_SECRET = new TextEncoder().encode(secret);
 const COOKIE_NAME = "admin-session";
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days
 

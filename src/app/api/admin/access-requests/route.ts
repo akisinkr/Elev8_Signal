@@ -11,6 +11,7 @@ export async function GET() {
 
     const requests = await prisma.accessRequest.findMany({
       orderBy: { createdAt: "desc" },
+      take: 500,
     });
 
     return NextResponse.json(requests);

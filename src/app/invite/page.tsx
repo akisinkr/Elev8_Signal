@@ -31,8 +31,8 @@ const content = {
     badge: "파운딩 멤버 초대",
     headline: "리더가 모이는 곳",
     intro:
-      "안녕하세요, Elev8 대표 Andrew Kim입니다.\n시니어 테크 리더들이 진짜로 연결하고, 나누고, 성장하는 공간을 만들고 있습니다.",
-    body: "허울 없이. 패널 토론 없이. 오직 진짜 대화, Executive Roundtable, Private Dinner, 그리고 NVIDIA·Notion·Snowflake 등 글로벌 기업 시니어 임원진과의 파트너십. 1년간 직접 테스트해왔습니다. 이제 문을 엽니다.",
+      "안녕하세요, Elev8 대표 Andrew Kim입니다.\n\n시니어 테크 리더들이 진짜로 연결되고, 서로 나누고, 함께 성장하는 공간을 만들고 있습니다.",
+    body: "형식적인 패널 토론이나 명함만 돌리는 네트워킹은 없습니다.\n오직 진짜 대화 — Executive Roundtable, Private Dinner, 그리고 NVIDIA·Notion·Snowflake 등 글로벌 기업 시니어 임원진과의 직접 교류.\n\n1년간 직접 검증해왔습니다. 이제 문을 엽니다.",
     sectionEvents: "지금까지의 여정",
     founding: "파운딩 멤버",
     foundingBody:
@@ -51,6 +51,11 @@ const content = {
       date: "2025년 10월",
       title: "Notion x Elev8 Tech Executive Roundtable",
       desc: "AI 에이전트가 생산성, 의사결정, 조직 설계를 어떻게 변화시키고 있는지 탐구한 비공개 라운드테이블.",
+    },
+    aiDataNight: {
+      date: "2025년 4월",
+      title: "AI & Data Revolution Night",
+      desc: "시니어 AI, 데이터, 엔지니어링 리더들이 모여 enterprise AI 도입과 조직 내 기술 전략에 대해 심도 있는 토론을 나눈 저녁. Apple, Salesforce, Meta, Microsoft, Dell 등 글로벌 기업 리더들이 참여했습니다.",
     },
     dinners: {
       date: "2025년 4-6월",
@@ -88,6 +93,11 @@ const content = {
       date: "October 2025",
       title: "Notion x Elev8 Tech Executive Roundtable",
       desc: "A closed-door roundtable exploring how AI agents are reshaping productivity, decision-making, and organizational design.",
+    },
+    aiDataNight: {
+      date: "April 2025",
+      title: "AI & Data Revolution Night",
+      desc: "An evening of focused discussions with senior AI, data, and engineering leaders, co-hosted with Changbal and Coupang. Leaders from Apple, Salesforce, Meta, Microsoft, Dell, and Coupang shared practical insights on enterprise AI adoption and organizational trade-offs.",
     },
     dinners: {
       date: "Apr–Jun 2025",
@@ -665,6 +675,30 @@ export default function InvitePage() {
                       <p className="text-[10px] tracking-widest uppercase mb-1" style={{ color: "#C8A84E" }}>{t.hackseoul.date}</p>
                       <p className="text-[15px] font-semibold mb-1.5" style={{ color: "#E8E4DD" }}>{t.hackseoul.title}</p>
                       <p className="text-[12px] leading-relaxed" style={{ color: "#7A7670" }}>{t.hackseoul.desc}</p>
+                    </div>
+                    <span className="shrink-0 ml-3 transition-transform group-hover:translate-x-1" style={{ color: "#C8A84E", fontSize: 18 }}>&rarr;</span>
+                  </div>
+                </a>
+              </div>
+
+              {/* AI & Data Revolution Night */}
+              <div className="relative">
+                <div className="absolute left-[-16px] top-1 w-[11px] h-[11px] rounded-full border-2" style={{ borderColor: "#C8A84E", backgroundColor: "#0A0A0A" }} />
+                <a
+                  href="https://www.changbal.org/post/ai-data-revolution-night-w-coupang-%ED%9B%84%EA%B8%B0"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block gold-border-shimmer rounded-2xl overflow-hidden group transition-all hover:scale-[1.01]"
+                  style={{ backgroundColor: "rgba(200,168,78,0.02)" }}
+                >
+                  <div className="overflow-hidden">
+                    <Image src="/invite/ai-data-night.png" alt={t.aiDataNight.title} width={472} height={333} className="w-full h-auto" />
+                  </div>
+                  <div className="px-5 py-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] tracking-widest uppercase mb-1" style={{ color: "#C8A84E" }}>{t.aiDataNight.date}</p>
+                      <p className="text-[15px] font-semibold mb-1.5" style={{ color: "#E8E4DD" }}>{t.aiDataNight.title}</p>
+                      <p className="text-[12px] leading-relaxed" style={{ color: "#7A7670" }}>{t.aiDataNight.desc}</p>
                     </div>
                     <span className="shrink-0 ml-3 transition-transform group-hover:translate-x-1" style={{ color: "#C8A84E", fontSize: 18 }}>&rarr;</span>
                   </div>

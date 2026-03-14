@@ -1,6 +1,11 @@
 import { createHmac } from "crypto";
 
-const SECRET = process.env.SIGNAL_TOKEN_SECRET || process.env.CLERK_SECRET_KEY || "elev8-signal-fallback";
+function getSecret(): string {
+  const s = process.env.SIGNAL_TOKEN_SECRET || process.env.CLERK_SECRET_KEY;
+  if (!s) throw new Error("Missing SIGNAL_TOKEN_SECRET or CLERK_SECRET_KEY");
+  return s;
+}
+const SECRET = getSecret();
 
 export function generateSignalToken(memberId: string, signalNumber: number): string {
   const payload = `${memberId}:${signalNumber}`;

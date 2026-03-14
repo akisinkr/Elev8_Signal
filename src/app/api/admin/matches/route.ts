@@ -17,8 +17,9 @@ export async function GET() {
     }
 
     const matches = await prisma.match.findMany({
-      include: { member1: true, member2: true, matchScore: true },
+      include: { member1: { omit: { passwordHash: true } }, member2: { omit: { passwordHash: true } }, matchScore: true },
       orderBy: { createdAt: "desc" },
+      take: 500,
     });
 
     return NextResponse.json(matches);
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
         curatorNote,
         status: "PROPOSED",
       },
-      include: { member1: true, member2: true },
+      include: { member1: { omit: { passwordHash: true } }, member2: { omit: { passwordHash: true } } },
     });
 
     return NextResponse.json(match, { status: 201 });

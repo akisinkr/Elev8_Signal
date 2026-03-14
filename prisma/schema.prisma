@@ -129,6 +129,7 @@ model Member {
   spGeo            String?         // Geography (e.g. "US ↔ Korea")
   spDomainCustom   String?         // Custom domain if "+ Other" selected
   spActionCustom   String?         // Custom action if "+ Custom" selected
+  spGeoCustom      String?         // Custom geography if "+ Other" selected
 
   // ── Legacy keyword fields (kept for backward compat) ──
   superpowers      String[]
@@ -185,6 +186,7 @@ model Member {
   exchangeFeedback    ExchangeFeedback[]
 
   @@index([clerkId])
+  @@index([email])
 }
 
 model Match {
@@ -209,6 +211,7 @@ model Match {
   matchScore       MatchScore?
   exchangeFeedback ExchangeFeedback[]
 
+  @@unique([member1Id, member2Id])
   @@index([member1Id])
   @@index([member2Id])
   @@index([status])
@@ -289,6 +292,7 @@ model SignalVote {
 
   @@unique([questionId, memberId])
   @@index([questionId])
+  @@index([memberId])
 }
 
 model SignalSuggestion {

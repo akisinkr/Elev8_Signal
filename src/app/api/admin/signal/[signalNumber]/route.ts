@@ -45,7 +45,7 @@ export async function GET(
       where: { signalNumber: num },
       include: {
         votes: {
-          include: { member: true },
+          include: { member: { omit: { passwordHash: true } } },
           orderBy: { createdAt: "desc" },
         },
       },

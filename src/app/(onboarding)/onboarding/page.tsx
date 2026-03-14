@@ -47,6 +47,7 @@ export default async function OnboardingPage() {
     spGeo: member.spGeo,
     spDomainCustom: member.spDomainCustom,
     spActionCustom: member.spActionCustom,
+    spGeoCustom: member.spGeoCustom,
     challengeType1: member.challengeType1,
     challengeSpec1: member.challengeSpec1,
     challengeType2: member.challengeType2,

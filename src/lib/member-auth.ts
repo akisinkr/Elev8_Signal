@@ -1,20 +1,26 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
+import { createHmac } from "crypto";
 import { prisma } from "@/lib/db";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.CLERK_SECRET_KEY || process.env.ADMIN_JWT_SECRET || "member-secret-change-me"
-);
+const secret = process.env.CLERK_SECRET_KEY || process.env.ADMIN_JWT_SECRET;
+if (!secret) throw new Error("Missing JWT secret: set CLERK_SECRET_KEY or ADMIN_JWT_SECRET");
+const JWT_SECRET = new TextEncoder().encode(secret);
 
 const COOKIE_NAME = "member-session";
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days
 const OTP_DURATION = 60 * 10; // 10 minutes
 
-/** Generate a 6-digit OTP and a signed token containing both the code and email */
+/** Hash OTP code so it's not readable in the JWT payload */
+function hashCode(code: string): string {
+  return createHmac("sha256", secret!).update(code).digest("hex");
+}
+
+/** Generate a 6-digit OTP and a signed token containing a hash of the code */
 export async function createOtp(email: string) {
   const code = String(Math.floor(100000 + Math.random() * 900000)); // 6 digits
 
-  const token = await new SignJWT({ email: email.toLowerCase(), code })
+  const token = await new SignJWT({ email: email.toLowerCase(), codeHash: hashCode(code) })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${OTP_DURATION}s`)
@@ -27,7 +33,7 @@ export async function createOtp(email: string) {
 export async function verifyOtp(token: string, code: string) {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    if (payload.code !== code) return null;
+    if (payload.codeHash !== hashCode(code)) return null;
     return payload.email as string;
   } catch {
     return null; // expired or invalid

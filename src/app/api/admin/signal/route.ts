@@ -32,6 +32,7 @@ export async function GET() {
     const signals = await prisma.signalQuestion.findMany({
       orderBy: { signalNumber: "desc" },
       include: { votes: { select: { id: true } } },
+      take: 200,
     });
 
     const result = signals.map((signal) => ({

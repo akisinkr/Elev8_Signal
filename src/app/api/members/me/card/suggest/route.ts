@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     const title = body.jobTitle || member.jobTitle || "";
     const company = body.company || member.company || "";
 
-    // Fetch existing members' descriptions for cross-member vocabulary
+    // Fetch existing members' superpower descriptions for cross-member vocabulary
     const otherMembers = await prisma.member.findMany({
       where: {
         id: { not: member.id },
@@ -32,21 +32,16 @@ export async function POST(req: Request) {
       },
       select: {
         superpowerDetails: true,
-        challengeDetails: true,
       },
     });
 
     const existingSuperpowers = otherMembers
       .flatMap((m) => m.superpowerDetails)
       .filter(Boolean);
-    const existingChallenges = otherMembers
-      .flatMap((m) => m.challengeDetails)
-      .filter(Boolean);
 
-    const vocabContext = existingSuperpowers.length > 0 || existingChallenges.length > 0
+    const vocabContext = existingSuperpowers.length > 0
       ? `\n\nEXISTING COMMUNITY VOCABULARY — Use similar language patterns for better matching:
-${[...new Set(existingSuperpowers)].slice(0, 10).map((s) => `- "${s}"`).join("\n")}
-${[...new Set(existingChallenges)].slice(0, 10).map((c) => `- "${c}"`).join("\n")}`
+${[...new Set(existingSuperpowers)].slice(0, 10).map((s) => `- "${s}"`).join("\n")}`
       : "";
 
     const message = await anthropic.messages.create({
@@ -170,7 +165,7 @@ Generate the 3-layer Superpower profile using all 5 dimensions AND the member's 
     const errMsg = error instanceof Error ? error.message : String(error);
     console.error("AI suggestion error:", errMsg, error);
     return NextResponse.json(
-      { error: "Failed to generate suggestions", detail: errMsg },
+      { error: "Failed to generate suggestions" },
       { status: 500 }
     );
   }

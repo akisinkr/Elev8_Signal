@@ -12,7 +12,7 @@ export async function recalculateConfidence(memberId: string) {
     select: {
       company: true, jobTitle: true, linkedinUrl: true,
       spDomain: true, spAction: true, spScale: true, spStage: true, spGeo: true,
-      challengeType1: true, challengeSpec1: true,
+      knownForDetail: true, adviceSeeking: true, passionTopic: true,
       peerRecognitionCount: true,
     },
   });
@@ -23,7 +23,7 @@ export async function recalculateConfidence(memberId: string) {
   const fields = [
     member.company, member.jobTitle, member.linkedinUrl,
     member.spDomain, member.spAction, member.spScale, member.spStage, member.spGeo,
-    member.challengeType1, member.challengeSpec1,
+    member.knownForDetail, member.adviceSeeking, member.passionTopic,
   ];
   const completeness = Math.round((fields.filter(Boolean).length / fields.length) * 100);
   const selfDeclared = completeness * 0.3;

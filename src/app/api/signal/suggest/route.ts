@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getMemberSession } from "@/lib/member-auth";
 import { z } from "zod";
 
 const suggestSchema = z.object({
@@ -13,7 +14,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const data = suggestSchema.parse(body);
 
-    const member = await prisma.member.findUnique({
+    // Try session-based auth first, fall back to email lookup for backward compat
+    const sessionMember = await getMemberSession();
+    const member = sessionMember || await prisma.member.findUnique({
       where: { email: data.email.toLowerCase() },
     });
 

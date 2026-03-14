@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { computeResults, getMemberVote, getSignalByNumber } from "@/lib/signal";
 import { verifySignalToken } from "@/lib/signal-token";
+import { getMemberSession } from "@/lib/member-auth";
 import { z } from "zod";
 
 const schema = z.object({
@@ -64,14 +65,11 @@ export async function POST(
       return buildResultsResponse(num, verified.memberId);
     }
 
-    // Email-based auth (manual entry)
-    if (!email) {
-      return NextResponse.json({ error: "Email or token required" }, { status: 400 });
-    }
-
-    const member = await prisma.member.findUnique({
+    // Session-based auth, then email fallback
+    const sessionMember = await getMemberSession();
+    const member = sessionMember || (email ? await prisma.member.findUnique({
       where: { email: email.toLowerCase() },
-    });
+    }) : null);
 
     if (!member) {
       return NextResponse.json(

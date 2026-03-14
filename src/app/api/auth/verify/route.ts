@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifyOtp, createMemberSession } from "@/lib/member-auth";
+import { otpVerifyRatelimit, getIp } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit OTP verification to prevent brute-force
+    if (otpVerifyRatelimit) {
+      const ip = getIp(req);
+      const { success } = await otpVerifyRatelimit.limit(ip);
+      if (!success) {
+        return NextResponse.json(
+          { error: "Too many attempts. Please wait a few minutes." },
+          { status: 429 }
+        );
+      }
+    }
+
     const { token, code } = await req.json();
 
     if (!token || !code) {

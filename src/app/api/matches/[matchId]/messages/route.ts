@@ -31,8 +31,9 @@ export async function GET(
 
     const messages = await prisma.message.findMany({
       where: { matchId },
-      include: { sender: true },
+      include: { sender: { omit: { passwordHash: true } } },
       orderBy: { createdAt: "asc" },
+      take: 200,
     });
 
     return NextResponse.json(messages);
@@ -71,7 +72,7 @@ export async function POST(
         matchId,
         senderId: member.id,
       },
-      include: { sender: true },
+      include: { sender: { omit: { passwordHash: true } } },
     });
 
     // Trigger real-time update

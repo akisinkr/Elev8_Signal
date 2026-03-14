@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireMember } from "@/lib/auth";
 
-const SUPABASE_URL = "https://mvpwrwxxtxsmdoufsaos.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12cHdyd3h4dHhzbWRvdWZzYW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0OTY1NTAsImV4cCI6MjA4ODA3MjU1MH0.mF6c5DCslDuXn92SO3BcF_xVv1ErPdEesP5AEVZKFSA";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "";
 
 export async function POST(req: Request) {
   try {

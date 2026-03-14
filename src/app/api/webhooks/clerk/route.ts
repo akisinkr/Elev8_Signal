@@ -1,9 +1,16 @@
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
+import { Webhook } from "svix";
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
+  const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
+  if (!WEBHOOK_SECRET) {
+    console.error("CLERK_WEBHOOK_SECRET not set");
+    return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+  }
+
   const headerPayload = await headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
@@ -13,8 +20,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing svix headers" }, { status: 400 });
   }
 
-  const body = await req.json();
-  const evt = body as WebhookEvent;
+  const body = await req.text();
+
+  // Verify webhook signature
+  const wh = new Webhook(WEBHOOK_SECRET);
+  let evt: WebhookEvent;
+  try {
+    evt = wh.verify(body, {
+      "svix-id": svix_id,
+      "svix-timestamp": svix_timestamp,
+      "svix-signature": svix_signature,
+    }) as WebhookEvent;
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err);
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  }
 
   const eventType = evt.type;
 

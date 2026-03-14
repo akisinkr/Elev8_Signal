@@ -34,6 +34,7 @@ const allowedDataSchema = z.object({
   spGeo: z.string().max(100).optional(),
   spDomainCustom: z.string().max(200).optional(),
   spActionCustom: z.string().max(200).optional(),
+  spGeoCustom: z.string().max(200).optional(),
   superpowersKr: z.array(z.string().max(200)).max(10).optional(),
   superpowerDetailsKr: z.array(z.string().max(500)).max(10).optional(),
   challengesKr: z.array(z.string().max(200)).max(10).optional(),

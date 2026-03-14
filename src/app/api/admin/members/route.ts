@@ -11,6 +11,8 @@ export async function GET() {
 
     const members = await prisma.member.findMany({
       orderBy: { createdAt: "desc" },
+      omit: { passwordHash: true },
+      take: 500,
     });
 
     return NextResponse.json(members);

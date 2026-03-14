@@ -10,8 +10,12 @@ export async function GET() {
     }
 
     const feedback = await prisma.feedback.findMany({
-      include: { member: true, match: { include: { member1: true, member2: true } } },
+      include: {
+        member: { omit: { passwordHash: true } },
+        match: { include: { member1: { omit: { passwordHash: true } }, member2: { omit: { passwordHash: true } } } },
+      },
       orderBy: { createdAt: "desc" },
+      take: 500,
     });
 
     return NextResponse.json(feedback);

@@ -20,7 +20,14 @@ export async function GET(
         id: matchId,
         OR: [{ member1Id: member.id }, { member2Id: member.id }],
       },
-      include: { member1: true, member2: true, messages: true, feedback: true, matchScore: true, exchangeFeedback: true },
+      include: {
+        member1: { omit: { passwordHash: true } },
+        member2: { omit: { passwordHash: true } },
+        messages: true,
+        feedback: true,
+        matchScore: true,
+        exchangeFeedback: true,
+      },
     });
 
     if (!match) {

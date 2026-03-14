@@ -58,6 +58,7 @@ interface MemberData {
   spGeo: string | null;
   spDomainCustom: string | null;
   spActionCustom: string | null;
+  spGeoCustom: string | null;
   // typed challenges (deprecated)
   challengeType1: string | null;
   challengeSpec1: string | null;
@@ -276,7 +277,7 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
   const [spGeos, setSpGeos] = useState<string[]>(member.spGeo ? member.spGeo.split(",") : []);
   const [spDomainCustom, setSpDomainCustom] = useState(member.spDomainCustom || "");
   const [spActionCustom, setSpActionCustom] = useState(member.spActionCustom || "");
-  const [spGeoCustom, setSpGeoCustom] = useState("");
+  const [spGeoCustom, setSpGeoCustom] = useState(member.spGeoCustom || "");
   // customChallengeText1/2 removed — replaced by Q1-Q3 conversational questions
   const [savedTitles, setSavedTitles] = useState<string[]>(member.elev8Titles ?? []);
 
@@ -325,6 +326,7 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
   const [refinedChallenges, setRefinedChallenges] = useState<string[]>(member.challengeDetails || []);
   const [refinedChallengesKr, setRefinedChallengesKr] = useState<string[]>(member.challengeDetailsKr || []);
   const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState("");
 
   // Dream connection
   const [dreamConnection, setDreamConnection] = useState(member.dreamConnection || "");
@@ -410,9 +412,20 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
   const stageNames = spStages.map(s => dimLabel(STAGES, s));
   const geoNames = spGeos.map(g => g === "geo-other" ? (spGeoCustom || "Other") : dimLabel(GEOS, g));
 
+  // ── Auto-save step progress (fire-and-forget) ──
+  const saveStepProgress = (stepNum: number, data: Record<string, unknown> = {}) => {
+    if (!onboarding) return;
+    fetch("/api/members/me/onboarding", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ step: stepNum, data: { onboardingState: "IN_PROGRESS", ...data } }),
+    }).catch(() => {}); // silent — don't block UI
+  };
+
   // ── AI Generate from 5 dimensions ──
   const generateWithAI = async () => {
     setGenerating(true);
+    setGenerateError("");
     setUnveilPhase("skeleton");
     try {
       const suggestPromise = fetch("/api/members/me/card/suggest", {
@@ -468,8 +481,8 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
       }, 2200);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
-      toast.error(`Couldn't generate: ${msg}`);
-      setStep("challenges");
+      setGenerateError(msg);
+      setUnveilPhase("skeleton");
     } finally {
       setGenerating(false);
     }
@@ -500,6 +513,7 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
           spStage: spStages.join(","), spGeo: spGeos.join(","),
           spDomainCustom: spDomain === "other" ? spDomainCustom : undefined,
           spActionCustom: spActions.includes("custom") ? spActionCustom : undefined,
+          spGeoCustom: spGeos.includes("geo-other") ? spGeoCustom : undefined,
           knownForDetail: knownForDetail || undefined,
           adviceSeeking: adviceSeeking || undefined,
           passionTopic: passionTopic || undefined,
@@ -511,7 +525,7 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
           challengeDetails: refinedChallenges,
           dreamConnection, dreamConnectionRefined: dreamRefined || undefined,
           preferredLang: lang,
-          superpowersKr: selectedSPKeywords.map((_, i) => spProfilesKr[i]?.title || ""),
+          superpowersKr: spProfilesKr.map((p) => p.title || ""),
           superpowerDetailsKr: spProfilesKr.map((p) => JSON.stringify(p)),
           challengesKr: refinedChallengesKr,
           challengeDetailsKr: refinedChallengesKr,
@@ -531,11 +545,14 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
 
       // If onboarding, mark completion and redirect to dashboard
       if (onboarding) {
-        await fetch("/api/members/me/onboarding", {
+        const onboardRes = await fetch("/api/members/me/onboarding", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ step: 7, data: { onboardingState: "COMPLETED" } }),
         });
+        if (!onboardRes.ok) {
+          throw new Error("Failed to complete onboarding. Please try again.");
+        }
         window.location.href = "/dashboard";
         return;
       }
@@ -1082,7 +1099,7 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
           </p>
         </div>
 
-        <NavButtons onNext={() => setStep("expertise")} canNext={spDomains.length > 0 && (!spDomains.includes("other") || !!spDomainCustom.trim()) && !!jobTitle.trim()} />
+        <NavButtons onNext={() => { saveStepProgress(1, { company, jobTitle, linkedinUrl, spDomain: spDomains.join(",") }); setStep("expertise"); }} canNext={spDomains.length > 0 && (!spDomains.includes("other") || !!spDomainCustom.trim()) && !!jobTitle.trim()} />
       </div>
     );
   }
@@ -1130,7 +1147,7 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
             </div>
           )}
         </div>
-        <NavButtons onNext={() => setStep("context")} canNext={spActions.length > 0 && (!spActions.includes("custom") || !!spActionCustom.trim())} onBack={() => setStep("about")} />
+        <NavButtons onNext={() => { saveStepProgress(2, { spAction: spActions.join(",") }); setStep("context"); }} canNext={spActions.length > 0 && (!spActions.includes("custom") || !!spActionCustom.trim())} onBack={() => setStep("about")} />
       </div>
     );
   }
@@ -1194,7 +1211,7 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
           )}
         </div>
 
-        <NavButtons onNext={() => setStep("challenges")}
+        <NavButtons onNext={() => { saveStepProgress(3, { spScale: spScales.join(","), spStage: spStages.join(","), spGeo: spGeos.join(",") }); setStep("challenges"); }}
           canNext={spScales.length > 0 && spStages.length > 0 && spGeos.length > 0 && (!spGeos.includes("geo-other") || !!spGeoCustom.trim())}
           onBack={() => setStep("expertise")} />
       </div>
@@ -1205,7 +1222,8 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
   // STEP 4: CONNECT — 3 conversational questions
   // ════════════════════════════════════════════════════════
   if (step === "challenges") {
-    const canProceed = knownForDetail.trim().length > 0 || adviceSeeking.trim().length > 0;
+    const answeredCount = [knownForDetail, adviceSeeking, passionTopic].filter(q => q.trim().length > 0).length;
+    const canProceed = answeredCount >= 2;
 
     return (
       <div className="space-y-6">
@@ -1273,6 +1291,13 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
             />
           </div>
 
+          {/* Answered count hint */}
+          {answeredCount < 2 && (
+            <p className="text-[11px] text-amber-400/60 mt-1">
+              {lang === "kr" ? `3개 중 최소 2개를 답해 주세요 (${answeredCount}/2)` : `Please answer at least 2 of 3 questions (${answeredCount}/2)`}
+            </p>
+          )}
+
           {/* Dream connection — optional */}
           <div className="h-[1px] bg-white/[0.04] my-4" />
           <button type="button" onClick={() => setShowDreamConnect(!showDreamConnect)} className="flex items-center justify-between w-full text-left group">
@@ -1322,9 +1347,26 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
               <div className="h-6 w-full rounded bg-white/[0.04] animate-pulse" />
               <div className="h-6 w-3/4 rounded bg-white/[0.04] animate-pulse" />
             </div>
-            <p className="text-center text-[11px] text-white/30 pt-4">
-              {lang === "kr" ? `${member.firstName}님만의 프로필을 만들고 있습니다...` : "Crafting your Superpower profile..."}
-            </p>
+            {generateError ? (
+              <div className="text-center pt-4 space-y-3">
+                <p className="text-[12px] text-red-400/80">
+                  {lang === "kr" ? "프로필 생성에 실패했습니다" : "Couldn't generate your profile"}
+                </p>
+                <p className="text-[10px] text-white/25">{generateError}</p>
+                <div className="flex justify-center gap-3 pt-1">
+                  <Button variant="ghost" size="sm" onClick={() => setStep("challenges")} className="text-[11px] text-white/40 hover:text-white/60">
+                    {lang === "kr" ? "← 돌아가기" : "← Go back"}
+                  </Button>
+                  <Button size="sm" onClick={() => generateWithAI()} className="text-[11px] bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/20">
+                    {lang === "kr" ? "다시 시도" : "Try again"}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-center text-[11px] text-white/30 pt-4">
+                {lang === "kr" ? `${member.firstName}님만의 프로필을 만들고 있습니다...` : "Crafting your Superpower profile..."}
+              </p>
+            )}
           </div>
         ) : (
           <div className="transition-all duration-700 opacity-100 translate-y-0">

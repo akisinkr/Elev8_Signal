@@ -143,6 +143,7 @@ export default async function ProfilePage({
           spGeo: member.spGeo,
           spDomainCustom: member.spDomainCustom,
           spActionCustom: member.spActionCustom,
+          spGeoCustom: member.spGeoCustom,
           // typed challenges
           challengeType1: member.challengeType1,
           challengeSpec1: member.challengeSpec1,

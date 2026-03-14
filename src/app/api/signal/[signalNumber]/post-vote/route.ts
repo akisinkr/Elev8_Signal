@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getMemberSession } from "@/lib/member-auth";
 import { z } from "zod";
 
 const schema = z.object({
@@ -13,7 +14,6 @@ export async function POST(
   try {
     const body = await req.json();
     const { email } = schema.parse(body);
-    const normalizedEmail = email.toLowerCase();
 
     const { signalNumber } = await params;
     const num = parseInt(signalNumber, 10);
@@ -30,9 +30,10 @@ export async function POST(
       return NextResponse.json({ error: "Signal not found" }, { status: 404 });
     }
 
-    // Get the voting member
-    const member = await prisma.member.findUnique({
-      where: { email: normalizedEmail },
+    // Try session-based auth first, fall back to email lookup for backward compat
+    const sessionMember = await getMemberSession();
+    const member = sessionMember || await prisma.member.findUnique({
+      where: { email: email.toLowerCase() },
     });
     if (!member) {
       return NextResponse.json({ error: "Member not found" }, { status: 403 });

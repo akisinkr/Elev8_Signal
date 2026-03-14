@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/sendgrid";
+import { getMemberSession } from "@/lib/member-auth";
 import { z } from "zod";
 
 const schema = z.object({
@@ -15,14 +16,14 @@ export async function POST(
   try {
     const body = await req.json();
     const { email, matchedMemberId } = schema.parse(body);
-    const normalizedEmail = email.toLowerCase();
 
     const { signalNumber } = await params;
     const num = parseInt(signalNumber, 10);
 
-    // Get the requesting member
-    const requester = await prisma.member.findUnique({
-      where: { email: normalizedEmail },
+    // Try session-based auth first, fall back to email lookup for backward compat
+    const sessionMember = await getMemberSession();
+    const requester = sessionMember || await prisma.member.findUnique({
+      where: { email: email.toLowerCase() },
     });
     if (!requester) {
       return NextResponse.json({ error: "Member not found" }, { status: 403 });

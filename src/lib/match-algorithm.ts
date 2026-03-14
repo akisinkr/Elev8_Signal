@@ -78,8 +78,10 @@ function computeContext(a: MemberProfile, b: MemberProfile): number {
     const stageOrder = ["seed", "ab", "cd", "preipo", "public", "conglomerate"];
     const aStages = a.spStage.split(",").map(s => s.trim());
     const bStages = b.spStage.split(",").map(s => s.trim());
-    const aIdx = Math.min(...aStages.map(s => stageOrder.indexOf(s)).filter(i => i >= 0));
-    const bIdx = Math.min(...bStages.map(s => stageOrder.indexOf(s)).filter(i => i >= 0));
+    const aFiltered = aStages.map(s => stageOrder.indexOf(s)).filter(i => i >= 0);
+    const bFiltered = bStages.map(s => stageOrder.indexOf(s)).filter(i => i >= 0);
+    const aIdx = aFiltered.length > 0 ? Math.min(...aFiltered) : -1;
+    const bIdx = bFiltered.length > 0 ? Math.min(...bFiltered) : -1;
     if (aIdx >= 0 && bIdx >= 0) {
       const diff = Math.abs(aIdx - bIdx);
       if (diff === 0) score += 1;
@@ -109,8 +111,10 @@ function computeContext(a: MemberProfile, b: MemberProfile): number {
     const scaleOrder = ["small", "mid", "large", "org", "enterprise", "portfolio"];
     const aScales = a.spScale.split(",").map(s => s.trim());
     const bScales = b.spScale.split(",").map(s => s.trim());
-    const aIdx = Math.min(...aScales.map(s => scaleOrder.indexOf(s)).filter(i => i >= 0));
-    const bIdx = Math.min(...bScales.map(s => scaleOrder.indexOf(s)).filter(i => i >= 0));
+    const aScaleFiltered = aScales.map(s => scaleOrder.indexOf(s)).filter(i => i >= 0);
+    const bScaleFiltered = bScales.map(s => scaleOrder.indexOf(s)).filter(i => i >= 0);
+    const aIdx = aScaleFiltered.length > 0 ? Math.min(...aScaleFiltered) : -1;
+    const bIdx = bScaleFiltered.length > 0 ? Math.min(...bScaleFiltered) : -1;
     if (aIdx >= 0 && bIdx >= 0) {
       const diff = Math.abs(aIdx - bIdx);
       score += diff <= 1 ? 1 : diff <= 2 ? 0.6 : 0.3;
