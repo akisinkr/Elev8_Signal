@@ -346,16 +346,18 @@ model AdminAuditLog {
 // ─── Superpower Engine: Xray & Scoring ──────────────────
 
 model XrayProfile {
-  id          String     @id @default(cuid())
-  memberId    String
-  linkedinUrl String
-  status      XrayStatus @default(PENDING)
-  rawData     Json?
-  summary     String?
-  summaryKr   String?
-  analyzedAt  DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id                String     @id @default(cuid())
+  memberId          String
+  linkedinUrl       String
+  status            XrayStatus @default(PENDING)
+  rawData           Json?
+  summary           String?
+  summaryKr         String?
+  linkedinData      Json?       // Raw Enrich Layer API response (cached)
+  linkedinFetchedAt DateTime?   // When LinkedIn data was last fetched
+  analyzedAt        DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
   member       Member        @relation(fields: [memberId], references: [id])
   bucketScores BucketScore[]

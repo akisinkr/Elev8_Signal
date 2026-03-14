@@ -2,8 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { CheckCircle2, ArrowRight } from "lucide-react";
 
 interface PostVoteHubProps {
   signalNumber: number;
@@ -82,35 +80,31 @@ export function PostVoteHub({
 
   const t = {
     en: {
-      youreIn: "Your vote is in.",
+      confirmed: "Your perspective has been recorded.",
       yourPick: "Your pick",
       leadersVoted: "leaders voted",
-      resultsIn: "Peer views unlock in",
-      resultsWhenClosed: "Results shared when voting closes",
+      resultsIn: "Results unlock in",
       teaser: "When voting closes, you'll see how your peers voted — and which leaders share your perspective.",
-      buildCard: "Build Your Leadership Profile",
-      buildCardSub: "So other leaders can find you when results are shared",
-      explorePast: "Explore Past Signals",
-      editProfile: "Edit my profile",
-      backHome: "Back to Elev8",
+      buildCard: "Complete your profile",
+      buildCardSub: "So other leaders can find you when results are shared.",
+      explorePast: "Browse past Signals",
+      votingClosed: "Voting closed",
     },
     kr: {
-      youreIn: "참여 완료.",
+      confirmed: "참여가 기록되었습니다.",
       yourPick: "내 선택",
       leadersVoted: "명 응답",
       resultsIn: "결과 공개까지",
-      resultsWhenClosed: "투표가 끝나면 모든 결과가 공개됩니다.",
       teaser: "마감 후에는 동료 리더들의 선택을, 그리고 나와 같은 시각을 가진 리더들을 바로 확인할 수 있어요.",
-      buildCard: "리더 프로필 완성하기",
-      buildCardSub: "결과가 공개되면 다른 리더들이 나를 찾을 수 있어요",
+      buildCard: "프로필 완성하기",
+      buildCardSub: "결과가 공개되면 다른 리더들이 나를 찾을 수 있어요.",
       explorePast: "지난 Signal 살펴보기",
-      editProfile: "내 프로필 수정하기",
-      backHome: "Elev8으로 돌아가기",
+      votingClosed: "투표 마감됨",
     },
   };
   const txt = t[lang];
 
-  const cardCompleted = data?.cardCompleted ?? true; // default to true while loading to avoid flash
+  const cardCompleted = data?.cardCompleted ?? true;
   const archiveParams = new URLSearchParams();
   if (email) archiveParams.set("email", email);
   archiveParams.set("from", String(signalNumber));
@@ -120,119 +114,76 @@ export function PostVoteHub({
   const hasDeadline = !loading && !!data?.deadline && !!timeLeft;
 
   return (
-    <div className="flex flex-col items-center px-4 py-12 sm:py-20">
-      <div className="w-full max-w-sm space-y-6">
+    <div className="max-w-md mx-auto space-y-6 py-8">
 
-        {/* ── Confirmation ── */}
-        <div
-          className="text-center space-y-2"
-          style={{ animation: "fadeInUp 0.5s ease-out both" }}
-        >
-          <div className="relative inline-flex mb-1">
-            <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
-            <CheckCircle2 className="relative size-11 text-primary" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            {txt.youreIn}
-          </h1>
-        </div>
-
-        {/* ── Your Pick ── */}
-        {(selectedOption || data?.yourPick) && (
-          <div
-            className="rounded-2xl border border-border/60 bg-card p-4"
-            style={{ animation: "fadeInUp 0.5s ease-out 0.1s both" }}
-          >
-            <div className="flex items-center gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground text-base font-bold">
-                {selectedOption || data?.yourPick}
-              </span>
-              <div className="min-w-0">
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
-                  {txt.yourPick}
-                </p>
-                <p className="text-sm font-medium text-foreground leading-snug">
-                  {selectedOptionLabel || data?.yourPickLabel}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Stats ── */}
-        <div
-          className={cn("grid gap-2", hasDeadline ? "grid-cols-2" : "grid-cols-1")}
-          style={{ animation: "fadeInUp 0.5s ease-out 0.2s both" }}
-        >
-          <div className="rounded-xl border border-border/40 bg-card/50 px-3 py-3 text-center">
-            {loading ? (
-              <div className="h-6 w-10 rounded bg-muted animate-pulse mx-auto mb-1" />
-            ) : (
-              <p className="text-xl font-bold text-foreground">{data?.voteCount ?? 0}</p>
-            )}
-            <p className="text-[10px] text-muted-foreground">{txt.leadersVoted}</p>
-          </div>
-          {hasDeadline && (
-            <div className="rounded-xl border border-border/40 bg-card/50 px-3 py-3 text-center">
-              <p className="text-xl font-bold text-primary">{timeLeft}</p>
-              <p className="text-[10px] text-muted-foreground">{txt.resultsIn}</p>
-            </div>
-          )}
-        </div>
-
-        {/* ── Teaser ── */}
-        <p
-          className="text-[13px] text-muted-foreground leading-relaxed text-center px-1"
-          style={{ animation: "fadeInUp 0.5s ease-out 0.3s both" }}
-        >
-          {txt.teaser}
-        </p>
-
-        {/* ── CTA ── */}
-        <div
-          className="flex flex-col gap-2.5"
-          style={{ animation: "fadeInUp 0.5s ease-out 0.4s both" }}
-        >
-          {!loading && !cardCompleted ? (
-            <Link
-              href={profileUrl}
-              className={cn(
-                "flex flex-col items-center gap-0.5 rounded-2xl py-4 px-5",
-                "bg-primary text-primary-foreground",
-                "hover:bg-primary/90 active:scale-[0.98] transition-all"
-              )}
-            >
-              <span className="text-sm font-semibold flex items-center gap-1.5">
-                {txt.buildCard}
-                <ArrowRight className="size-4" />
-              </span>
-              <span className="text-[11px] opacity-75">{txt.buildCardSub}</span>
-            </Link>
-          ) : (
-            <Link
-              href={archiveUrl}
-              className={cn(
-                "flex items-center justify-center gap-2 rounded-2xl py-4 px-5",
-                "bg-primary text-primary-foreground",
-                "hover:bg-primary/90 active:scale-[0.98] transition-all"
-              )}
-            >
-              <span className="text-sm font-semibold flex items-center gap-1.5">
-                {txt.explorePast}
-                <ArrowRight className="size-4" />
-              </span>
-            </Link>
-          )}
-        </div>
-
+      {/* Confirmation */}
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+        <span className="text-[10px] font-semibold tracking-[0.2em] text-amber-400/60 uppercase">
+          Signal #{signalNumber}
+        </span>
+        <p className="text-white/70 text-sm mt-2">{txt.confirmed}</p>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}} />
+      {/* Your Pick */}
+      {(selectedOption || data?.yourPick) && (
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+          <div className="flex items-center gap-3">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-400/10 text-amber-400 text-sm font-bold">
+              {selectedOption || data?.yourPick}
+            </span>
+            <div className="min-w-0">
+              <p className="text-[10px] text-white/30 uppercase tracking-wider mb-0.5">
+                {txt.yourPick}
+              </p>
+              <p className="text-sm font-medium text-white/80 leading-snug">
+                {selectedOptionLabel || data?.yourPickLabel}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stats */}
+      <div className={`grid gap-3 ${hasDeadline ? "grid-cols-2" : "grid-cols-1"}`}>
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-center">
+          {loading ? (
+            <div className="h-6 w-10 rounded bg-white/[0.06] animate-pulse mx-auto mb-1" />
+          ) : (
+            <div className="text-2xl font-bold text-white/90">{data?.voteCount ?? 0}</div>
+          )}
+          <div className="text-[10px] text-white/30 mt-1">{txt.leadersVoted}</div>
+        </div>
+        {hasDeadline && (
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-center">
+            <div className="text-2xl font-bold text-amber-400/80">{timeLeft}</div>
+            <div className="text-[10px] text-white/30 mt-1">{txt.resultsIn}</div>
+          </div>
+        )}
+      </div>
+
+      {/* Teaser */}
+      <p className="text-[12px] text-white/30 leading-relaxed text-center px-2">
+        {txt.teaser}
+      </p>
+
+      {/* Actions */}
+      <div className="space-y-2">
+        {!loading && !cardCompleted && (
+          <Link href={profileUrl}
+            className="flex items-center justify-between p-4 rounded-xl border border-amber-400/10 bg-amber-400/[0.03] hover:bg-amber-400/[0.06] transition-colors group">
+            <div>
+              <p className="text-sm text-white/70 group-hover:text-white/90 transition-colors">{txt.buildCard}</p>
+              <p className="text-[11px] text-white/30 mt-0.5">{txt.buildCardSub}</p>
+            </div>
+            <span className="text-[11px] text-amber-400/50 group-hover:text-amber-400/80 shrink-0 ml-3 transition-colors">View →</span>
+          </Link>
+        )}
+        <Link href={archiveUrl}
+          className="flex items-center justify-between p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-colors group">
+          <p className="text-sm text-white/70 group-hover:text-white/90 transition-colors">{txt.explorePast}</p>
+          <span className="text-[11px] text-amber-400/50 group-hover:text-amber-400/80 shrink-0 ml-3 transition-colors">View →</span>
+        </Link>
+      </div>
     </div>
   );
 }

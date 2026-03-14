@@ -121,6 +121,7 @@ export function MatchesList({ matches, memberId }: { matches: MatchData[]; membe
         <div className="space-y-3">
           {filtered.map(match => {
             const partner = getPartner(match);
+            if (!partner) return null;
             const photo = partner.customPhotoUrl || partner.imageUrl;
             const tier = match.matchScore?.tier;
             const tierStyle = tier ? TIER_STYLES[tier] : null;

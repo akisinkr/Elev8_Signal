@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,7 +17,6 @@ import {
   Linkedin,
   Camera,
   X,
-  Users,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────
@@ -86,18 +85,6 @@ interface SuperpowerProfile {
   title: string;
   bullets: string[];
   proof: string;
-}
-
-interface MatchSuggestion {
-  memberId: string;
-  firstName: string;
-  lastName: string;
-  imageUrl: string | null;
-  jobTitle: string | null;
-  company: string | null;
-  matchReason: string;
-  matchedSuperpower: string;
-  matchedChallenge: string;
 }
 
 // NEW: 4-step wizard (collapsed from 8)
@@ -342,9 +329,6 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
   const [editingIdx, setEditingIdx] = useState<{ type: "sp" | "ch"; idx: number } | null>(null);
   const [editVal, setEditVal] = useState("");
 
-  // Match suggestions
-  const [matchSuggestions, setMatchSuggestions] = useState<MatchSuggestion[]>([]);
-  const [loadingMatches, setLoadingMatches] = useState(false);
 
   // Photo
   const [photoPromptDismissed, setPhotoPromptDismissed] = useState(false);
@@ -488,19 +472,6 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
     }
   };
 
-  // ── Load match suggestions ──
-  const loadMatches = useCallback(async () => {
-    setLoadingMatches(true);
-    try {
-      const res = await fetch(`/api/members/me/card/match-suggestions?lang=${lang}`);
-      if (!res.ok) throw new Error("Failed");
-      const data = await res.json();
-      setMatchSuggestions(data.matches || []);
-    } catch { /* silently fail */ } finally {
-      setLoadingMatches(false);
-    }
-  }, [lang]);
-
   // ── Save ──
   const handleSave = async () => {
     setSaving(true);
@@ -558,7 +529,6 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
       }
 
       setStep("done");
-      loadMatches();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong.";
       toast.error(msg);
@@ -1585,89 +1555,10 @@ export function MemberCardForm({ member, onboarding = false }: MemberCardFormPro
           </p>
         </div>
 
-        <a
-          href={`/signal/archive?email=${encodeURIComponent(member.email)}`}
-          className="flex w-full h-11 items-center justify-center gap-2 rounded-xl bg-primary text-[13px] font-semibold text-primary-foreground hover:bg-primary/90 transition-all"
-        >
-          {lang === "kr" ? "지난 Signal 보러 가기" : "Explore past Signals"}
-          <ArrowRight className="size-3.5" />
-        </a>
-
         <Button variant="outline" onClick={() => setStep("refine")} className="w-full h-10 text-[13px] border-white/15 text-white/60 hover:text-white/90 hover:border-white/30 hover:bg-white/5 transition-all">
           <Pencil className="size-3.5 mr-1.5" />
           {lang === "kr" ? "카드 수정하기" : "Edit my card"}
         </Button>
-      </div>
-
-      {/* Match Suggestions */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users className="size-4 text-amber-400/45" />
-            <h3 className="text-sm font-medium text-white/70">
-              {lang === "kr" ? "추천 인맥" : "Peers worth your time"}
-            </h3>
-          </div>
-          <button onClick={loadMatches} disabled={loadingMatches} className="text-[10px] text-white/35 hover:text-white/55 transition-colors">
-            {loadingMatches ? <RefreshCw className="size-3 animate-spin" /> : (lang === "kr" ? "새로고침" : "Show different peers")}
-          </button>
-        </div>
-        <p className="text-[11px] text-white/30 -mt-2">
-          {lang === "kr"
-            ? "같이 일하면 빛나는 사람들, Elev8이 골랐습니다"
-            : "Selected based on what you're working through right now"}
-        </p>
-
-        {matchSuggestions.length > 0 ? (
-          <div className="space-y-3">
-            {matchSuggestions.slice(0, 2).map((match) => (
-              <div key={match.memberId} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
-                {/* Superpower + challenge FIRST */}
-                <div className="flex flex-col gap-1.5">
-                  {match.matchedSuperpower && (
-                    <div className="flex items-start gap-2">
-                      <span className="mt-0.5 text-[10px] text-primary/70 shrink-0 font-semibold uppercase tracking-wider">
-                        {lang === "kr" ? "강점" : "Superpower"}
-                      </span>
-                      <span className="text-[12px] text-white/70 leading-snug font-medium">{match.matchedSuperpower}</span>
-                    </div>
-                  )}
-                  {match.matchedChallenge && (
-                    <div className="flex items-start gap-2">
-                      <span className="mt-0.5 text-[10px] text-amber-400/60 shrink-0 font-semibold uppercase tracking-wider">
-                        {lang === "kr" ? "연관" : "Relevant to"}
-                      </span>
-                      <span className="text-[11px] text-white/45 leading-snug">{match.matchedChallenge}</span>
-                    </div>
-                  )}
-                </div>
-                {/* Person SECOND */}
-                <div className="flex items-center gap-2.5 pt-1 border-t border-white/[0.04]">
-                  {match.imageUrl ? (
-                    <img src={match.imageUrl} alt="" className="size-7 rounded-full object-cover ring-1 ring-white/[0.06] shrink-0" />
-                  ) : (
-                    <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/[0.03] text-[10px] font-medium text-white/40 ring-1 ring-white/[0.06]">
-                      {match.firstName[0]}{match.lastName[0]}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-[12px] font-medium text-white/60">{match.firstName} {match.lastName}</p>
-                    {(match.jobTitle || match.company) && (
-                      <p className="text-[10px] text-white/30 truncate">{match.jobTitle}{match.jobTitle && match.company && " · "}{match.company}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <button onClick={loadMatches} disabled={loadingMatches}
-            className="w-full rounded-xl border border-dashed border-white/[0.08] py-6 text-center text-[12px] text-white/35 hover:text-white/50 hover:border-white/[0.15] transition-all">
-            {loadingMatches ? (
-              <span className="flex items-center justify-center gap-2"><RefreshCw className="size-3 animate-spin" /> {lang === "kr" ? "딱 맞는 인맥을 찾고 있어요..." : "Finding your peers..."}</span>
-            ) : (lang === "kr" ? "추천 인맥 보기" : "Matches are updated after each Signal report")}
-          </button>
-        )}
       </div>
     </div>
   );

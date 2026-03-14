@@ -31,11 +31,15 @@ export async function POST(
     const body = await req.json();
     const { answer, why, email } = voteSchema.parse(body);
 
-    // Try session-based auth first, fall back to email lookup for backward compat
+    // Session-based auth required — email alone is not sufficient (prevents spoofing)
     const sessionMember = await getMemberSession();
-    const member = sessionMember || await prisma.member.findUnique({
-      where: { email: email.toLowerCase() },
-    });
+    if (!sessionMember) {
+      return NextResponse.json(
+        { error: "Session expired. Please verify your email again." },
+        { status: 401 }
+      );
+    }
+    const member = sessionMember;
     if (!member) {
       return NextResponse.json(
         { error: "This survey is for Elev8 members." },

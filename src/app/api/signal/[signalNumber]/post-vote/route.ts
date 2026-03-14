@@ -30,11 +30,12 @@ export async function POST(
       return NextResponse.json({ error: "Signal not found" }, { status: 404 });
     }
 
-    // Try session-based auth first, fall back to email lookup for backward compat
+    // Session-based auth required — email alone is not sufficient
     const sessionMember = await getMemberSession();
-    const member = sessionMember || await prisma.member.findUnique({
-      where: { email: email.toLowerCase() },
-    });
+    if (!sessionMember) {
+      return NextResponse.json({ error: "Session expired" }, { status: 401 });
+    }
+    const member = sessionMember;
     if (!member) {
       return NextResponse.json({ error: "Member not found" }, { status: 403 });
     }

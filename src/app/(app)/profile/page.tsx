@@ -82,6 +82,20 @@ export default async function ProfilePage({
               {member.peerRecognitionCount} peer recommendation{member.peerRecognitionCount !== 1 ? "s" : ""}
             </p>
           )}
+          <details className="group mt-3">
+            <summary className="text-[10px] text-white/20 hover:text-white/40 cursor-pointer transition-colors select-none">
+              What is this?
+            </summary>
+            <div className="mt-2 space-y-2 text-[11px] text-white/30 leading-relaxed">
+              <p>Your Confidence Score helps us find you the most relevant connections. The more context we have, the better your matches.</p>
+              <div className="space-y-1.5 pl-1">
+                <p><span className="text-white/50 font-medium">Self-declared (max 30)</span> — Grows as you complete your profile. The more we know about your expertise, the sharper your matches.</p>
+                <p><span className="text-white/50 font-medium">Xray-verified (max 40)</span> — We use AI to understand your professional background and find complementary members across the community.</p>
+                <p><span className="text-white/50 font-medium">Peer-validated (max 30)</span> — Earned naturally through exchanges. When members find value in connecting with you, your score reflects that.</p>
+              </div>
+              <p className="text-white/20">Only visible to you — other members never see your score.</p>
+            </div>
+          </details>
         </div>
       )}
 
