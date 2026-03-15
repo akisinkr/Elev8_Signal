@@ -46,11 +46,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No email found" }, { status: 400 });
     }
 
-    // Check if this email has an approved access request to pull LinkedIn
-    const accessRequest = await prisma.accessRequest.findFirst({
-      where: { email: primaryEmail, status: "APPROVED" },
-    });
-
     await prisma.member.upsert({
       where: { clerkId: id },
       update: {
@@ -62,10 +57,9 @@ export async function POST(req: Request) {
       create: {
         clerkId: id,
         email: primaryEmail,
-        firstName: first_name || (accessRequest?.name.split(" ")[0] ?? ""),
-        lastName: last_name || (accessRequest?.name.split(" ").slice(1).join(" ") ?? ""),
+        firstName: first_name || "",
+        lastName: last_name || "",
         imageUrl: image_url || null,
-        linkedinUrl: accessRequest?.linkedinUrl || null,
       },
     });
   }

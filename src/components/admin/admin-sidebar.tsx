@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, LogOut, ShieldPlus, UserPlus, Handshake, Users, ScrollText, Sparkles, TrendingUp } from "lucide-react";
+import { BarChart3, LogOut, ShieldPlus, Handshake, Users, ScrollText, Sparkles, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -12,7 +12,6 @@ const NAV_ITEMS = [
   { href: "/admin/intros", label: "Intros", icon: Handshake },
   { href: "/admin/members", label: "Members", icon: Users },
   { href: "/admin/analytics", label: "Analytics", icon: TrendingUp },
-  { href: "/admin/access-requests", label: "Access Requests", icon: UserPlus },
   { href: "/admin/signup", label: "Add Admin", icon: ShieldPlus },
   { href: "/admin/audit-log", label: "Audit Log", icon: ScrollText },
 ];
@@ -20,19 +19,9 @@ const NAV_ITEMS = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [pendingCount, setPendingCount] = React.useState(0);
   const [pendingIntros, setPendingIntros] = React.useState(0);
 
   React.useEffect(() => {
-    fetch("/api/admin/access-requests")
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data: { status: string }[]) => {
-        setPendingCount(
-          Array.isArray(data) ? data.filter((r) => r.status === "PENDING").length : 0
-        );
-      })
-      .catch(() => {});
-
     fetch("/api/admin/matches")
       .then((res) => (res.ok ? res.json() : []))
       .then((data: { status: string; curatorNote?: string }[]) => {
@@ -65,9 +54,7 @@ export function AdminSidebar() {
       <nav className="flex-1 space-y-0.5 p-3">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname.startsWith(item.href);
-          const showDot =
-            (item.href === "/admin/access-requests" && pendingCount > 0) ||
-            (item.href === "/admin/intros" && pendingIntros > 0);
+          const showDot = item.href === "/admin/intros" && pendingIntros > 0;
           return (
             <Link
               key={item.href}

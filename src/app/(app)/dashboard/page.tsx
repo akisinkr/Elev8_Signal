@@ -101,54 +101,78 @@ export default async function DashboardPage() {
     });
   }
 
+  // Time-aware greeting
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
+  // Member identity line
+  const identity = [member.jobTitle, member.company].filter(Boolean).join(", ");
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
+      {/* Greeting + Identity */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">
-          Welcome back, {member.firstName}
+        <h1 className="text-3xl font-light tracking-tight text-white">
+          {greeting}, {member.firstName}
         </h1>
-        <p className="text-white/40 mt-1 text-sm">
-          Your Elev8 at a glance.
-        </p>
+        {identity && (
+          <p className="text-white/30 mt-2 text-sm tracking-wide">
+            {identity}
+          </p>
+        )}
       </div>
 
-      {/* Status Pills */}
-      <div className="grid grid-cols-3 gap-3">
-        <Link href="/profile" className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 hover:bg-white/[0.04] transition-colors text-center">
-          <div className="text-2xl font-bold text-white/90">{score ?? "—"}</div>
-          <div className="text-[10px] text-white/30 mt-1 uppercase tracking-wider">Score</div>
-        </Link>
-        <Link href="/matches" className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 hover:bg-white/[0.04] transition-colors text-center">
-          <div className="text-2xl font-bold text-white/90">{activeMatchCount}</div>
-          <div className="text-[10px] text-white/30 mt-1 uppercase tracking-wider">Matches</div>
-        </Link>
-        <Link href="/signal" className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 hover:bg-white/[0.04] transition-colors text-center">
-          <div className="text-2xl font-bold text-white/90">{voteCount}</div>
-          <div className="text-[10px] text-white/30 mt-1 uppercase tracking-wider">Signals</div>
-        </Link>
-      </div>
+      {/* Confidence Score — Hero */}
+      <Link href="/profile" className="block rounded-2xl border border-[#C8A84E]/[0.08] bg-[#C8A84E]/[0.02] p-8 hover:bg-[#C8A84E]/[0.04] transition-all group">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-[10px] text-white/30 uppercase tracking-[0.15em] mb-2">Confidence Score</div>
+            <div className="text-5xl font-light text-[#C8A84E] tracking-tight">{score ?? "—"}</div>
+          </div>
+          <div className="flex gap-8 text-center">
+            <div>
+              <div className="text-xl font-light text-white/80">{activeMatchCount}</div>
+              <div className="text-[10px] text-white/25 mt-1 uppercase tracking-wider">Matches</div>
+            </div>
+            <div>
+              <div className="text-xl font-light text-white/80">{voteCount}</div>
+              <div className="text-[10px] text-white/25 mt-1 uppercase tracking-wider">Signals</div>
+            </div>
+          </div>
+        </div>
+        {member.spDomain && (
+          <div className="mt-4 pt-4 border-t border-[#C8A84E]/[0.06]">
+            <span className="text-xs text-[#C8A84E]/60">{member.spDomain}</span>
+          </div>
+        )}
+      </Link>
 
       {/* Action Nudges */}
       {nudges.length > 0 ? (
-        <div>
-          <h2 className="text-sm font-semibold text-white/70 mb-3">What&apos;s next</h2>
-          <div className="space-y-2">
-            {nudges.map((nudge, i) => (
+        <div className="space-y-2">
+          {nudges.map((nudge, i) => {
+            const isSignal = nudge.type === "signal";
+            return (
               <Link key={i} href={nudge.href}
-                className="flex items-center justify-between p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-colors group">
+                className={`flex items-center justify-between p-4 rounded-xl border transition-all group ${
+                  isSignal
+                    ? "border-l-2 border-l-[#C8A84E]/40 border-y-[#C8A84E]/[0.06] border-r-[#C8A84E]/[0.06] bg-[#C8A84E]/[0.02] hover:bg-[#C8A84E]/[0.04]"
+                    : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]"
+                }`}>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm text-white/70 group-hover:text-white/90 transition-colors">{nudge.text}</p>
-                  {nudge.subtext && <p className="text-[11px] text-white/30 mt-0.5 truncate">{nudge.subtext}</p>}
+                  <p className={`text-sm transition-colors ${
+                    isSignal ? "text-[#C8A84E]/80 group-hover:text-[#C8A84E]" : "text-white/60 group-hover:text-white/80"
+                  }`}>{nudge.text}</p>
+                  {nudge.subtext && <p className="text-[11px] text-white/25 mt-0.5 truncate">{nudge.subtext}</p>}
                 </div>
-                <span className="text-[11px] text-amber-400/50 group-hover:text-amber-400/80 shrink-0 ml-3 transition-colors">View →</span>
+                <span className="text-[11px] text-[#C8A84E]/40 group-hover:text-[#C8A84E]/70 shrink-0 ml-3 transition-colors">→</span>
               </Link>
-            ))}
-          </div>
+            );
+          })}
         </div>
       ) : (
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-8 text-center">
-          <p className="text-white/50 text-sm font-medium">You&apos;re all caught up.</p>
-          <p className="text-white/25 text-xs mt-1">We&apos;ll let you know when something needs your attention.</p>
+        <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-10 text-center">
+          <p className="text-white/40 text-sm font-light">Nothing pending. Enjoy the quiet.</p>
         </div>
       )}
     </div>
