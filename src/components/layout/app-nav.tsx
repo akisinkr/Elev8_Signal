@@ -45,10 +45,10 @@ export function AppNav({ member }: AppNavProps) {
   return (
     <nav className="border-b border-white/[0.06] bg-[#0a0a0f]/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        <div className="flex h-14 items-center justify-between">
+        <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold tracking-[0.25em] text-amber-400/70 uppercase">
+            <span className="text-xs font-semibold tracking-[0.25em] text-[#C8A84E]/70 uppercase">
               Elev8
             </span>
           </Link>
@@ -61,10 +61,10 @@ export function AppNav({ member }: AppNavProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all ${
+                  className={`px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition-all ${
                     isActive
-                      ? "bg-white/[0.08] text-white"
-                      : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
+                      ? "text-white/90"
+                      : "text-white/35 hover:text-white/60"
                   }`}
                 >
                   {item.label}
@@ -78,7 +78,7 @@ export function AppNav({ member }: AppNavProps) {
             {member.role === "ADMIN" && (
               <Link
                 href="/admin"
-                className="text-[11px] text-amber-400/50 hover:text-amber-400/80 transition-colors hidden sm:block"
+                className="text-[11px] text-[#C8A84E]/40 hover:text-[#C8A84E]/70 transition-colors hidden sm:block"
               >
                 Admin
               </Link>
@@ -101,13 +101,13 @@ export function AppNav({ member }: AppNavProps) {
                 )}
               </button>
               {avatarMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-44 rounded-lg border border-white/[0.08] bg-[#141419] shadow-xl py-1 z-50">
-                  <div className="px-3 py-2 border-b border-white/[0.06]">
-                    <p className="text-xs font-medium text-white/70 truncate">{member.firstName} {member.lastName}</p>
+                <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-white/[0.08] bg-[#0A0F1C] shadow-2xl py-1.5 z-50">
+                  <div className="px-3.5 py-2.5 border-b border-white/[0.06]">
+                    <p className="text-xs font-medium text-white/60 truncate">{member.firstName} {member.lastName}</p>
                   </div>
                   <button
                     onClick={() => signOut({ redirectUrl: "/" })}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-sm text-white/50 hover:text-white/80 hover:bg-white/[0.04] transition-colors"
+                    className="flex w-full items-center gap-2 px-3.5 py-2.5 text-sm text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-colors"
                   >
                     <LogOut className="size-3.5" />
                     Sign out
@@ -136,10 +136,10 @@ export function AppNav({ member }: AppNavProps) {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`block px-3 py-2 rounded-lg text-sm ${
+                className={`block px-3 py-2.5 rounded-lg text-sm ${
                   isActive
-                    ? "bg-white/[0.08] text-white"
-                    : "text-white/40 hover:text-white/70"
+                    ? "text-white font-medium"
+                    : "text-white/40 hover:text-white/60 font-normal"
                 }`}
               >
                 {item.label}
@@ -150,7 +150,7 @@ export function AppNav({ member }: AppNavProps) {
             <Link
               href="/admin"
               onClick={() => setMobileOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm text-amber-400/50 hover:text-amber-400/80"
+              className="block px-3 py-2 rounded-lg text-sm text-[#C8A84E]/40 hover:text-[#C8A84E]/70"
             >
               Admin Panel
             </Link>

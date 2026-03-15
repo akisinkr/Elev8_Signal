@@ -41,85 +41,33 @@ export default async function ProfilePage({
     prisma.xrayProfile.findFirst({ where: { memberId: member.id }, orderBy: { createdAt: "desc" }, select: { status: true, summary: true, analyzedAt: true } }),
   ]);
 
+  const scoreValue = confidenceScore ? Math.round(confidenceScore.composite) : 0;
+  const hasCard = !!member.cardCompletedAt;
+
   return (
-    <div className="max-w-lg mx-auto py-8">
-      <div id="profile-page-header" className="mb-8 pb-6 border-b border-white/[0.06]">
-        <p className="text-[10px] tracking-[0.2em] text-white/25 uppercase mb-3">
-          Your Elev8 Profile
-        </p>
-        <h1 className="text-xl font-semibold tracking-tight text-white/90">
-          {member.firstName}, let&apos;s build your profile
-        </h1>
-        <p className="text-[12px] text-white/35 mt-2">
-          Share your superpower, earn Elev8 Titles, connect with peers.
-        </p>
+    <div className="max-w-lg mx-auto px-4 sm:px-6 py-10">
+      {/* Page header — minimal for completed cards, guiding for new */}
+      <div id="profile-page-header" className={hasCard ? "mb-6" : "mb-10 text-center"}>
+        {hasCard ? (
+          <p className="text-[10px] tracking-[0.2em] text-[#C8A84E]/40 uppercase">
+            Your Profile
+          </p>
+        ) : (
+          <>
+            <p className="text-[10px] tracking-[0.2em] text-[#C8A84E]/50 uppercase mb-3">
+              Build Your Profile
+            </p>
+            <h1 className="text-2xl font-light tracking-tight text-white">
+              {member.firstName}, let&apos;s get started
+            </h1>
+            <p className="text-[13px] text-white/35 mt-2 max-w-sm mx-auto">
+              Share your superpower so other leaders can find you.
+            </p>
+          </>
+        )}
       </div>
 
-      {/* Confidence Score */}
-      {confidenceScore && (
-        <div className="mb-6 rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-semibold tracking-[0.2em] text-amber-400/60 uppercase">Confidence Score</span>
-            <span className="text-2xl font-bold text-white/80">{Math.round(confidenceScore.composite)}</span>
-          </div>
-          <div className="space-y-1.5">
-            {[
-              { label: "Self-declared", value: confidenceScore.selfDeclared, max: 30 },
-              { label: "Xray-verified", value: confidenceScore.xrayVerified, max: 40 },
-              { label: "Peer-validated", value: confidenceScore.peerValidated, max: 30 },
-            ].map(s => (
-              <div key={s.label} className="flex items-center gap-3">
-                <span className="text-[10px] text-white/30 w-24 shrink-0">{s.label}</span>
-                <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-400/40 rounded-full" style={{ width: `${s.max > 0 ? Math.min((s.value / s.max) * 100, 100) : 0}%` }} />
-                </div>
-                <span className="text-[10px] text-white/30 w-8 text-right">{Math.round(s.value)}</span>
-              </div>
-            ))}
-          </div>
-          {member.peerRecognitionCount > 0 && (
-            <p className="text-[11px] text-white/25 mt-3">
-              {member.peerRecognitionCount} peer recommendation{member.peerRecognitionCount !== 1 ? "s" : ""}
-            </p>
-          )}
-          <details className="group mt-3">
-            <summary className="text-[10px] text-white/20 hover:text-white/40 cursor-pointer transition-colors select-none">
-              What is this?
-            </summary>
-            <div className="mt-2 space-y-2 text-[11px] text-white/30 leading-relaxed">
-              <p>Your Confidence Score helps us find you the most relevant connections. The more context we have, the better your matches.</p>
-              <div className="space-y-1.5 pl-1">
-                <p><span className="text-white/50 font-medium">Self-declared (max 30)</span> — Grows as you complete your profile. The more we know about your expertise, the sharper your matches.</p>
-                <p><span className="text-white/50 font-medium">Xray-verified (max 40)</span> — We use AI to understand your professional background and find complementary members across the community.</p>
-                <p><span className="text-white/50 font-medium">Peer-validated (max 30)</span> — Earned naturally through exchanges. When members find value in connecting with you, your score reflects that.</p>
-              </div>
-              <p className="text-white/20">Only visible to you — other members never see your score.</p>
-            </div>
-          </details>
-        </div>
-      )}
-
-      {/* Xray Status */}
-      {xrayProfile && (
-        <div className="mb-6 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold tracking-[0.2em] text-blue-400/60 uppercase">Xray Analysis</span>
-            {xrayProfile.status === "PROCESSING" && (
-              <span className="text-[10px] text-amber-400/70 animate-pulse">Processing...</span>
-            )}
-            {xrayProfile.status === "COMPLETED" && (
-              <span className="text-[10px] text-emerald-400/70">Completed</span>
-            )}
-            {xrayProfile.status === "FAILED" && (
-              <span className="text-[10px] text-red-400/70">Failed</span>
-            )}
-          </div>
-          {xrayProfile.status === "COMPLETED" && xrayProfile.summary && (
-            <p className="text-[11px] text-white/30 mt-2 leading-relaxed">{xrayProfile.summary}</p>
-          )}
-        </div>
-      )}
-
+      {/* Member Card Form — the hero */}
       <MemberCardForm
         member={{
           id: member.id,
@@ -175,6 +123,98 @@ export default async function ProfilePage({
           superpowerHistory: member.superpowerHistory,
         }}
       />
+
+      {/* Below-the-card sections — hidden during wizard editing, shown on "done" step */}
+      {(confidenceScore || xrayProfile) && (
+        <div id="profile-extras" className="mt-10 pt-8 border-t border-white/[0.04] space-y-6">
+
+          {/* Confidence Score — compact */}
+          {confidenceScore && (
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+              <div className="flex items-center gap-4">
+                {/* Score ring */}
+                <div className="relative flex size-14 shrink-0 items-center justify-center">
+                  <svg className="size-14 -rotate-90" viewBox="0 0 56 56">
+                    <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
+                    <circle cx="28" cy="28" r="24" fill="none" stroke="#C8A84E" strokeWidth="3" strokeLinecap="round"
+                      strokeDasharray={`${(scoreValue / 100) * 150.8} 150.8`} opacity="0.6" />
+                  </svg>
+                  <span className="absolute text-sm font-medium text-white/80 tabular-nums">{scoreValue}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-medium tracking-[0.15em] text-[#C8A84E]/50 uppercase mb-1">
+                    Confidence Score
+                  </p>
+                  <p className="text-[11px] text-white/30 leading-relaxed">
+                    Helps us find your best matches.<br />Grows as you build your profile and connect with peers.
+                  </p>
+                </div>
+              </div>
+
+              <details className="group mt-4">
+                <summary className="text-[10px] text-white/20 hover:text-white/40 cursor-pointer transition-colors select-none flex items-center gap-1">
+                  <svg className="size-3 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                  </svg>
+                  Score breakdown
+                </summary>
+                <div className="mt-3 space-y-2 pl-4">
+                  {[
+                    { label: "Profile completeness", value: confidenceScore.selfDeclared, max: 30 },
+                    { label: "AI-verified background", value: confidenceScore.xrayVerified, max: 40 },
+                    { label: "Peer recognition", value: confidenceScore.peerValidated, max: 30 },
+                  ].map(s => (
+                    <div key={s.label} className="flex items-center gap-3">
+                      <span className="text-[10px] text-white/30 w-32 shrink-0">{s.label}</span>
+                      <div className="flex-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div className="h-full bg-[#C8A84E]/40 rounded-full" style={{ width: `${s.max > 0 ? Math.min((s.value / s.max) * 100, 100) : 0}%` }} />
+                      </div>
+                      <span className="text-[10px] text-white/25 w-6 text-right tabular-nums">{Math.round(s.value)}</span>
+                    </div>
+                  ))}
+                  {member.peerRecognitionCount > 0 && (
+                    <p className="text-[10px] text-white/25 mt-1">
+                      {member.peerRecognitionCount} peer recommendation{member.peerRecognitionCount !== 1 ? "s" : ""} received
+                    </p>
+                  )}
+                  <p className="text-[10px] text-white/15 mt-2">Only visible to you.</p>
+                </div>
+              </details>
+            </div>
+          )}
+
+          {/* Xray Analysis — collapsible */}
+          {xrayProfile && (
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+              <details className="group">
+                <summary className="flex items-center gap-2 cursor-pointer select-none">
+                  <svg className="size-3.5 text-[#C8A84E]/40" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                  </svg>
+                  <span className="text-[10px] font-medium tracking-[0.15em] text-[#C8A84E]/50 uppercase flex-1">
+                    AI Analysis
+                  </span>
+                  {xrayProfile.status === "PROCESSING" && (
+                    <span className="text-[10px] text-[#C8A84E]/60 animate-pulse">Processing...</span>
+                  )}
+                  {xrayProfile.status === "COMPLETED" && (
+                    <svg className="size-3 text-white/20 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                  )}
+                  {xrayProfile.status === "FAILED" && (
+                    <span className="text-[10px] text-red-400/50">Unavailable</span>
+                  )}
+                </summary>
+                {xrayProfile.status === "COMPLETED" && xrayProfile.summary && (
+                  <p className="text-[11px] text-white/30 leading-relaxed mt-3 pl-5">{xrayProfile.summary}</p>
+                )}
+              </details>
+            </div>
+          )}
+
+        </div>
+      )}
     </div>
   );
 }

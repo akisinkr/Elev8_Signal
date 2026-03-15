@@ -1,8 +1,7 @@
 "use client";
 
-import { Sparkles, Lock, TrendingUp, Eye, Lightbulb, Target, ArrowRight } from "lucide-react";
+import { TrendingUp, Eye, Lightbulb, Target, ArrowRight } from "lucide-react";
 import type { Lang } from "@/lib/signal-translations";
-import { tr } from "@/lib/signal-translations";
 
 interface ParsedInsight {
   en: string[];
@@ -40,7 +39,6 @@ interface SignalHeadlineProps {
 
 export function SignalHeadline({
   headline,
-  signalNumber,
   lang,
 }: SignalHeadlineProps) {
   const parsed = parseInsight(headline);
@@ -50,52 +48,31 @@ export function SignalHeadline({
   const labels = POINT_LABELS[lang];
 
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b px-5 py-3">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center size-6 rounded-md bg-primary/10">
-            <Sparkles className="size-3.5 text-primary" />
-          </div>
-          <span className="text-sm font-semibold">
-            {tr("signalInsight", lang)} #{signalNumber}
-          </span>
-        </div>
-        <div className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1">
-          <Lock className="size-2.5 text-muted-foreground" />
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-            {tr("elev8MembersOnly", lang)}
-          </span>
-        </div>
-      </div>
+    <div className="space-y-0">
+      {points.map((point, i) => {
+        const Icon = POINT_ICONS[i % POINT_ICONS.length];
+        const label = labels[i] ?? "";
 
-      {/* Insights */}
-      <div className="divide-y">
-        {points.map((point, i) => {
-          const Icon = POINT_ICONS[i % POINT_ICONS.length];
-          const label = labels[i] ?? "";
-
-          return (
-            <div key={i} className="flex gap-4 px-5 py-4">
-              <div className="flex-shrink-0 mt-0.5">
-                <div className="flex items-center justify-center size-8 rounded-lg bg-muted">
-                  <Icon className="size-4 text-foreground" />
-                </div>
-              </div>
-              <div className="space-y-1 min-w-0">
-                {label && (
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">
-                    {label}
-                  </p>
-                )}
-                <p className="text-sm leading-relaxed text-foreground">
-                  {point}
-                </p>
+        return (
+          <div key={i} className="flex gap-3.5 py-4 border-b border-white/[0.04] last:border-b-0">
+            <div className="flex-shrink-0 mt-0.5">
+              <div className="flex items-center justify-center size-7 rounded-lg bg-[#C8A84E]/10">
+                <Icon className="size-3.5 text-[#C8A84E]/60" />
               </div>
             </div>
-          );
-        })}
-      </div>
+            <div className="space-y-1 min-w-0">
+              {label && (
+                <p className="text-[10px] tracking-[0.12em] uppercase text-[#C8A84E]/50">
+                  {label}
+                </p>
+              )}
+              <p className="text-[14px] font-light leading-relaxed text-white/70">
+                {point}
+              </p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

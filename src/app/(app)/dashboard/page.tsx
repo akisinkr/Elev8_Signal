@@ -123,29 +123,33 @@ export default async function DashboardPage() {
       </div>
 
       {/* Confidence Score — Hero */}
-      <Link href="/profile" className="block rounded-2xl border border-[#C8A84E]/[0.08] bg-[#C8A84E]/[0.02] p-8 hover:bg-[#C8A84E]/[0.04] transition-all group">
+      <div className="rounded-2xl border border-[#C8A84E]/[0.08] bg-[#C8A84E]/[0.02] p-8">
         <div className="flex items-center justify-between">
-          <div>
+          <Link href="/profile" className="hover:opacity-80 transition-opacity">
             <div className="text-[10px] text-white/30 uppercase tracking-[0.15em] mb-2">Confidence Score</div>
             <div className="text-5xl font-light text-[#C8A84E] tracking-tight">{score ?? "—"}</div>
-          </div>
-          <div className="flex gap-8 text-center">
-            <div>
+          </Link>
+          <div className="flex gap-6 text-center">
+            <Link href="/matches" className="hover:opacity-80 transition-opacity">
               <div className="text-xl font-light text-white/80">{activeMatchCount}</div>
-              <div className="text-[10px] text-white/25 mt-1 uppercase tracking-wider">Matches</div>
-            </div>
-            <div>
+              <div className="text-[10px] text-white/25 mt-1 uppercase tracking-wider">
+                {activeMatchCount === 1 ? "Match" : "Matches"}
+              </div>
+            </Link>
+            <Link href="/signal" className="hover:opacity-80 transition-opacity">
               <div className="text-xl font-light text-white/80">{voteCount}</div>
-              <div className="text-[10px] text-white/25 mt-1 uppercase tracking-wider">Signals</div>
-            </div>
+              <div className="text-[10px] text-white/25 mt-1 uppercase tracking-wider">
+                {voteCount === 1 ? "Signal voted" : "Signals voted"}
+              </div>
+            </Link>
           </div>
         </div>
         {member.spDomain && (
-          <div className="mt-4 pt-4 border-t border-[#C8A84E]/[0.06]">
-            <span className="text-xs text-[#C8A84E]/60">{member.spDomain}</span>
-          </div>
+          <Link href="/profile" className="block mt-4 pt-4 border-t border-[#C8A84E]/[0.06] hover:opacity-80 transition-opacity">
+            <span className="text-xs text-[#C8A84E]/60 uppercase tracking-wider">{member.spDomain.split(",").map(s => s.trim()).join(" · ")}</span>
+          </Link>
         )}
-      </Link>
+      </div>
 
       {/* Action Nudges */}
       {nudges.length > 0 ? (

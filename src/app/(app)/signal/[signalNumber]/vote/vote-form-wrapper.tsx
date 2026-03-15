@@ -57,8 +57,8 @@ export function VoteFormWrapper({
       yourEmail: "Your email",
       continue: "Continue",
       checking: "Checking...",
-      whyOptional: "Your reasoning — seen by peers when results drop",
-      whyPlaceholder: "What's driving your read on this?",
+      whyOptional: "Add your reasoning (anonymous) — it's what makes Signal valuable",
+      whyPlaceholder: "In one line, what's behind your pick?",
       submitVote: "Add My Perspective",
       submitting: "Submitting...",
       youreIn: "You're in.",
@@ -78,8 +78,8 @@ export function VoteFormWrapper({
       yourEmail: "이메일 주소",
       continue: "계속하기",
       checking: "확인 중...",
-      whyOptional: "한 줄 의견 (선택사항)",
-      whyPlaceholder: "이유를 간단히 적어도 좋습니다...",
+      whyOptional: "한 줄이면 충분합니다 (익명) — 리더의 시각이 Signal의 핵심입니다",
+      whyPlaceholder: "한 줄로, 이 선택의 이유는?",
       submitVote: "의견 제출하기",
       submitting: "제출 중...",
       youreIn: "소중한 시각을 함께 나눠주셨습니다.",
@@ -191,27 +191,27 @@ export function VoteFormWrapper({
           className="w-full max-w-md mx-auto"
           style={{ animation: "fadeInUp 0.6s ease-out both" }}
         >
-          <div className="rounded-2xl border border-border/60 bg-card p-8 text-center shadow-lg space-y-6">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 animate-pulse">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 text-center space-y-6">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#C8A84E]/[0.08]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#C8A84E]/60">
                 <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-foreground">{txt.signalClosed}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{txt.stayTuned}</p>
+              <h3 className="text-lg font-light text-white">{txt.signalClosed}</h3>
+              <p className="text-sm text-white/40 leading-relaxed">{txt.stayTuned}</p>
             </div>
             <Link
               href={`/signal/archive${email ? `?email=${encodeURIComponent(email)}` : ""}`}
               className={cn(
-                "inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition-all",
-                "bg-primary text-primary-foreground",
-                "hover:bg-primary/90 active:scale-[0.98]"
+                "inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-medium transition-all",
+                "border border-[#C8A84E]/20 text-[#C8A84E]/70",
+                "hover:bg-[#C8A84E]/[0.06] hover:text-[#C8A84E] active:scale-[0.98]"
               )}
             >
               {txt.viewPastResults}
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+              <span className="text-[#C8A84E]/40">→</span>
             </Link>
           </div>
         </div>
@@ -287,27 +287,27 @@ export function VoteFormWrapper({
           {/* Brand mark */}
           <div className="text-center space-y-3">
             <div className="flex items-center justify-center gap-2">
-              <div className="h-px w-8 bg-primary/40" />
+              <div className="h-px w-8 bg-[#C8A84E]/30" />
               <div className="relative">
-                <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
-                <div className="relative size-2 rounded-full bg-primary" />
+                <span className="absolute inset-0 animate-ping rounded-full bg-[#C8A84E]/20" />
+                <div className="relative size-2 rounded-full bg-[#C8A84E]" />
               </div>
-              <div className="h-px w-8 bg-primary/40" />
+              <div className="h-px w-8 bg-[#C8A84E]/30" />
             </div>
-            <p className="text-xs font-medium text-primary uppercase tracking-[0.2em]">
+            <p className="text-[11px] font-medium text-[#C8A84E]/70 uppercase tracking-[0.2em]">
               Signal #{signalNumber}
             </p>
           </div>
 
           {/* Question */}
-          <h1 className="text-xl sm:text-2xl font-bold leading-snug text-center">
+          <h1 className="text-2xl sm:text-3xl font-light leading-snug text-center tracking-tight">
             {displayQuestion}
           </h1>
 
           {/* Email form */}
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-foreground">
+              <label htmlFor="email" className="text-sm font-normal text-white/40">
                 {txt.yourEmail}
               </label>
               <input
@@ -321,24 +321,23 @@ export function VoteFormWrapper({
                   setEmailError(null);
                 }}
                 className={cn(
-                  "flex h-12 w-full rounded-xl border bg-background px-4 text-sm",
-                  "placeholder:text-muted-foreground",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                  emailError ? "border-destructive" : "border-border"
+                  "flex h-12 w-full rounded-xl border bg-white/[0.03] px-4 text-sm text-white",
+                  "placeholder:text-white/20",
+                  "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#C8A84E]/40",
+                  emailError ? "border-red-500/50" : "border-white/[0.08]"
                 )}
               />
-              {emailError && <p className="text-sm text-destructive">{emailError}</p>}
+              {emailError && <p className="text-sm text-red-400">{emailError}</p>}
             </div>
             <button
               type="submit"
               disabled={isCheckingEmail || !email.trim()}
               className={cn(
-                "w-full rounded-xl py-4 text-base font-semibold transition-all",
-                "bg-primary text-primary-foreground",
-                "hover:bg-primary/90 active:scale-[0.98]",
+                "w-full rounded-xl py-4 text-base font-medium transition-all",
+                "bg-[#C8A84E] text-[#0A0F1C]",
+                "hover:bg-[#C8A84E]/90 active:scale-[0.98]",
                 "disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none",
-                "shadow-[0_0_20px_rgba(200,168,78,0.4),0_0_40px_rgba(200,168,78,0.15)]",
-                "hover:shadow-[0_0_28px_rgba(200,168,78,0.55),0_0_56px_rgba(200,168,78,0.2)]"
+                "hover:shadow-[0_0_20px_rgba(200,168,78,0.3)]"
               )}
             >
               {isCheckingEmail ? txt.checking : txt.continue}
@@ -358,19 +357,19 @@ export function VoteFormWrapper({
 
         {/* Signal badge */}
         <div className="flex items-center justify-center">
-          <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1">
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
-              <span className="relative inline-flex size-2 rounded-full bg-primary" />
+          <div className="flex items-center gap-2 rounded-full border border-[#C8A84E]/20 bg-[#C8A84E]/[0.03] px-4 py-1.5">
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C8A84E]/40" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-[#C8A84E]" />
             </span>
-            <span className="text-xs font-medium text-muted-foreground">
+            <span className="text-[11px] font-medium text-[#C8A84E]/70 tracking-wide">
               Signal #{signalNumber} · LIVE
             </span>
           </div>
         </div>
 
         {/* Question */}
-        <h1 className="text-xl sm:text-2xl font-bold leading-snug text-center">
+        <h1 className="text-2xl sm:text-3xl font-light leading-snug text-center tracking-tight max-w-xl mx-auto">
           {displayQuestion}
         </h1>
 
@@ -383,20 +382,20 @@ export function VoteFormWrapper({
               disabled={isSubmitting}
               onClick={() => setSelected(option.key)}
               className={cn(
-                "flex w-full items-center gap-4 rounded-xl border-2 px-5 py-4 text-left transition-all",
-                "text-sm sm:text-base font-medium",
+                "flex w-full items-center gap-4 rounded-xl border px-5 py-5 text-left transition-all",
+                "text-sm sm:text-base font-normal",
                 "active:scale-[0.98]",
                 selected === option.key
-                  ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
-                  : "border-border bg-card hover:border-muted-foreground/30 hover:bg-muted/50"
+                  ? "border-[#C8A84E]/30 bg-[#C8A84E]/[0.06] text-white"
+                  : "border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12] hover:bg-white/[0.04] text-white/70"
               )}
             >
               <span
                 className={cn(
-                  "flex size-10 shrink-0 items-center justify-center rounded-lg text-sm font-bold transition-colors",
+                  "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-medium transition-colors",
                   selected === option.key
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
+                    ? "bg-[#C8A84E] text-black"
+                    : "bg-white/[0.08] text-white/40"
                 )}
               >
                 {option.key}
@@ -410,10 +409,10 @@ export function VoteFormWrapper({
         {selected && (
           <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
             <div className="flex items-center justify-between">
-              <label className="text-sm text-muted-foreground">
+              <label className="text-sm text-white/40">
                 {txt.whyOptional}
               </label>
-              <span className="text-xs text-muted-foreground">{why.length}/280</span>
+              <span className="text-xs text-white/25">{why.length}/280</span>
             </div>
             <Textarea
               placeholder={txt.whyPlaceholder}
@@ -433,10 +432,11 @@ export function VoteFormWrapper({
             disabled={isSubmitting}
             onClick={handleSubmit}
             className={cn(
-              "w-full rounded-xl py-4 text-base font-semibold transition-all",
-              "bg-primary text-primary-foreground",
-              "hover:bg-primary/90 active:scale-[0.98]",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "w-full rounded-xl py-4 text-base font-medium transition-all",
+              "bg-[#C8A84E] text-[#0A0F1C]",
+              "hover:bg-[#C8A84E]/90 active:scale-[0.98]",
+              "disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none",
+              "hover:shadow-[0_0_20px_rgba(200,168,78,0.3)]",
               "animate-in fade-in slide-in-from-bottom-2 duration-200"
             )}
           >

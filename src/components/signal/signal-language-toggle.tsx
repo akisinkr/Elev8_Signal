@@ -13,15 +13,15 @@ export function SignalLanguageToggle({
   onLangChange,
 }: SignalLanguageToggleProps) {
   return (
-    <div className="inline-flex items-center rounded-full border bg-muted p-0.5 text-xs font-medium">
+    <div className="inline-flex items-center rounded-full border border-white/[0.08] bg-white/[0.03] p-0.5 text-xs">
       <button
         type="button"
         onClick={() => onLangChange("en")}
         className={cn(
           "rounded-full px-3 py-1 transition-all",
           lang === "en"
-            ? "bg-background text-foreground shadow-sm"
-            : "text-muted-foreground hover:text-foreground"
+            ? "bg-white/[0.08] text-white/80"
+            : "text-white/30 hover:text-white/50"
         )}
       >
         EN
@@ -32,8 +32,8 @@ export function SignalLanguageToggle({
         className={cn(
           "rounded-full px-3 py-1 transition-all",
           lang === "kr"
-            ? "bg-background text-foreground shadow-sm"
-            : "text-muted-foreground hover:text-foreground"
+            ? "bg-white/[0.08] text-white/80"
+            : "text-white/30 hover:text-white/50"
         )}
       >
         KR

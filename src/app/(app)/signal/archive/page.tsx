@@ -70,29 +70,32 @@ export default async function SignalArchivePage({
     : `/signal`;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Signal Archive"
-        description="Browse past Signal questions and community insights."
-      >
-        <BackButton href={backHref} />
-      </PageHeader>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+      {/* Header */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] tracking-[0.2em] uppercase text-[#C8A84E]/40">Signal Archive</span>
+          <BackButton href={backHref} />
+        </div>
+        <h1 className="text-2xl font-light tracking-tight text-white/90">Past Signals</h1>
+        <p className="text-[13px] text-white/30 mt-1">Browse past questions and see how members voted.</p>
+      </div>
 
       {/* Soft Superpower card nudge — only shown if card not yet completed */}
       {!cardCompleted && (
-        <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/[0.05] to-transparent p-5 flex items-center gap-4">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <Zap className="size-5 text-primary" />
+        <div className="rounded-xl border border-[#C8A84E]/15 bg-[#C8A84E]/[0.03] p-5 flex items-center gap-4">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#C8A84E]/10">
+            <Zap className="size-5 text-[#C8A84E]/60" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-foreground">Make yourself findable</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Complete your Superpower card so other members can find you when results drop.
+            <p className="text-sm font-light text-white/80">Make yourself findable</p>
+            <p className="text-[12px] text-white/30 mt-0.5">
+              Complete your Superpower card so other members can find you.
             </p>
           </div>
           <Link
             href={`/profile?email=${encodeURIComponent(memberEmail)}`}
-            className="shrink-0 flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all"
+            className="shrink-0 flex items-center gap-1.5 rounded-xl bg-[#C8A84E] px-4 py-2 text-xs font-medium text-[#0A0F1C] hover:bg-[#C8A84E]/90 transition-all"
           >
             Build card
             <ArrowRight className="size-3.5" />
@@ -100,7 +103,8 @@ export default async function SignalArchivePage({
         </div>
       )}
 
-      <div className="space-y-3">
+      {/* Signal list */}
+      <div className="space-y-4">
         {signals.map((signal) => {
           const hasVoted = signal.votes.some(
             (v) => v.memberId === member.id

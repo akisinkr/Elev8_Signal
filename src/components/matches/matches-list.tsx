@@ -42,13 +42,13 @@ interface MatchData {
 
 const TIER_STYLES: Record<string, { label: string; border: string; text: string; bg: string }> = {
   PLATINUM: { label: "Platinum", border: "border-purple-400/30", text: "text-purple-300", bg: "bg-purple-400/10" },
-  GOLD:     { label: "Gold",    border: "border-amber-400/30",  text: "text-amber-300",  bg: "bg-amber-400/10" },
+  GOLD:     { label: "Gold",    border: "border-[#C8A84E]/30",  text: "text-[#C8A84E]/70",  bg: "bg-[#C8A84E]/10" },
   SILVER:   { label: "Silver",  border: "border-gray-400/30",   text: "text-gray-300",   bg: "bg-gray-400/10" },
   CURIOUS:  { label: "Curious", border: "border-blue-400/30",   text: "text-blue-300",   bg: "bg-blue-400/10" },
 };
 
 const STATUS_STYLES: Record<string, { label: string; color: string }> = {
-  PRESENTED: { label: "New Match", color: "text-amber-300 bg-amber-400/10" },
+  PRESENTED: { label: "New Match", color: "text-[#C8A84E]/70 bg-[#C8A84E]/10" },
   ACCEPTED:  { label: "Accepted",  color: "text-green-300 bg-green-400/10" },
   ACTIVE:    { label: "Active",    color: "text-blue-300 bg-blue-400/10" },
   COMPLETED: { label: "Completed", color: "text-white/40 bg-white/[0.06]" },
@@ -88,7 +88,8 @@ export function MatchesList({ matches, memberId }: { matches: MatchData[]; membe
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">Your Matches</h1>
+        <p className="text-[10px] tracking-[0.2em] text-[#C8A84E]/40 uppercase mb-2">SUPERPOWER EXCHANGE</p>
+        <h1 className="text-2xl font-light tracking-tight text-white">Your Matches</h1>
         <p className="text-white/40 mt-1 text-sm">View and manage your superpower exchange matches.</p>
       </div>
 
@@ -102,7 +103,7 @@ export function MatchesList({ matches, memberId }: { matches: MatchData[]; membe
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-3 py-2 text-xs font-medium transition-colors border-b-2 -mb-[1px] ${
                 activeTab === tab
-                  ? "border-amber-400/60 text-white/80"
+                  ? "border-[#C8A84E]/60 text-white/80"
                   : "border-transparent text-white/30 hover:text-white/50"
               }`}>
               {tab === "ALL" ? "All" : STATUS_STYLES[tab]?.label || tab} ({count})
@@ -113,9 +114,10 @@ export function MatchesList({ matches, memberId }: { matches: MatchData[]; membe
 
       {/* Match Cards */}
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-12 text-center">
-          <p className="text-white/30 text-sm">No matches yet.</p>
-          <p className="text-white/20 text-xs mt-1">Matches will appear here once curated for you.</p>
+        <div className="relative rounded-xl border border-white/[0.06] bg-white/[0.02] p-12 text-center overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#C8A84E08_0%,_transparent_70%)]" />
+          <p className="relative text-white/30 text-sm">No matches yet.</p>
+          <p className="relative text-white/20 text-xs mt-1">Matches will appear here once curated for you.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -162,7 +164,7 @@ export function MatchesList({ matches, memberId }: { matches: MatchData[]; membe
                       {partner.jobTitle}{partner.company ? ` at ${partner.company}` : ""}
                     </p>
                     {partner.spDomain && (
-                      <p className="text-[11px] text-amber-400/40 mt-1">
+                      <p className="text-[11px] text-[#C8A84E]/40 mt-1">
                         Superpower: {partner.spDomain.split(",")[0]}
                         {partner.spAction ? ` — ${partner.spAction.split(",")[0]}` : ""}
                       </p>
@@ -181,7 +183,7 @@ export function MatchesList({ matches, memberId }: { matches: MatchData[]; membe
                       <>
                         <button onClick={() => respondToMatch(match.id, "ACCEPTED")}
                           disabled={responding === match.id}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 text-xs font-medium disabled:opacity-50">
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#C8A84E]/20 text-[#C8A84E]/70 hover:bg-[#C8A84E]/30 text-xs font-medium disabled:opacity-50">
                           <Check className="size-3.5" /> Accept
                         </button>
                         <button onClick={() => respondToMatch(match.id, "DECLINED")}

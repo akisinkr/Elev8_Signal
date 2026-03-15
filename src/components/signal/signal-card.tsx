@@ -1,8 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Users } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { ArrowUpRight, Check, Users } from "lucide-react";
 
 interface SignalCardProps {
   signalNumber: number;
@@ -20,8 +17,6 @@ export function SignalCard({
   question,
   category,
   totalVotes,
-  topAnswer,
-  publishedAt,
   hasVoted,
   email,
 }: SignalCardProps) {
@@ -31,52 +26,44 @@ export function SignalCard({
 
   return (
     <Link href={href} className="group block">
-      <Card
-        className={cn(
-          "relative overflow-hidden border-white/[0.06] bg-navy-light py-0 transition-all duration-300",
-          "hover:border-primary/30 hover:shadow-[0_0_24px_-6px_var(--color-electric)]",
-          hasVoted && "border-l-2 border-l-primary"
-        )}
+      <div
+        className={`relative rounded-xl border bg-white/[0.02] px-5 py-4 transition-all duration-300 hover:bg-white/[0.04] ${
+          hasVoted
+            ? "border-[#C8A84E]/15 hover:border-[#C8A84E]/25"
+            : "border-white/[0.06] hover:border-white/[0.12]"
+        }`}
       >
-        <CardContent className="flex flex-col gap-4 p-5">
-          {/* Top row: signal number + category */}
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[11px] font-medium tracking-widest text-muted-foreground/60 uppercase">
-              Signal {signalNumber}
+        {/* Top row: signal number + voted badge + category */}
+        <div className="flex items-center gap-2 mb-2.5">
+          <span className="text-[10px] tracking-[0.15em] uppercase text-[#C8A84E]/35">
+            Signal {signalNumber}
+          </span>
+          {hasVoted && (
+            <span className="flex items-center gap-1 text-[10px] text-[#C8A84E]/50">
+              <Check className="size-2.5" /> voted
             </span>
-            <Badge
-              variant="secondary"
-              className="bg-white/[0.06] text-[11px] font-normal text-muted-foreground"
-            >
-              {category}
-            </Badge>
-          </div>
+          )}
+          <span className="ml-auto text-[10px] tracking-[0.1em] uppercase text-white/20">
+            {category}
+          </span>
+        </div>
 
-          {/* Question — the hero of the card */}
-          <p className="line-clamp-2 text-[15px] font-medium leading-relaxed tracking-tight text-foreground/95">
+        {/* Question + footer in a row */}
+        <div className="flex items-start justify-between gap-4">
+          <p className="text-[15px] font-light leading-relaxed text-white/80 line-clamp-2 flex-1">
             {question}
           </p>
+          <ArrowUpRight className="size-3.5 mt-1 shrink-0 text-white/10 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#C8A84E]/50" />
+        </div>
 
-          {/* Top answer as a quiet pull-quote */}
-          <div className="rounded-lg bg-white/[0.03] px-3.5 py-2.5">
-            <p className="text-[13px] leading-snug text-muted-foreground">
-              <span className="mr-1 text-primary/70">Top answer:</span>
-              <span className="text-foreground/80">{topAnswer}</span>
-            </p>
-          </div>
-
-          {/* Footer: vote count + arrow */}
-          <div className="flex items-center justify-between pt-0.5">
-            <div className="flex items-center gap-1.5 text-muted-foreground/50">
-              <Users className="size-3" />
-              <span className="text-[11px] font-medium">
-                {totalVotes}
-              </span>
-            </div>
-            <ArrowUpRight className="size-3.5 text-muted-foreground/30 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary" />
-          </div>
-        </CardContent>
-      </Card>
+        {/* Footer: vote count */}
+        <div className="flex items-center gap-1.5 text-white/20 mt-3">
+          <Users className="size-3" />
+          <span className="text-[11px]">
+            {totalVotes} {totalVotes === 1 ? "vote" : "votes"}
+          </span>
+        </div>
+      </div>
     </Link>
   );
 }

@@ -62,12 +62,12 @@ export function SignalSuggestQuestion({ email, lang = "en" }: SignalSuggestQuest
   if (!isOpen) {
     return (
       <p className="text-center text-[12px] text-white/25">
-        {lang === "kr" ? "다음 Signal 질문이 있으신가요?" : "Have a question for next week's Signal?"}{" "}
+        {lang === "kr" ? "다음 Signal의 주제는 멤버가 결정합니다." : "Members shape what gets asked next."}{" "}
         <button
           onClick={() => setIsOpen(true)}
           className="text-[#C8A84E]/50 hover:text-[#C8A84E]/80 transition-colors"
         >
-          {lang === "kr" ? "제안하기 →" : "Suggest one →"}
+          {lang === "kr" ? "질문 제안하기 →" : "Submit yours →"}
         </button>
       </p>
     );

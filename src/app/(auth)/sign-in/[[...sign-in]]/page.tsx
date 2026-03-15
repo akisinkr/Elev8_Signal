@@ -155,12 +155,12 @@ export default function SignInPage() {
           {/* Header */}
           <div className="text-center space-y-1">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="h-px w-8 bg-primary/40" />
+              <div className="h-px w-8 bg-[#C8A84E]/30" />
               <div className="relative">
-                <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
-                <div className="relative size-2 rounded-full bg-primary" />
+                <span className="absolute inset-0 animate-ping rounded-full bg-[#C8A84E]/20" />
+                <div className="relative size-2 rounded-full bg-[#C8A84E]" />
               </div>
-              <div className="h-px w-8 bg-primary/40" />
+              <div className="h-px w-8 bg-[#C8A84E]/30" />
             </div>
             <h1 className="text-lg font-semibold text-foreground">
               {step === "email" ? "This week's Signal is live" : "Check your email"}
@@ -191,7 +191,7 @@ export default function SignInPage() {
                     className={cn(
                       "flex h-11 w-full rounded-xl border bg-background px-4 text-sm",
                       "placeholder:text-muted-foreground/50",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A84E]/40",
                       error ? "border-destructive" : "border-border"
                     )}
                   />
@@ -206,8 +206,8 @@ export default function SignInPage() {
                   disabled={sending || !email.trim()}
                   className={cn(
                     "w-full rounded-xl py-3 text-sm font-semibold transition-all",
-                    "bg-primary text-primary-foreground",
-                    "hover:bg-primary/90 active:scale-[0.98]",
+                    "bg-[#C8A84E] text-[#0A0F1C]",
+                    "hover:bg-[#C8A84E]/90 active:scale-[0.98]",
                     "disabled:opacity-50 disabled:cursor-not-allowed"
                   )}
                 >
@@ -231,9 +231,9 @@ export default function SignInPage() {
                       disabled={step === "verifying"}
                       className={cn(
                         "w-11 h-12 text-center text-lg font-mono rounded-xl border bg-background",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A84E]/40",
                         "transition-colors disabled:opacity-50",
-                        digit ? "border-primary/50 text-foreground" : "border-border text-foreground"
+                        digit ? "border-[#C8A84E]/40 text-foreground" : "border-border text-foreground"
                       )}
                     />
                   ))}
@@ -246,7 +246,7 @@ export default function SignInPage() {
                 {error && (
                   <p className={cn(
                     "text-center text-xs",
-                    error === "Code resent!" ? "text-primary" : "text-destructive"
+                    error === "Code resent!" ? "text-[#C8A84E]" : "text-destructive"
                   )}>
                     {error}
                   </p>
@@ -262,7 +262,7 @@ export default function SignInPage() {
                   <button
                     onClick={handleResend}
                     disabled={sending}
-                    className="text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+                    className="text-[#C8A84E]/70 hover:text-[#C8A84E] transition-colors disabled:opacity-50"
                   >
                     {sending ? "Sending..." : "Resend code"}
                   </button>
