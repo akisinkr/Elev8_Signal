@@ -16,8 +16,6 @@ interface SignalYourVsGroupProps {
   lang?: Lang;
 }
 
-const MIN_VOTES_FOR_PERCENTAGES = 10;
-
 export function SignalYourVsGroup({
   memberAnswer,
   topAnswer,
@@ -27,7 +25,6 @@ export function SignalYourVsGroup({
   lang = "en",
 }: SignalYourVsGroupProps) {
   const isMatch = memberAnswer?.key === topAnswer.key;
-  const showPercentages = totalVotes >= MIN_VOTES_FOR_PERCENTAGES;
 
   function getNarrative() {
     if (!memberAnswer) return null;
@@ -44,51 +41,32 @@ export function SignalYourVsGroup({
   const narrative = getNarrative();
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-lg border bg-card p-4 text-center">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            {tr("yourPick", lang)}
-          </p>
-          {memberAnswer ? (
-            <>
-              <p className="text-2xl font-bold text-primary">
-                {memberAnswer.key}
-              </p>
-              <p className="mt-1 text-sm text-foreground">
-                {memberAnswer.label}
-              </p>
-              {showPercentages && memberPercentage !== undefined && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {memberPercentage}% {tr("ofVotes", lang)}
-                </p>
-              )}
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">{tr("noVote", lang)}</p>
-          )}
+    <div className="space-y-4">
+      {/* Your answer — single compact line */}
+      {memberAnswer && (
+        <div className="flex items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#C8A84E]/15 text-[#C8A84E] text-sm font-medium">
+            {memberAnswer.key}
+          </span>
+          <div className="min-w-0">
+            <p className="text-[10px] tracking-[0.12em] uppercase text-white/30">
+              {tr("yourPick", lang)}
+            </p>
+            <p className="text-[14px] font-light text-white/70 leading-snug truncate">
+              {memberAnswer.label}
+            </p>
+          </div>
         </div>
+      )}
 
-        <div className="rounded-lg border bg-card p-4 text-center">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            {tr("groupConsensus", lang)}
-          </p>
-          <p className="text-2xl font-bold text-primary">{topAnswer.key}</p>
-          <p className="mt-1 text-sm text-foreground">{topAnswer.label}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {showPercentages && topPercentage !== undefined ? `${topPercentage}% · ` : ""}
-            {totalVotes} {tr("votes", lang)}
-          </p>
-        </div>
-      </div>
-
+      {/* Narrative */}
       {narrative && (
         <p
           className={cn(
-            "rounded-md px-3 py-2 text-center text-sm font-medium",
+            "rounded-xl px-4 py-2.5 text-center text-[13px] font-light",
             isMatch
-              ? "bg-primary/10 text-primary"
-              : "bg-muted text-foreground"
+              ? "bg-[#C8A84E]/10 text-[#C8A84E]/80 border border-[#C8A84E]/15"
+              : "bg-white/[0.03] text-white/50 border border-white/[0.06]"
           )}
         >
           {narrative}
