@@ -72,7 +72,9 @@ export async function POST(
       superpower: buildSuperpowerLine(m),
       canHelpWith: buildCanHelpWith(m),
       spScale: m.spScale ?? null,
+      spStage: m.spStage ?? null,
       challengeSpec1: m.challengeSpec1 ?? null,
+      elev8Titles: (m.elev8Titles as string[]) ?? [],
     }));
 
     return NextResponse.json({
@@ -113,10 +115,11 @@ async function findSuperpowerMatches(excludeMemberId: string, challengeType: str
       spDomain: true,
       spAction: true,
       spScale: true,
+      spStage: true,
       spGeo: true,
       challengeType1: true,
       challengeSpec1: true,
-      // included for profile sheet
+      elev8Titles: true,
     },
   });
 

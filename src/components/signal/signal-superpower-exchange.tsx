@@ -15,7 +15,9 @@ interface SuperpowerMember {
   superpower: string;
   canHelpWith: string;
   spScale: string | null;
+  spStage: string | null;
   challengeSpec1: string | null;
+  elev8Titles: string[];
 }
 
 interface SignalSuperpowerExchangeProps {
@@ -29,47 +31,45 @@ interface SignalSuperpowerExchangeProps {
 type Stage = 1 | 2 | 3;
 
 // ─────────────────────────────────────────────
-// Copy — cognitive-psychology + culture-agent + ux-design doctrine
+// Copy
 //
-// STAGE 1 — Status Affirmation
-//   Affirm before asking for vulnerability.
-//   Loss aversion: rarity = value, not a gap.
+// STAGE 1 — Status Affirmation + Room Quality
+//   Affirm the member's position, then affirm the room.
+//   "Every leader here was personally invited" = ambient trust.
 //
 // STAGE 2 — Leader Browse (tap card → profile sheet)
-//   "Browsing expertise" framing, not "searching for help".
-//   No CTA button on the list — action lives inside the profile sheet.
-//   This enforces: see the person first, then decide. Deliberate choice.
+//   Cards show elev8Titles as credibility badges.
 //
-// PROFILE SHEET — Full expertise view
-//   Leads with expertise (ux-design: "lead with superpower, not person")
-//   "Request Exchange" CTA is here — earned after seeing the profile.
-//   "Both sides visible" — canHelpWith + challengeSpec1 normalizes vulnerability.
+// PROFILE SHEET — Expertise + Context + Challenge
+//   Leads with superpower. Challenge humanizes.
+//   Trust line above CTA: "personally facilitated."
 //
 // STAGE 3 — Confirmation
-//   Platform takes ownership. Passive voice in KR → protects 체면.
+//   Platform takes ownership. Passive voice in KR → 체면.
 //
 // KR: -요체 throughout. Re-creation, not translation.
 // ─────────────────────────────────────────────
 
 const COPY = {
   en: {
-    s1Label: "Your Signal contribution",
+    s1Label: "Superpower Exchange",
     s1Heading: "Your read on this is uncommon.",
     s1Sub:
-      "Your position on this question places you in a distinct minority of this week's respondents. That's not a gap — that's a vantage point worth pressure-testing with someone who's navigated it differently.",
-    s1Social: (n: number) => `${n} members requested exchanges on this topic this month.`,
+      "Among this week's respondents, your position stands apart. Every leader on Elev8 was personally invited — you're browsing peers who've navigated this from a different vantage point.",
+    s1Social: (n: number) => `${n} exchanges requested this month`,
     s1Cta: "See who else is navigating this",
 
-    s2Label: "Members navigating this from a different vantage point",
-    s2Social: (n: number) => `${n} members requested exchanges on this topic this month.`,
+    s2Label: "Invited leaders with a different vantage point",
+    s2Social: (n: number) => `${n} exchanges requested this month`,
     s2Tap: "Tap to view profile",
 
     sheetExpertise: "Expertise",
-    sheetCanHelpWith: "What they can help with",
     sheetContext: "Context",
+    sheetChallenge: "Currently navigating",
     sheetCta: "Request Exchange",
     sheetSending: "Requesting...",
     sheetBack: "Back to all leaders",
+    sheetTrust: "Elev8 introductions are personally facilitated. Typical exchange: 30-minute conversation.",
 
     s3Heading: "Exchange requested.",
     s3Sub: "Elev8 will make the introduction personally. We'll be in touch within 24 hours.",
@@ -77,30 +77,39 @@ const COPY = {
     yourPerspective: "Your perspective",
   },
   kr: {
-    s1Label: "이번 Signal 응답",
+    s1Label: "슈퍼파워 익스체인지",
     s1Heading: "이 문제에 대한 시각, 흔하지 않습니다.",
     s1Sub:
-      "이번 질문에서 당신의 좌표는 소수에 속합니다. 부족함이 아닙니다 — 같은 지형을 다른 경로로 탐색해온 리더와 맞닿을 때 그 가치가 드러나는 관점이에요.",
-    s1Social: (n: number) => `이번 달 ${n}명의 멤버가 이 주제로 익스체인지를 신청했습니다.`,
+      "이번 질문에서 당신의 좌표는 소수에 속합니다. Elev8의 모든 리더는 개별 초대를 통해 합류했습니다 — 같은 지형을 다른 경로로 탐색해온 동료를 만나보세요.",
+    s1Social: (n: number) => `이번 달 ${n}건의 익스체인지 신청`,
     s1Cta: "같은 지형을 탐색하는 리더 보기",
 
-    s2Label: "같은 지형, 다른 좌표에서 온 리더들",
-    s2Social: (n: number) => `이번 달 ${n}명이 이 주제로 익스체인지를 신청했습니다.`,
+    s2Label: "다른 좌표에서 온 초대된 리더들",
+    s2Social: (n: number) => `이번 달 ${n}건의 익스체인지 신청`,
     s2Tap: "프로필 보기",
 
     sheetExpertise: "전문 분야",
-    sheetCanHelpWith: "도움이 될 수 있는 영역",
     sheetContext: "경험 맥락",
+    sheetChallenge: "현재 탐색 중인 과제",
     sheetCta: "익스체인지 신청하기",
     sheetSending: "신청 중...",
     sheetBack: "전체 리더 보기",
+    sheetTrust: "Elev8이 직접 연결해 드립니다. 일반적인 익스체인지는 30분 대화입니다.",
 
-    // ─ 수동태: Elev8이 행동, 멤버는 받는 쪽 → 체면 유지
     s3Heading: "익스체인지가 신청되었습니다.",
     s3Sub: "Elev8이 직접 연결해 드립니다. 24시간 이내에 연락드릴게요.",
 
     yourPerspective: "나의 관점",
   },
+};
+
+// Title display map
+const TITLE_LABELS: Record<string, string> = {
+  architect: "Architect",
+  advisor: "Advisor",
+  connector: "Connector",
+  strategist: "Strategist",
+  operator: "Operator",
 };
 
 // ─────────────────────────────────────────────
@@ -169,8 +178,8 @@ export function SignalSuperpowerExchange({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/[0.03] to-transparent p-6">
-        <div className="h-5 w-40 rounded bg-muted animate-pulse" />
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6">
+        <div className="h-5 w-40 rounded bg-white/[0.04] animate-pulse" />
       </div>
     );
   }
@@ -179,60 +188,47 @@ export function SignalSuperpowerExchange({
 
   return (
     <>
-      <div className="rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/[0.03] to-transparent overflow-hidden">
-
-        {/* ── Step indicator ─────────────────────────────────────────── */}
-        <div className="flex items-center justify-center gap-1.5 pt-5 pb-0">
-          {([1, 2, 3] as Stage[]).map((s) => (
-            <span
-              key={s}
-              className={cn(
-                "size-2 rounded-full transition-colors duration-200",
-                s === stage ? "bg-primary" : "bg-muted"
-              )}
-            />
-          ))}
-        </div>
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
 
         {/* ── Stage 1: Status Affirmation ──────────────────────────── */}
         {stage === 1 && (
           <div className="p-6 space-y-4">
             {memberAnswer && memberAnswerLabel && (
-              <div className="rounded-xl bg-card border border-border/60 px-4 py-3">
-                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+              <div className="rounded-xl bg-white/[0.03] border border-white/[0.08] px-4 py-3">
+                <p className="text-[10px] tracking-[0.12em] uppercase text-white/30 mb-1.5">
                   {txt.yourPerspective}
                 </p>
                 <div className="flex items-center gap-3">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-[#C8A84E]/15 text-[#C8A84E] text-xs font-medium">
                     {memberAnswer}
                   </span>
-                  <p className="text-sm text-foreground">{memberAnswerLabel}</p>
+                  <p className="text-sm font-light text-white/70">{memberAnswerLabel}</p>
                 </div>
               </div>
             )}
 
             <div className="space-y-2">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+              <p className="text-[10px] tracking-[0.12em] uppercase text-[#C8A84E]/50">
                 {txt.s1Label}
               </p>
-              <h3 className="text-lg font-semibold text-foreground leading-snug">
+              <h3 className="text-lg font-light text-white/80 leading-snug">
                 {txt.s1Heading}
               </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-[14px] font-light text-white/50 leading-relaxed">
                 {txt.s1Sub}
               </p>
             </div>
 
             {exchangeCount > 0 && (
               <div className="flex items-center gap-2">
-                <Users className="size-3.5 text-muted-foreground/60 shrink-0" />
-                <p className="text-xs text-muted-foreground">{txt.s1Social(exchangeCount)}</p>
+                <Users className="size-3.5 text-white/25 shrink-0" />
+                <p className="text-xs text-white/30">{txt.s1Social(exchangeCount)}</p>
               </div>
             )}
 
             <button
               onClick={() => setStage(2)}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-4 text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#C8A84E] text-[#0A0F1C] py-4 text-sm font-medium hover:bg-[#C8A84E]/90 active:scale-[0.98] transition-all"
             >
               {txt.s1Cta}
               <ArrowRight className="size-4" />
@@ -241,18 +237,16 @@ export function SignalSuperpowerExchange({
         )}
 
         {/* ── Stage 2: Leader Browse ────────────────────────────────── */}
-        {/* Tap a card → opens profile sheet. No CTA here — action is in the sheet.  */}
-        {/* This enforces deliberate choice: see the person before requesting.         */}
         {stage === 2 && (
           <div className="p-6 space-y-4">
             <div className="space-y-1.5">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+              <p className="text-[10px] tracking-[0.12em] uppercase text-[#C8A84E]/50">
                 {txt.s2Label}
               </p>
               {exchangeCount > 0 && (
                 <div className="flex items-center gap-2">
-                  <Users className="size-3.5 text-muted-foreground/60 shrink-0" />
-                  <p className="text-xs text-muted-foreground">{txt.s2Social(exchangeCount)}</p>
+                  <Users className="size-3.5 text-white/25 shrink-0" />
+                  <p className="text-xs text-white/30">{txt.s2Social(exchangeCount)}</p>
                 </div>
               )}
             </div>
@@ -263,40 +257,51 @@ export function SignalSuperpowerExchange({
                   key={member.id}
                   type="button"
                   onClick={() => setSheetMember(member)}
-                  className="flex w-full items-center gap-4 rounded-xl border-2 border-border/60 bg-card p-4 text-left transition-all hover:border-muted-foreground/30 active:scale-[0.98]"
+                  className="flex w-full items-center gap-4 rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 text-left transition-all hover:border-[#C8A84E]/15 hover:bg-white/[0.05] active:scale-[0.98]"
                 >
-                  <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-muted font-bold text-sm text-muted-foreground">
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#C8A84E]/10 font-medium text-sm text-[#C8A84E]/70">
                     {member.initial}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{member.headline}</p>
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">{member.superpower}</p>
+                    <p className="text-sm font-light text-white/70 truncate">{member.headline}</p>
+                    <p className="text-xs text-white/40 truncate mt-0.5 uppercase tracking-wide">{member.superpower}</p>
+                    {/* Elev8 title badges */}
+                    {member.elev8Titles?.length > 0 && (
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        {member.elev8Titles.slice(0, 2).map((title) => (
+                          <span
+                            key={title}
+                            className="inline-flex items-center rounded-full bg-[#C8A84E]/10 px-2 py-0.5 text-[9px] tracking-[0.08em] uppercase text-[#C8A84E]/60"
+                          >
+                            {TITLE_LABELS[title] || title}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <ChevronRight className="size-4 shrink-0 text-muted-foreground/40" />
+                  <ChevronRight className="size-4 shrink-0 text-white/20" />
                 </button>
               ))}
             </div>
 
-            <p className="text-center text-xs text-muted-foreground/60">{txt.s2Tap}</p>
+            <p className="text-center text-xs text-white/25">{txt.s2Tap}</p>
           </div>
         )}
 
         {/* ── Stage 3: Confirmation ────────────────────────────────────── */}
         {stage === 3 && (
           <div className="p-8 flex flex-col items-center gap-3 text-center">
-            <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-              <CheckCircle2 className="size-6 text-primary" />
+            <div className="flex size-12 items-center justify-center rounded-full bg-[#C8A84E]/10">
+              <CheckCircle2 className="size-6 text-[#C8A84E]/60" />
             </div>
-            <h3 className="text-base font-semibold text-foreground">{txt.s3Heading}</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">{txt.s3Sub}</p>
+            <h3 className="text-base font-light text-white/80">{txt.s3Heading}</h3>
+            <p className="text-[14px] font-light text-white/50 leading-relaxed max-w-xs">{txt.s3Sub}</p>
           </div>
         )}
 
       </div>
 
       {/* ── Profile Sheet ─────────────────────────────────────────────── */}
-      {/* Fixed overlay — escapes overflow:hidden, works on all devices   */}
-      {/* Lead with expertise (ux-design), both sides visible (psychology) */}
       {sheetMember && (
         <div className="fixed inset-0 z-50 flex items-end">
           {/* Backdrop */}
@@ -306,74 +311,83 @@ export function SignalSuperpowerExchange({
           />
 
           {/* Sheet */}
-          <div className="relative w-full max-h-[85vh] overflow-y-auto rounded-t-2xl bg-background border-t border-border/60 pb-safe">
+          <div className="relative w-full max-h-[85vh] overflow-y-auto rounded-t-2xl bg-[#0A0F1C] border-t border-white/[0.06] pb-safe">
 
             {/* Handle + close */}
             <div className="flex items-center justify-between px-6 pt-4 pb-2">
-              <div className="w-10 h-1 rounded-full bg-muted mx-auto absolute left-1/2 -translate-x-1/2 top-3" />
+              <div className="w-10 h-1 rounded-full bg-white/[0.08] mx-auto absolute left-1/2 -translate-x-1/2 top-3" />
               <div />
               <button
                 onClick={() => setSheetMember(null)}
-                className="ml-auto flex size-8 items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
+                className="ml-auto flex size-8 items-center justify-center rounded-full bg-white/[0.06] hover:bg-white/[0.10] transition-colors"
               >
-                <X className="size-4 text-muted-foreground" />
+                <X className="size-4 text-white/40" />
               </button>
             </div>
 
             <div className="px-6 pb-8 space-y-5">
-              {/* Avatar + role */}
+              {/* Avatar + role + titles */}
               <div className="flex items-center gap-4">
-                <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-lg text-primary">
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#C8A84E]/10 font-medium text-lg text-[#C8A84E]/70">
                   {sheetMember.initial}
                 </div>
-                <div>
-                  <p className="text-base font-semibold text-foreground">{sheetMember.headline}</p>
+                <div className="min-w-0">
+                  <p className="text-base font-light text-white/80">{sheetMember.headline}</p>
+                  {sheetMember.elev8Titles?.length > 0 && (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      {sheetMember.elev8Titles.slice(0, 3).map((title) => (
+                        <span
+                          key={title}
+                          className="inline-flex items-center rounded-full bg-[#C8A84E]/10 px-2 py-0.5 text-[9px] tracking-[0.08em] uppercase text-[#C8A84E]/60"
+                        >
+                          {TITLE_LABELS[title] || title}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Expertise — lead with superpower, not biography */}
+              {/* Expertise */}
               <div className="space-y-1.5">
-                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                <p className="text-[10px] tracking-[0.12em] uppercase text-[#C8A84E]/50">
                   {txt.sheetExpertise}
                 </p>
-                <p className="text-sm text-foreground leading-relaxed">{sheetMember.superpower}</p>
+                <p className="text-[14px] font-light text-white/70 leading-relaxed uppercase tracking-wide">{sheetMember.superpower}</p>
               </div>
 
-              {/* What they can help with */}
-              {sheetMember.canHelpWith && (
+              {/* Context — scale + stage */}
+              {(sheetMember.spScale || sheetMember.spStage) && (
                 <div className="space-y-1.5">
-                  <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                    {txt.sheetCanHelpWith}
+                  <p className="text-[10px] tracking-[0.12em] uppercase text-[#C8A84E]/50">
+                    {txt.sheetContext}
                   </p>
-                  <p className="text-sm text-foreground leading-relaxed">{sheetMember.canHelpWith}</p>
+                  <p className="text-[14px] font-light text-white/70 uppercase tracking-wide">
+                    {[sheetMember.spScale, sheetMember.spStage].filter(Boolean).join(" · ")}
+                  </p>
                 </div>
               )}
 
-              {/* Context — scale or challenge navigated */}
-              {(sheetMember.spScale || sheetMember.challengeSpec1) && (
+              {/* Challenge — humanizes, builds empathy */}
+              {sheetMember.challengeSpec1 && (
                 <div className="space-y-1.5">
-                  <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                    {txt.sheetContext}
+                  <p className="text-[10px] tracking-[0.12em] uppercase text-[#C8A84E]/50">
+                    {txt.sheetChallenge}
                   </p>
-                  <div className="space-y-1">
-                    {sheetMember.spScale && (
-                      <p className="text-sm text-foreground">{sheetMember.spScale}</p>
-                    )}
-                    {sheetMember.challengeSpec1 && (
-                      <p className="text-sm text-muted-foreground">{sheetMember.challengeSpec1}</p>
-                    )}
-                  </div>
+                  <p className="text-[14px] font-light text-white/60 leading-relaxed italic">
+                    {sheetMember.challengeSpec1}
+                  </p>
                 </div>
               )}
 
               {/* Divider */}
-              <div className="h-px bg-border/60" />
+              <div className="h-px bg-white/[0.06]" />
 
-              {/* CTA — earned after seeing the profile */}
+              {/* CTA */}
               <button
                 onClick={() => handleRequestExchange(sheetMember.id)}
                 disabled={submitting}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-4 text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#C8A84E] text-[#0A0F1C] py-4 text-sm font-medium hover:bg-[#C8A84E]/90 active:scale-[0.98] transition-all disabled:opacity-30"
               >
                 {submitting ? txt.sheetSending : (
                   <>
@@ -383,10 +397,15 @@ export function SignalSuperpowerExchange({
                 )}
               </button>
 
+              {/* Trust line — ambient confidence */}
+              <p className="text-center text-[11px] text-white/20 leading-relaxed">
+                {txt.sheetTrust}
+              </p>
+
               {/* Back link */}
               <button
                 onClick={() => setSheetMember(null)}
-                className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
+                className="w-full text-center text-sm text-white/30 hover:text-white/50 transition-colors py-1"
               >
                 ← {txt.sheetBack}
               </button>
