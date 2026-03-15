@@ -3,7 +3,6 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Lightbulb } from "lucide-react";
 import type { Lang } from "@/lib/signal-translations";
 import { tr } from "@/lib/signal-translations";
 
@@ -37,16 +36,16 @@ export function SignalSuggestQuestion({ email, lang = "en" }: SignalSuggestQuest
 
       if (!res.ok) {
         const data = await res.json();
-        toast.error(data.error || (lang === "kr" ? "제출에 실패했습니다." : "Failed to submit suggestion"));
+        toast.error(data.error || (lang === "kr" ? "제출에 실패했습니다." : "Failed to submit"));
         return;
       }
 
-      toast.success(lang === "kr" ? "질문을 제안해 주셔서 감사합니다." : "Question submitted! We'll review it soon.");
+      toast.success(lang === "kr" ? "질문을 제안해 주셔서 감사합니다." : "Question submitted!");
       setSubmitted(true);
       setQuestion("");
       setContext("");
     } catch {
-      toast.error(lang === "kr" ? "문제가 발생했습니다. 다시 시도해 주세요." : "Something went wrong. Please try again.");
+      toast.error(lang === "kr" ? "문제가 발생했습니다." : "Something went wrong.");
     } finally {
       setIsSubmitting(false);
     }
@@ -54,91 +53,43 @@ export function SignalSuggestQuestion({ email, lang = "en" }: SignalSuggestQuest
 
   if (submitted) {
     return (
-      <div className="rounded-lg border bg-card p-6 text-center">
-        <Lightbulb className="mx-auto size-6 text-primary" />
-        <p className="mt-2 text-sm font-medium">{tr("suggestThanks", lang)}</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {tr("suggestThanksBody", lang)}
-        </p>
-      </div>
+      <p className="text-center text-[12px] text-white/25">
+        {tr("suggestThanks", lang)}
+      </p>
     );
   }
 
   if (!isOpen) {
     return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="group w-full rounded-2xl border border-primary/20 bg-primary/[0.06] p-6 text-center transition-all hover:border-primary/40 hover:bg-primary/[0.1] hover:shadow-[0_0_24px_-6px_var(--color-electric)]"
-      >
-        <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/15 transition-transform group-hover:scale-110">
-          <Lightbulb className="size-6 text-primary" />
-        </div>
-        <p className="mt-3 text-base font-semibold text-foreground">
-          {tr("suggestShapeNext", lang)}
-        </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {tr("suggestSubtitle", lang)}
-        </p>
-        <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
-          {tr("suggestCTA", lang)}
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
-        </span>
-      </button>
+      <p className="text-center text-[12px] text-white/25">
+        {lang === "kr" ? "다음 Signal 질문이 있으신가요?" : "Have a question for next week's Signal?"}{" "}
+        <button
+          onClick={() => setIsOpen(true)}
+          className="text-[#C8A84E]/50 hover:text-[#C8A84E]/80 transition-colors"
+        >
+          {lang === "kr" ? "제안하기 →" : "Suggest one →"}
+        </button>
+      </p>
     );
   }
 
   return (
-    <div className="rounded-lg border bg-card p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Lightbulb className="size-4 text-primary" />
-        <h3 className="text-sm font-semibold">{tr("suggestTitle", lang)}</h3>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="suggest-question" className="text-xs font-medium">
-            {tr("suggestQuestionLabel", lang)}
-          </label>
-          <textarea
-            id="suggest-question"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder={tr("suggestQuestionPlaceholder", lang)}
-            maxLength={500}
-            rows={3}
-            className={cn(
-              "flex w-full rounded-lg border bg-background px-3 py-2 text-sm",
-              "placeholder:text-muted-foreground resize-none",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            )}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="suggest-context" className="text-xs font-medium">
-            {tr("suggestWhyLabel", lang)}{" "}
-            <span className="text-muted-foreground">({tr("suggestWhyOptional", lang)})</span>
-          </label>
-          <textarea
-            id="suggest-context"
-            value={context}
-            onChange={(e) => setContext(e.target.value)}
-            placeholder={tr("suggestWhyPlaceholder", lang)}
-            maxLength={300}
-            rows={2}
-            className={cn(
-              "flex w-full rounded-lg border bg-background px-3 py-2 text-sm",
-              "placeholder:text-muted-foreground resize-none",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            )}
-          />
-        </div>
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <textarea
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder={tr("suggestQuestionPlaceholder", lang)}
+          maxLength={500}
+          rows={2}
+          className="flex w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-2.5 text-sm text-white/70 placeholder:text-white/20 resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A84E]/20 focus-visible:border-[#C8A84E]/20"
+        />
 
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="rounded-xl px-4 py-2 text-[13px] text-white/30 hover:text-white/50 transition-colors"
           >
             {tr("suggestCancel", lang)}
           </button>
@@ -146,10 +97,10 @@ export function SignalSuggestQuestion({ email, lang = "en" }: SignalSuggestQuest
             type="submit"
             disabled={!question.trim() || isSubmitting}
             className={cn(
-              "flex-1 rounded-lg py-2 text-sm font-semibold transition-all",
-              "bg-primary text-primary-foreground",
-              "hover:bg-primary/90 active:scale-[0.98]",
-              "disabled:opacity-50 disabled:cursor-not-allowed"
+              "flex-1 rounded-xl py-2.5 text-sm font-medium transition-all",
+              "bg-[#C8A84E] text-[#0A0F1C]",
+              "hover:bg-[#C8A84E]/90",
+              "disabled:opacity-30"
             )}
           >
             {isSubmitting ? tr("suggestSubmitting", lang) : tr("suggestSubmit", lang)}
